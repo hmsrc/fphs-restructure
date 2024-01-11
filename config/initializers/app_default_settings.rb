@@ -12,6 +12,8 @@ class DefaultSettings
               '(not set)'
             end
   AdminEmail = 'admin@restructure'
+  NotificationsFromEmail = 'notifications@restructure'
+  FailureNotificationsToEmail = 'sysadmin@restructure'
   DefaultLogo = 'app_logo.jpg'
   DefaultSchemaOwner = 'fphs'
   TwoFactorAuthIssuer = 'FPHS Apps'

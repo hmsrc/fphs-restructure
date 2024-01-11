@@ -13,6 +13,8 @@ _fpa.app_specific = class {
     processor.reformat_page()
     processor.handle_part()
     processor.handle_embedded_links()
+    processor.handle_glyphicons()
+    processor.handle_extra_substitutions()
 
     // Process any blocks it contains that have the class use-config-layout
     // which is typical when loading a list of pages
@@ -133,22 +135,22 @@ _fpa.app_specific = class {
     // Add the icon
     block
       .find('.object-results-header .list-group-item-heading')
-      .before('<a class="dynamic-show-label glyphicon glyphicon-triangle-bottom"></a>')
+      .before('<a class="dynamic-show-label glyphicon glyphicon-triangle-right"></a>')
 
     // Add the click handler
     block.on('click', '.dynamic-show-label', function (e) {
-      if ($(this).hasClass('glyphicon-triangle-bottom')) {
+      if ($(this).hasClass('glyphicon-triangle-right')) {
         // Not expanded
 
         processor.block.addClass('page-was-expanded')
-        $(this).addClass('glyphicon-triangle-top')
-        $(this).removeClass('glyphicon-triangle-bottom')
+        $(this).addClass('glyphicon-triangle-bottom')
+        $(this).removeClass('glyphicon-triangle-right')
         processor.load_referenced_parts()
       } else {
         // Is expanded
         processor.block.removeClass('page-was-expanded')
-        $(this).addClass('glyphicon-triangle-bottom')
-        $(this).removeClass('glyphicon-triangle-top')
+        $(this).addClass('glyphicon-triangle-right')
+        $(this).removeClass('glyphicon-triangle-bottom')
       }
 
       e.preventDefault()
@@ -163,6 +165,8 @@ _fpa.app_specific = class {
     var processor = this
     var block = this.block
 
+    if (block.parents('#standalone-page').length === 0) return
+
     block.find('a[href$="#page_embed"]').each(function () {
       var url = $(this).attr('href').replace('#page_embed', '')
       var url_split = url.split('/')
@@ -174,7 +178,13 @@ _fpa.app_specific = class {
         pre = 'activity_log'
       }
 
+      var auto = $(this).text() === 'AUTO'
+      if (auto) {
+        $(this).addClass('hidden auto-run-page-embed')
+      }
+
       var block_id = `${hyph_name}--${id}`
+      var link_id = `link-page-embed-${block_id}`
 
       $(this)
         .attr('data-remote', true)
@@ -182,20 +192,68 @@ _fpa.app_specific = class {
         .attr(`data-${hyph_name}-id`, id)
         .attr('data-result-target', `#${block_id}`)
         .attr('data-template', `${hyph_name}-result-template`)
+        .attr('data-target', `#${block_id}`)
+        .attr('data-toggle', 'scrollto-target')
+        .attr('data-preprocessor', 'load_columns')
+        .attr('id', link_id)
 
       var text = $(this).parents('.notes-text')
       var html = text.html()
       if (!html) return
 
+      $('.postprocessed-scroll-here').removeClass('postprocessed-scroll-here')
+
       var new_div = `<div id="${block_id}"
-      class="page-embedded-block"
-      data-preprocessor="${pre}_edit_form"
+      class="page-embedded-block force-logs-container-to-first-master-result auto-show-first-creatable hide-activity-logs-header show-only-single-item"
       data-model-name="${hyph_name.underscore()}" 
       data-id="${id}"
-      data-result-target-for-child="#${block_id}"></div>`
+      data-result-target-for-child="#${block_id}"
+      data-ignore-no-load="true"
+      data-linked-from="#${link_id}"
+      data-preprocessor="page_embed_activity_log_block"
+      data-add-postprocessor="true"
+      ></div>`
 
       var new_html = html.replace('{{page_embedded_block}}', new_div)
       text.html(new_html)
     })
+
+    window.setTimeout(function () {
+      block.find('a[href$="#page_embed"]').each(function () {
+        if ($(this).hasClass('auto-run-page-embed')) $(this).click()
+      })
+    }, 100)
+
+  }
+
+  handle_glyphicons() {
+    const processor = this
+    const block = this.block
+    if (block.find('.custom-editor-container').length) return
+
+    var text = block.html()
+    var res = text.match(/{{glyphicon_[a-z_]+}}/g)
+
+    if (!res || res.length < 1) return
+
+    res.forEach(function (el) {
+      const gi = el.replaceAll('_', '-').replaceAll('{{', '').replaceAll('}}', '')
+      text = text.replaceAll(el, `<i class="glyphicon ${gi}"></i>`)
+    })
+
+    block.html(text)
+  }
+
+  handle_extra_substitutions() {
+    const processor = this
+    const block = this.block
+    if (block.find('.custom-editor-container').length) return
+
+    var text = block.html()
+    var newtext = text.replaceAll('USER_PROFILE_ID',
+      _fpa.state.current_user.id || _fpa.state.current_user_preference.user_id)
+    if (text == newtext) return
+
+    block.html(newtext)
   }
 }
