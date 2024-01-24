@@ -2,13 +2,13 @@
 
 In order to use the Data Requests App, the requester must first have an account created on the app. This will provide them a username and password for login and authorization to use the Data Requests App. An account can be requested by completing the form:
 
-[https://forms.gle/YAPu7fUK3sgxnsY66](https://www.google.com/url?q=https://forms.gle/YAPu7fUK3sgxnsY66&sa=D&source=editors&ust=1621003310365000&usg=AOvVaw1BliprUpvIP1lWxlH4oRsi)
+[https://forms.gle/YAPu7fUK3sgxnsY66](https://forms.gle/YAPu7fUK3sgxnsY66)
 
 NOTE: FPHS users of the Athena apps, such as IPA, Sleep Study, GRIT and PITT BHI will use their existing Athena username and password. They must still request access to the Data Request App through the previous link.
 
 ## Logging In
 
-Login to the Data Requests App by browsing to: [https://athena-web.fphs.link](https://www.google.com/url?q=https://athena-web.fphs.link&sa=D&source=editors&ust=1621003310367000&usg=AOvVaw2pHqzg_rXZiMnnLpF_hzhS)
+Login to the Data Requests App by browsing to: [https://fphsportal.net](https://fphsportal.net)
 
 A simple login form will be displayed. You will need to enter your username and password to continue, then on the next page you will separately enter your two-factor authentication code (**except for the [first time that you login](#first-login)**).
 
