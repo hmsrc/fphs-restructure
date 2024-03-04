@@ -14,6 +14,7 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Upgrade] to Ruby 3.2.2
 - [Build] locally
 
 ## [8.6.1] - 2024-03-04
@@ -26,14 +27,6 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
   - CVE-2024-26141
   - CVE-2024-26146
   - CVE-2024-27285
-
-## [8.4.5] - 2024-02-01
-
-- [Upgrade] to Ruby 3.2.2
-- [Changed] email notification of job failure to link to the job
-- [Added] delete failed jobs and find job in admin form
-- [Refactored] implementation of job searches and Delayed::Job initialization
-- [Bumped] version
 
 ## [8.5.2] - 2024-02-21
 
