@@ -12,10 +12,21 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
 
-- [Upgrade] to Ruby 3.2.2
 - [Build] locally
+
+## [8.6.3] - 2024-03-07
+
+- [Fixed] incorrect matching dynamic models on name. Use table_name instead.
+
+## [8.6.2] - 2024-03-06
+
+- [Fixed] parallel tests and specs
+- [Fixed] various rspec issues
+- [Changed] the naming of Redcap project dynamic models to be more human - fixes #276
+- [Fixed] to raise an exception if a nfs store container directory already exists
+- [Fixed] Redcap pull updating all records if there are empty `<vars>_chosen_array` fields - fixes #289
 
 ## [8.6.1] - 2024-03-04
 

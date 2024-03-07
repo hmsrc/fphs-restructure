@@ -98,18 +98,7 @@ include BrowserHelper
 
 setup_browser unless ENV['SKIP_BROWSER_SETUP']
 SetupHelper.clean_conflicting_activity_logs
-SetupHelper.clean_nfs_store_directories
-
-FileUtils.rm_rf NfsStore::Manage::Filesystem.nfs_store_directory
-FileUtils.rm_rf NfsStore::Manage::Filesystem.temp_directory
-FileUtils.mkdir_p NfsStore::Manage::Filesystem.nfs_store_directory
-FileUtils.mkdir_p NfsStore::Manage::Filesystem.temp_directory
-
-
-FileUtils.rm_rf NfsStore::Manage::Filesystem.nfs_store_directory
-FileUtils.rm_rf NfsStore::Manage::Filesystem.temp_directory
-FileUtils.mkdir_p NfsStore::Manage::Filesystem.nfs_store_directory
-FileUtils.mkdir_p NfsStore::Manage::Filesystem.temp_directory
+SetupHelper.setup_nfs_directories
 
 `mkdir -p db/app_migrations/redcap_test; rm -f db/app_migrations/redcap_test/*test_*.rb`
 `mkdir -p db/app_migrations/imports_test; rm -f db/app_migrations/imports_test/*test_imports*.rb`
