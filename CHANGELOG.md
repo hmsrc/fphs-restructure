@@ -12,7 +12,11 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
+
+- [Fixed] report not able to show tags in results correctly
+
+## [8.6.5] - 2024-03-18
 
 - [Changed] styles for e-sign and general forms
 - [Added] auto creation of signature document when activity created through create_reference save trigger
