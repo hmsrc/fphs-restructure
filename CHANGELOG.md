@@ -12,7 +12,17 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
+
+- [Changed] styles for e-sign and general forms
+- [Added] auto creation of signature document when activity created through create_reference save trigger
+- [Changed] e-signatures to allow a plain document to be created for signature - fixes #299
+- [Fixed] bug trying to singularize configuration keys in e_sign setup
+- [Added] auto creation of signature document when activity created through create_reference save trigger
+- [Changed] styles for e-sign and general forms
+- [Added] automatically select user date/time preferences based on user browser locale at registration - from pull request #284, issue #135
+
+## [8.6.4] - 2024-03-07
 
 - [Changed] e-signatures to allow a plain document to be created for signature - fixes #299
 - [Fixed] bug trying to singularize configuration keys in e_sign setup
