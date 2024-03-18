@@ -20,7 +20,7 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 - [Fixed] bug trying to singularize configuration keys in e_sign setup
 - [Added] auto creation of signature document when activity created through create_reference save trigger
 - [Changed] styles for e-sign and general forms
-- [Added] automatically select user date/time preferences based on user browser locale at registration - from pull request #284
+- [Added] automatically select user date/time preferences based on user browser locale at registration - from pull request #284, issue #135
 
 ## [8.6.4] - 2024-03-07
 
