@@ -437,7 +437,12 @@ class Admin
     # @param [Hash] item_identifiers
     # @return [Hash] of changes
     def updated_hash(orig_obj, item_identifiers)
-      unless orig_obj.saved_changes? || orig_obj.previous_changes.length == 1 && orig_obj.previous_changes['updated_at']
+      # If we have saved any changes, and either we changed more than one attribute or
+      # the attribute changed wasn't just update_at,
+      # then return the details.
+      unless orig_obj.saved_changes? &&
+             (orig_obj.previous_changes.length > 1 || orig_obj.previous_changes['updated_at'])
+        # Nothing was saved or we only changed the updated_at attribute, so just return
         return
       end
 
