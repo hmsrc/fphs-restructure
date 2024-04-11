@@ -20,7 +20,7 @@ class Classification::ItemFlagName < ActiveRecord::Base
   # @return [Boolean] result
   def self.enabled_for?(item_type, user)
     logger.debug "Checking we're enabled for #{item_type} with user #{user.id}"
-    l = selector_array item_type: item_type
+    l = selector_array(item_type:)
     res = l.length > 0
     # Exit immediately if we already know this is not enabled
     return false unless res
@@ -41,21 +41,30 @@ class Classification::ItemFlagName < ActiveRecord::Base
     ItemFlag.use_with_class_names
   end
 
+  #
+  # Get the valid flag name records for an item
+  # @param [UserBase] item
+  # @return [ActiveRecord::Relation]
+  def self.available_to_item(item)
+    it = item.class.name.ns_underscore
+    active.where(item_type: it)
+  end
+
   private
 
   def name_and_item_type_unique
-    if !persisted? && Classification::ItemFlagName.enabled.where(item_type: item_type, name: name).length > 0
-      errors.add :name, 'has already been used for this item type'
-    end
+    return unless !persisted? && Classification::ItemFlagName.enabled.where(item_type:, name:).length > 0
+
+    errors.add :name, 'has already been used for this item type'
   end
 
   def item_type_valid?
     return unless item_type && !disabled
 
     cns = ItemFlag.use_with_class_names
-    unless cns.include? item_type.ns_underscore
-      errors.add(:item_type, "is attempting to use invalid item type #{item_type}. Valid items are #{cns}")
-    end
+    return if cns.include? item_type.ns_underscore
+
+    errors.add(:item_type, "is attempting to use invalid item type #{item_type}. Valid items are #{cns}")
   end
 
   def enable_configuration
