@@ -39,6 +39,7 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
     pc = PlayerContact.find_by(data: pn)
     expect(pc).not_to be nil
     expect(@al.model_references(force_reload: true).last.to_record).to eq pc
+    expect(@al.save_trigger_results['created_items'].last).to eq pc
   end
 
   it 'creates a record using "force_create" even if the current user does not have access to create it' do
@@ -99,5 +100,54 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
     expect(pc).not_to be nil
     expect(@al.model_references(force_reload: true).last.to_record).to eq pc
     expect(pc_orig.id).to eq pc.id
+  end
+
+  it 'creates a record in a master without a model reference' do
+    pn = random_phone_number
+
+    config = {
+      player_contact: {
+        in: 'master',
+        with: { data: pn, rec_type: :phone, rank: 5 }
+      }
+    }
+    @trigger = SaveTriggers::CreateReference.new(config, @al)
+    @trigger.perform
+
+    pc = PlayerContact.find_by(data: pn)
+    expect(pc).not_to be nil
+    expect(pc.master_id).to eq @al.master_id
+    expect(ModelReference.last&.reload&.to_record_id).not_to eq pc.id
+  end
+
+  it 'creates a record in the previously created master' do
+    pn = random_phone_number
+
+    config = {
+      if: { always: true }
+    }
+    @trigger = SaveTriggers::CreateMaster.new(config, @al)
+    @trigger.perform
+
+    new_master = @al.save_trigger_results['created_master']
+    expect(new_master).not_to eq @al.master
+
+    config = {
+      player_contact: {
+        in: 'master_with_reference',
+        with: { data: pn, rec_type: :phone, rank: 5, master_id: '{{save_trigger_results.created_master.id}}' }
+      }
+    }
+    @trigger = SaveTriggers::CreateReference.new(config, @al)
+    @trigger.perform
+
+    pc = PlayerContact.find_by(data: pn)
+    expect(pc).not_to be nil
+    expect(pc.master_id).to eq new_master.id
+
+    mr = ModelReference.last&.reload
+    expect(mr.to_record_id).to eq pc.id
+    expect(mr.to_record_master_id).to eq pc.master_id
+    expect(mr.from_record_master_id).to eq pc.master_id
   end
 end

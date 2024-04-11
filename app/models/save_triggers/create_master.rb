@@ -51,7 +51,9 @@ class SaveTriggers::CreateMaster < SaveTriggers::SaveTriggersBase
       # force_create = config[:force_create]
       move_this = config[:move_this]
 
-      @new_master = Master.create_master_record @item.current_user, empty: true, extra_ids: vals
+      @item.save_trigger_results['created_master'] =
+        @new_master =
+          Master.create_master_record @item.current_user, empty: true, extra_ids: vals
 
       if move_this
         new_master_id = @new_master.id
