@@ -86,7 +86,7 @@ class ItemFlag < UserBase
 
   # Create and remove flags for the underlying item.
   # Returns true if flags were added or removed
-  def self.set_flags(flag_list, item, current_user)
+  def self.set_flags(flag_list, item, current_user, force_save: nil)
     current_flags = item.item_flags.map(&:item_flag_name_id).uniq
     added_flags = flag_list - current_flags
     removed_flags = current_flags - flag_list
@@ -96,6 +96,7 @@ class ItemFlag < UserBase
     logger.info "Adding flags #{added_flags} to #{item}"
 
     item.item_flags.where(item_flag_name_id: removed_flags).each do |i|
+      i.force_save! if force_save
       i.disabled = true
       i.save!
     end
@@ -104,6 +105,7 @@ class ItemFlag < UserBase
       next if f.blank?
 
       i = item.item_flags.build item_flag_name_id: f, user: current_user
+      i.force_save! if force_save
       logger.info "Added flag #{f} to #{item}"
       i.save!
     end

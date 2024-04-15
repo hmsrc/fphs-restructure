@@ -26,8 +26,8 @@ module Dynamic
       validates external_id_attribute, presence: true,
                                        numericality: {
                                          only_integer: true,
-                                         greater_than_or_equal_to: (external_id_range.min || 0),
-                                         less_than_or_equal_to: (external_id_range.max || 0)
+                                         greater_than_or_equal_to: external_id_range.min || 0,
+                                         less_than_or_equal_to: external_id_range.max || 0
                                        },
                                        unless: :alphanumeric?
       validate :external_id_tests
@@ -135,7 +135,7 @@ module Dynamic
 
       # We assign the random id
       def assign_random_id(master)
-        item = new master: master
+        item = new(master:)
         item[external_id_attribute] = generate_random_id
         item.just_assigned = true
         item
@@ -325,11 +325,16 @@ module Dynamic
     end
 
     def current_user
-      master.current_user
+      master&.current_user || @current_user
     end
 
+    # Allow master to be nil, since we may not yet have assigned this external id
     def current_user=(cu)
-      master.current_user = cu
+      if master
+        master.current_user = cu
+      else
+        @current_user = cu
+      end
     end
 
     def alphanumeric?

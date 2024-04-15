@@ -132,7 +132,8 @@ module OptionConfigs
           sis = bl&.generate_show_if
           self.show_if[fn] = sis if sis.present?
         rescue StandardError => e
-          Rails.logger.warn "Failed to generate real show_if for #{fn}: #{val}\n#{e}"
+          Rails.logger.warn "Failed to generate real show_if (in #{@config_obj&.resource_name}) " \
+                            "for #{fn}: #{val}\n#{e}"
           self.show_if[fn] = { generate_show_if: "failed - #{e}" }
         end
       end
