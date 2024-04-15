@@ -12,6 +12,9 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
   def perform
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
+    @item.save_trigger_results['created_references'] = []
+    @item.save_trigger_results['created_items'] = []
+
     @model_defs.each do |model_def|
       model_def.each do |model_name, config|
         vals = {}
@@ -29,13 +32,20 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
           next unless ca.calc_action_if
         end
 
+        in_master = @master
+
         create_with&.each do |fn, def_val|
           res = FieldDefaults.calculate_default @item, def_val
           vals[fn] = res
+
+          if fn.to_sym == :master_id
+            in_master = Master.find(res)
+            in_master.current_user = @item.current_user
+          end
         end
 
         @item.transaction do
-          new_type = @master.assoc_named(model_name.to_s.pluralize)
+          new_type = in_master.assoc_named(model_name.to_s.pluralize)
           if to_existing_record
             to_record_id = to_existing_record[:record_id]
             raise FphsException, 'record_id must be set in to_existing_record' unless to_record_id
@@ -53,19 +63,25 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
             new_item.save!
           end
 
-          case create_in
-          when 'this'
-            ModelReference.create_with @item, new_item, force_create: force_create
-          when 'referring_record'
-            ModelReference.create_with @item.referring_record, new_item, force_create: force_create
-          when 'master'
-            # 'master' indicates that we want to create an instance belonging to the master without
-            # creating a ModelReference. Do nothing here.
-          when 'master_with_reference'
-            ModelReference.create_from_master_with @master, new_item, force_create: force_create
-          else
-            raise FphsException, "Unknown 'in' value in create_reference"
-          end
+          @item.save_trigger_results['created_items'] << new_item
+
+          res =
+            case create_in
+            when 'this'
+              ModelReference.create_with @item, new_item, force_create:
+            when 'referring_record'
+              ModelReference.create_with @item.referring_record, new_item, force_create:
+            when 'master'
+              # 'master' indicates that we want to create an instance belonging to the master without
+              # creating a ModelReference. Do nothing here.
+            when 'master_with_reference'
+              ModelReference.create_from_master_with in_master, new_item, force_create:
+            else
+              raise FphsException, "Unknown 'in' value in create_reference"
+            end
+
+          @item.save_trigger_results['created_references'] << res
+          res
         end
       end
     end

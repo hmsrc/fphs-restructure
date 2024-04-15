@@ -26,11 +26,11 @@ class Admin
                            name: nil, format: :json, force_update: nil, dry_run: nil, skip_fail: nil)
 
       importer = new(config_text, admin,
-                     name: name,
-                     format: format,
-                     force_update: force_update,
-                     dry_run: dry_run,
-                     skip_fail: skip_fail)
+                     name:,
+                     format:,
+                     force_update:,
+                     dry_run:,
+                     skip_fail:)
 
       importer.do_import_config
     rescue StandardError, FphsException => e
@@ -437,7 +437,14 @@ class Admin
     # @param [Hash] item_identifiers
     # @return [Hash] of changes
     def updated_hash(orig_obj, item_identifiers)
-      return unless orig_obj.saved_changes?
+      # If we have saved any changes, and either we changed more than one attribute or
+      # the attribute changed wasn't just update_at,
+      # then return the details.
+      unless orig_obj.saved_changes? &&
+             (orig_obj.previous_changes.length > 1 || orig_obj.previous_changes['updated_at'])
+        # Nothing was saved or we only changed the updated_at attribute, so just return
+        return
+      end
 
       identifier_hash(orig_obj, item_identifiers)
         .merge('changed attributes (from/to)' => orig_obj.previous_changes.to_h)

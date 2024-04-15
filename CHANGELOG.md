@@ -12,7 +12,20 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
+
+- [Added] set_item_flags save trigger to allow flags to be set against an item
+- [Added]  return of created masters, items and references from save triggers, so they can be used later
+- [Added] logging to show more information when failing to generate real show_if from Redcap definition
+- [Changed] external identifiers to allow update from save trigger if currently unassigned
+- [Fixed] job failure notifications
+- [Fixed] reporting of changes for app imports
+- [Changed] handling of user access control configurations to force blank fields to null
+- [Changed] app import error backtrace to include only essentials
+- [Fixed] reporting of error in app import
+- [Changed] reporting of updated configs in app type import when only updated_at timestamp changed
+
+## [8.6.6] - 2024-03-18
 
 - [Fixed] report not able to show tags in results correctly
 

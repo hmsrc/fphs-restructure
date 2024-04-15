@@ -293,6 +293,9 @@
       pull_external_data: 
 #!defs(save_triggers_pull_external_data_options_defs.yaml)
 
+      set_item_flags:
+#!defs(save_triggers_set_item_flags_options_defs.yaml)
+
       update_reference: 
 #!defs(save_triggers_update_reference_options_defs.yaml)
 
