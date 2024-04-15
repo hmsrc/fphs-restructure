@@ -13,6 +13,7 @@ class Admin::UserAccessControl < Admin::AdminBase
 
   belongs_to :user, optional: true
 
+  before_validation :clean_blanks
   validate :correct_access_valid?
 
   after_save :clear_user_access_cache
@@ -177,8 +178,8 @@ class Admin::UserAccessControl < Admin::AdminBase
       "#{user&.id}-#{can_perform}-#{on_resource_type}-#{named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
     res = Rails.cache.fetch(cache_key) do
       evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
-                          alt_role_name: alt_role_name,
-                          add_conditions: add_conditions)
+                          alt_role_name:,
+                          add_conditions:)
     end
 
     return unless res
@@ -237,19 +238,19 @@ class Admin::UserAccessControl < Admin::AdminBase
   # Will update an existing user access control if it already exists.
   def self.create_template_control(admin, app_type, resource_type, resource_name, default_access: :read, disabled: nil)
     # Fails quietly if the item already exists
-    Admin::UserRole.create(role_name: Settings::AppTemplateRole, app_type: app_type, user: User.template_user,
+    Admin::UserRole.create(role_name: Settings::AppTemplateRole, app_type:, user: User.template_user,
                            current_admin: admin)
 
-    uac = Admin::UserAccessControl.where(role_name: Settings::AppTemplateRole, app_type: app_type,
-                                         resource_type: resource_type, resource_name: resource_name).first
+    uac = Admin::UserAccessControl.where(role_name: Settings::AppTemplateRole, app_type:,
+                                         resource_type:, resource_name:).first
 
     if uac
-      uac.update(role_name: Settings::AppTemplateRole, app_type: app_type, resource_type: resource_type,
-                 resource_name: resource_name, access: default_access, disabled: disabled, current_admin: admin)
+      uac.update(role_name: Settings::AppTemplateRole, app_type:, resource_type:,
+                 resource_name:, access: default_access, disabled:, current_admin: admin)
     else
-      Admin::UserAccessControl.create(role_name: Settings::AppTemplateRole, app_type: app_type,
-                                      resource_type: resource_type, resource_name: resource_name,
-                                      access: default_access, disabled: disabled, current_admin: admin)
+      Admin::UserAccessControl.create(role_name: Settings::AppTemplateRole, app_type:,
+                                      resource_type:, resource_name:,
+                                      access: default_access, disabled:, current_admin: admin)
     end
   end
 
@@ -258,7 +259,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   def self.viewable_tables(user, alt_app_type_id: nil)
     view = {}
     resource_names_for(:table).each do |r|
-      view[r.to_sym] = !!access_for?(user, :access, :table, r, alt_app_type_id: alt_app_type_id)
+      view[r.to_sym] = !!access_for?(user, :access, :table, r, alt_app_type_id:)
     end
 
     view
@@ -366,6 +367,13 @@ class Admin::UserAccessControl < Admin::AdminBase
         end
       end
     end
+  end
+
+  #
+  # Ensure we have nulls rather than blanks in essential columns
+  def clean_blanks
+    self.role_name = nil if role_name == ''
+    self.access = nil if access == ''
   end
 
   #
