@@ -65,4 +65,47 @@ RSpec.describe SaveTriggers::SetItemFlags, type: :model do
     expect(pi).not_to be nil
     expect(Classification::ItemFlagName.active.where(id: pi.item_flags.pluck(:item_flag_name_id)).pluck(:name)).to eq flag_list
   end
+
+  it 'sets add new and removes existing flags for the existing set' do
+    # Setup the initial list
+    flag_list = Classification::ItemFlagName.available_to_item(@player_info).pluck(:name)[1..2]
+
+    expect(flag_list).not_to be nil
+
+    config = {
+      first: {
+        player_infos: { update: 'return_result' }
+      },
+      flags: flag_list,
+      force_not_editable_save: true
+    }
+    @trigger = SaveTriggers::SetItemFlags.new(config, @al)
+    @trigger.perform
+
+    pi = @al.master.player_infos.first
+    expect(pi).not_to be nil
+    expect(Classification::ItemFlagName.active.where(id: pi.item_flags.pluck(:item_flag_name_id)).pluck(:name)).to eq flag_list
+
+    # Now add a flag
+    flag_list = Classification::ItemFlagName.available_to_item(@player_info).pluck(:name)[0..2]
+
+    expect(flag_list).not_to be nil
+
+    config = {
+      first: {
+        player_infos: { update: 'return_result' }
+      },
+      add_flags: [flag_list[0]],
+      remove_flags: [flag_list[1]],
+      force_not_editable_save: true
+    }
+    @trigger = SaveTriggers::SetItemFlags.new(config, @al)
+    @trigger.perform
+
+    exp_flag_list = [flag_list[0], flag_list[2]]
+
+    pi = @al.master.player_infos.first
+    expect(pi).not_to be nil
+    expect(Classification::ItemFlagName.active.where(id: pi.item_flags.pluck(:item_flag_name_id)).pluck(:name)).to eq exp_flag_list
+  end
 end
