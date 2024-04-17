@@ -35,7 +35,7 @@ class ApplicationJob < ActiveJob::Base
   def self.notify_failure(job)
     Rails.cache.fetch('delayed_job-failure-notification', expires_in: 1.hour) do
       job_id = job.id if job.respond_to? :id
-      nj = FailureMailer.notify_job_failure(job_id, job.to_yaml)
+      nj = FailureMailer.notify_job_failure(job_id, job.to_json.to_yaml)
       if Rails.env.test?
         nj.deliver_now
       else
