@@ -12,7 +12,13 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
+
+- [Added] set_item_flag options to add_flags and remove_flags
+- [Fixed] failure to show Redcap project if it is in the process of being
+- [Changed] job error message to be clearer
+
+## [8.6.7] - 2024-04-15
 
 - [Added] set_item_flags save trigger to allow flags to be set against an item
 - [Added]  return of created masters, items and references from save triggers, so they can be used later

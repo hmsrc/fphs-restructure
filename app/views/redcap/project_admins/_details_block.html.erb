@@ -55,8 +55,13 @@ end
 
 <%
   if dm  
-    fla, dmfla, exa = object_instance.compare_storage_and_model_field_lists    
-%>
+    begin
+      fla, dmfla, exa = object_instance.compare_storage_and_model_field_lists    
+    rescue StandardError => e 
+      Rails.logger.warn "Failed to compare REDCap and table fields: #{e}"
+    %>
+    <p class="info-danger">Failed to compare REDCap and table fields</p>
+    <% end %>
 <p><label>metadata and table fields</label></p>
 <span>
   <% if !dmfla&.present? || !fla&.present? %>
@@ -66,13 +71,13 @@ end
   <% else %>
   <p>REDCap fields don't match table</p>
   <ul>
-  <% rfs = (fla - exa - dmfla)
-     if rfs.present? %><li class="info-danger"><b>REDCap</b> has additional fields <b>(pull will fail)</b>: <%= "[#{rfs.join(" ")}]" %></li><% end %>
-  <% efs = (exa - dmfla)
-     if efs.present? %><li class="info-danger"><b>Options</b> specifies <code>data_options:</code> requiring extra fields <b>(pull will fail)</b>: <%= "[#{efs.join(" ")}]" %></li><% end %>
-  <% fs = (dmfla - fla)
-     if fs.present? %><li><b>Dynamic model</b> table has additional fields <b>(pull will ignore them)</b>: <%= "[#{fs.join(" ")}]" %></li><% end %>
-  <% end %>  
+  <%  rfs = (fla - exa - dmfla)
+      if rfs.present? %><li class="info-danger"><b>REDCap</b> has additional fields <b>(pull will fail)</b>: <%= "[#{rfs.join(" ")}]" %></li><% end %>
+  <%  efs = (exa - dmfla)
+      if efs.present? %><li class="info-danger"><b>Options</b> specifies <code>data_options:</code> requiring extra fields <b>(pull will fail)</b>: <%= "[#{efs.join(" ")}]" %></li><% end %>
+  <%  fs = (dmfla - fla)
+      if fs.present? %><li><b>Dynamic model</b> table has additional fields <b>(pull will ignore them)</b>: <%= "[#{fs.join(" ")}]" %></li><% end %>
+  <% end %>
   </ul>
 </span>
 <% unless object_instance.dynamic_model_config_library_valid? %>
