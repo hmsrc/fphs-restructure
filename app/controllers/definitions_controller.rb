@@ -18,10 +18,13 @@ class DefinitionsController < ApplicationController
   }.freeze
 
   def show
-    def_type = params[:id]
-    j = get_def def_type
+    return if performed?
 
-    render json: j unless performed?
+    def_type = params[:id]
+    j = Rails.cache.fetch("definition_#{def_type}-#{Application.server_cache_version}") do
+      get_def(def_type).as_json
+    end
+    render json: j
   end
 
   def create

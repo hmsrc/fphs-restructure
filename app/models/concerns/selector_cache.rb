@@ -62,7 +62,7 @@ module SelectorCache
       Rails.cache.fetch(ckey) do
         res = enabled
         res = res.where(conditions) if conditions.present?
-        res.collect { |c| c.send(attribute) }
+        res.pluck(attribute)
       end
     end
 
@@ -70,7 +70,7 @@ module SelectorCache
       ckey = "#{array_pair_cache_key}#{conditions}"
 
       Rails.cache.fetch(ckey) do
-        enabled.where(conditions).collect { |c| [c.name, c.id] }
+        enabled.where(conditions).pluck(:name, :id)
       end
     end
 
@@ -86,20 +86,23 @@ module SelectorCache
       ckey = "#{nv_pair_cache_key}-nd-#{conditions}"
 
       Rails.cache.fetch(ckey) do
-        enabled.where(conditions).collect { |c| [c.name, c.value] }
+        enabled.where(conditions).pluck(:name, :value)
       end
     end
 
-    def selector_attributes(attributes, conditions = nil)
-      ckey = "#{attributes_cache_key}#{attributes}#{conditions}"
+    def selector_attributes(attrs_or_methods, conditions = nil)
+      ckey = "#{attributes_cache_key}#{attrs_or_methods}#{conditions}"
 
+      # Ensure we get an array of arrays, since pluck works differently when requesting a single attribute
+      attrs_or_methods << :id if attrs_or_methods.length == 1
       Rails.cache.fetch(ckey) do
-        enabled.where(conditions).collect do |c|
-          a = []
-          attributes.each do |att|
-            a << c.send(att)
-          end
-          a
+        base = enabled.where(conditions)
+        if (attrs_or_methods.map(&:to_s) - attribute_names).empty?
+          # Only DB attributes being requested
+          base.pluck(*attrs_or_methods)
+        else
+          # Requesting methods that we can't query directly
+          base.map { |rec| attrs_or_methods.map { |m| rec.send(m) } }
         end
       end
     end
@@ -112,7 +115,7 @@ module SelectorCache
       ckey = "#{collection_cache_key}#{conditions}"
 
       Rails.cache.fetch(ckey) do
-        enabled.where(conditions).to_a
+        enabled.where(conditions).map(&:attributes)
       end
     end
 
@@ -152,7 +155,7 @@ module SelectorCache
       ckey = "#{nv_user_id_cache_key}-nd-#{conditions}"
 
       Rails.cache.fetch(ckey) do
-        enabled.where(conditions).collect { |c| [c.name, c.user_id, c.value] }
+        enabled.where(conditions).pluck(:name, :user_id, :value)
       end
     end
 
@@ -168,7 +171,7 @@ module SelectorCache
 
     def user_value_for(name, user_id: nil, app_type_id: nil)
       conditions = nil
-      conditions = { app_type_id: app_type_id } if app_type_id
+      conditions = { app_type_id: } if app_type_id
       res = name_user_id_value(conditions).select { |p| p.first == name && (p[1] == user_id) }
       # be sure to return a blank string for a result if one was received, or nil otherwise
       res.length >= 1 ? (res.first.last || '') : nil
