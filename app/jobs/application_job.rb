@@ -16,13 +16,13 @@ class ApplicationJob < ActiveJob::Base
       puts msg unless Rails.env.test?
       Rails.logger.warn msg
       Rails.logger.warn e.backtrace.join("\n")
-      ApplicationJob.notify_failure job
+      ApplicationJob.notify_failure job, e
     rescue StandardError, FsException, FphsException => e2
       msg = "Job failed in rescue: #{e2} : #{job}"
       puts msg
       Rails.logger.error msg
       Rails.logger.error e.backtrace.join("\n")
-      ApplicationJob.notify_failure job
+      ApplicationJob.notify_failure job, e
     end
     raise
   end
@@ -32,10 +32,10 @@ class ApplicationJob < ActiveJob::Base
   # Send at most one email (to admin email) per hour from this server, relying
   # on memcached to skip the mail call if one has already been sent
   # @param [ActiveJob::Base] job
-  def self.notify_failure(job)
+  def self.notify_failure(job, exception = nil)
     Rails.cache.fetch('delayed_job-failure-notification', expires_in: 1.hour) do
       job_id = job.id if job.respond_to? :id
-      nj = FailureMailer.notify_job_failure(job_id, job.to_json.to_yaml)
+      nj = FailureMailer.notify_job_failure(job_id, JSON.parse(job.to_json).to_yaml, exception.to_s)
       if Rails.env.test?
         nj.deliver_now
       else

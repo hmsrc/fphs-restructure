@@ -199,7 +199,7 @@ describe User do
     # Set the time so that it is too late for repeated reminders to be sent, since without an actual delay from
     # a future delayed job, the repeats will happen indefinitely.
     @user.class.send(:define_method, :password_updated_at) do
-      Time.now - (Settings::PasswordAgeLimit - 3).days
+      Time.now - (Settings::PasswordAgeLimit - 2.9).days
     end
 
     @user.save!

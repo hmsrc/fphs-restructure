@@ -93,7 +93,7 @@ class ActivityLog < ActiveRecord::Base
   # even if the configuration specifies a rec_type as a requirement
   def self.works_with_all(item_type, rec_type = nil, process_name = nil)
     item_type = item_type.downcase
-    cond = { item_type: item_type }
+    cond = { item_type: }
     cond[:rec_type] = rec_type if rec_type.present?
     cond[:process_name] = process_name if process_name.present?
     enabled.where(cond).unscope(:order).order('rec_type asc nulls first, process_name asc nulls first')
@@ -105,7 +105,7 @@ class ActivityLog < ActiveRecord::Base
   # @param [String | Symbol] item_type - an item type, such as 'player_contact'
   # @return [Array] - array of rec_types
   def self.works_with_rec_types(item_type)
-    enabled.where(item_type: item_type).pluck(:rec_type).compact.uniq
+    enabled.where(item_type:).pluck(:rec_type).compact.uniq
   end
 
   def blank_log_enabled?
@@ -484,9 +484,9 @@ class ActivityLog < ActiveRecord::Base
       end
 
       # Note that we do not use the enabled scope, since we allow this item to be disabled (preventing its use by users)
-      pes = sp.protocol_events.where name: name
+      pes = sp.protocol_events.where(name:)
       if pes.empty?
-        pe = sp.protocol_events.create! name: name, current_admin: admin
+        pe = sp.protocol_events.create! name:, current_admin: admin
         logger.info "Adding a new Activity protocol event #{pe.id}"
       end
     end
@@ -508,7 +508,7 @@ class ActivityLog < ActiveRecord::Base
       return
     end
 
-    existing = self.class.where.not(id: id).conflicting_definition?(item_type, rec_type, process_name)
+    existing = self.class.where.not(id:).conflicting_definition?(item_type, rec_type, process_name)
     return unless existing
 
     errors.add(:rec_type,
@@ -539,9 +539,9 @@ class ActivityLog < ActiveRecord::Base
     process_name = [nil, ''] if process_name.blank?
 
     active.where(
-      item_type: item_type,
-      rec_type: rec_type,
-      process_name: process_name
+      item_type:,
+      rec_type:,
+      process_name:
     )
   end
 
@@ -651,7 +651,7 @@ class ActivityLog < ActiveRecord::Base
     begin
       implementation_class
     rescue StandardError => e
-      logger.debug e
+      # logger.debug e
       return false
     end
 

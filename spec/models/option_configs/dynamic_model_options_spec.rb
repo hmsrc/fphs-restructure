@@ -16,6 +16,10 @@ RSpec.describe 'Dynamic Model Options', type: :model do
     'DynamicModel::TestCreatedByRec'
   end
 
+  before :all do
+    DynamicModel.active.where(table_name: 'test_created_by_recs').each { |dm| dm.disable!(@admin) }
+  end
+
   before :example do
     @user0, = create_user
     create_admin

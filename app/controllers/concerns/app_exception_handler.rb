@@ -13,6 +13,7 @@ module AppExceptionHandler
     rescue_from ActiveRecord::RecordInvalid, with: :validation_failed
     rescue_from FphsNotAuthorized, with: :not_authorized
     rescue_from FphsGeneralError, with: :general_error
+    rescue_from FphsNotFound, with: :resource_not_found
     rescue_from ESignature::ESignatureException, with: :fphs_app_exception_handler
     rescue_from ESignature::ESignatureUserError, with: :user_error_handler
     rescue_from PG::RaiseException, with: :fphs_app_exception_handler
@@ -35,12 +36,12 @@ module AppExceptionHandler
     flash_level ||= :danger
     if request.format == :html
       @error_title = title
-      render 'layouts/error_page', status: status, locals: { text: text }
+      render 'layouts/error_page', status:, locals: { text: }
     else
       flash.now[flash_level] = title
       msg = title
       msg = "#{title} - #{text}" if text
-      render plain: msg, status: status
+      render plain: msg, status:
     end
   end
 
@@ -116,6 +117,12 @@ module AppExceptionHandler
     return_and_log_error error, msg, code, log_level: Settings::LogLevel[__method__]
   end
 
+  def resource_not_found(error)
+    msg = 'The request resource was not found.'
+    code = 404
+    return_and_log_error error, msg, code, log_level: Settings::LogLevel[__method__]
+  end
+
   def bad_format_handler(error)
     msg = 'A bad page format was requested'
     code = 400
@@ -144,11 +151,11 @@ module AppExceptionHandler
       user_id = current_user&.id
       admin_id = current_admin&.id
       if Rails.env.production?
-        Admin::ExceptionLog.create message: (msg || 'error'),
+        Admin::ExceptionLog.create message: msg || 'error',
                                    main: error.inspect,
                                    backtrace: error.backtrace.join("\n"),
-                                   user_id: user_id,
-                                   admin_id: admin_id
+                                   user_id:,
+                                   admin_id:
       end
     end
 

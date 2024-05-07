@@ -24,6 +24,7 @@ module BhsImportConfig
     # app = SetupHelper.setup_test_app
 
     # If we don't enable existing activity log definition it will remain disabled after the import
+    ActivityLog.active.each { |a| a.update!(disabled: true, name: 'AL BHS OLD', current_admin: Admin.active.first) }
     al = ActivityLog.all.find { |a| a.resource_name == 'activity_log__bhs_assignments' }
     al.update!(disabled: false, current_admin: al.admin) if al.disabled?
 
