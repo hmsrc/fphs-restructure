@@ -99,12 +99,12 @@ module NfsStore
             Rails.logger.warn msg
             NfsStore::Process::ProcessHandler.set_container_file_statuses "failed: #{name}", job_container_file
             job_process_handler.clear_processing_flags
-            ApplicationJob.notify_failure job
+            ApplicationJob.notify_failure job, e
           rescue Exception, StandardError, FsException, FphsException => e2
             msg = "Job #{name} failed in rescue: #{e2} : #{job}"
             puts msg
             Rails.logger.warn msg
-            ApplicationJob.notify_failure job
+            ApplicationJob.notify_failure job, e
           end
           raise
         end

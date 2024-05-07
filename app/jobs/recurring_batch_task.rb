@@ -28,11 +28,11 @@ class RecurringBatchTask < ApplicationRecurringJob
     user = dynamic_def.class.user_for_conf_snippet(bt)
 
     dynamic_def_imp_class = dynamic_def.implementation_class
-    dynamic_def_imp_class.trigger_batch_now(limit: limit, alt_user: user)
+    dynamic_def_imp_class.trigger_batch_now(limit:, alt_user: user)
   rescue StandardError => e
     Rails.logger.warn "Recurring job failed: #{self} - #{gid} - #{e}"
     Rails.logger.warn e.backtrace.join("\n")
-    ApplicationJob.notify_failure self
+    ApplicationJob.notify_failure self, e
     raise
   end
 end

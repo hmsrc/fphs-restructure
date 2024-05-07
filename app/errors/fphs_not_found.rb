@@ -1,0 +1,2 @@
+class FphsNotFound < FphsException
+end

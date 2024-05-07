@@ -22,7 +22,9 @@ class Application
 
   def self.server_cache_version
     Rails.cache.fetch('server_cache_version') do
-      Time.now.to_f.to_s
+      res = Time.now.to_f.to_s
+      Rails.logger.warn "Application.server_cache_version changed to #{res}"
+      res
     end
   end
 

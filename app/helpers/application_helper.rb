@@ -184,7 +184,7 @@ module ApplicationHelper
     caption = caption["#{mode}_caption".to_sym] || caption[:caption] || '' if caption.is_a?(Hash)
     if @form_object_instance && !no_sub
       caption = Formatter::Substitution.substitute(caption, data: @form_object_instance, tag_subs: nil,
-                                                            ignore_missing: ignore_missing)
+                                                            ignore_missing:)
     end
 
     caption = caption.gsub('{{', '{^{').gsub('}}', '}^}') if no_sub == :escape
@@ -225,23 +225,40 @@ module ApplicationHelper
       userrole = Admin::UserRole.where(app_type_id: apptype)
                                 .reorder(updated_at: :desc)
                                 .limit(1)
-                                .first&.updated_at.to_i.to_s
+                                .pluck(:updated_at)
+                                &.first.to_i.to_s
 
       uac = Admin::UserAccessControl.where(app_type_id: apptype)
                                     .reorder(updated_at: :desc)
                                     .limit(1)
-                                    .first&.updated_at.to_i.to_s
+                                    .pluck(:updated_at)
+                                    &.first.to_i.to_s
     end
 
     unless @item_updates
       cs = [Admin::MessageTemplate,
             DynamicModel, ActivityLog, ExternalIdentifier,
-            Admin::ConfigLibrary, Admin::PageLayout]
-      @item_updates = cs.map { |c| c.reorder(updated_at: :desc).limit(1).first&.updated_at.to_i.to_s }.join('-')
+            Admin::ConfigLibrary, Admin::PageLayout, Admin::AppConfiguration]
+      @item_updates = cs.map do |c|
+        c.reorder(updated_at: :desc)
+         .limit(1)
+         .pluck(:updated_at)
+         &.first.to_i.to_s
+      end
+
+      @item_updates = @item_updates.join('-')
     end
 
     ver = Application.server_cache_version
-    "#{partial}-partial2-#{ver}-#{auth_type}-#{u&.id}-#{u&.current_sign_in_at}-#{apptype}-#{@item_updates}-#{userrole}-#{uac}"
+    res = "#{partial}-partial2-#{ver}-#{auth_type}-#{u&.id}-#{u&.current_sign_in_at}-#{apptype}-#{@item_updates}-#{userrole}-#{uac}"
+    @@prev_partial_cache_key ||= {}
+    prev = @@prev_partial_cache_key[partial]
+    changed = prev != res
+    if changed
+      Rails.logger.warn "Partial cache key changed (#{partial}): \nfrom:#{prev}\nto:  #{res}"
+      @@prev_partial_cache_key[partial] = res
+    end
+    res
   end
 
   #
@@ -267,7 +284,7 @@ module ApplicationHelper
   def current_user_date_time(date_time)
     return unless date_time
 
-    Formatter::TimeWithZone.format date_time, nil, current_user: current_user
+    Formatter::TimeWithZone.format date_time, nil, current_user:
   end
 
   #
@@ -283,10 +300,10 @@ module ApplicationHelper
                      no_substitutions: nil)
     data ||= {}
     data = data.attributes if data.respond_to? :attributes
-    res = Admin::MessageTemplate.generate_content content_template_name: name, data: data,
-                                                  allow_missing_template: allow_missing_template,
-                                                  markdown_to_html: markdown_to_html,
-                                                  category: category,
+    res = Admin::MessageTemplate.generate_content content_template_name: name, data:,
+                                                  allow_missing_template:,
+                                                  markdown_to_html:,
+                                                  category:,
                                                   ignore_missing: true
 
     res&.html_safe

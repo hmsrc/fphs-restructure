@@ -12,7 +12,20 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.4.5] - 2024-02-01
+## Unreleased
+
+**NOTE:** database migration is required when upgrading to this version
+
+- [Added] [DB-Migration] index to tracker_history to improve performance on item type / id lookups
+- [Added] exception information to failure mailer
+- [Updated] gems
+- [Fixed] specs
+- [Changed] logging of dynamic definition setup
+- [Changed] handling of info and help pages to show a not found for missing library or not authorized access
+- [Changed] handling of item flags for new selector caching
+- [Changed] handling of selector cache handling and application version to log when changes will affect performance
+
+## [8.6.8] - 2024-04-17
 
 - [Added] set_item_flag options to add_flags and remove_flags
 - [Fixed] failure to show Redcap project if it is in the process of being

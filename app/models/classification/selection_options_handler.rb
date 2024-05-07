@@ -283,7 +283,7 @@ class Classification::SelectionOptionsHandler
 
     # Get the all enabled general selection data as an array of results
     where_cond = ['item_type LIKE :like_it', { like_it: "#{item_type.singularize}_%" }] if item_type
-    res = Classification::GeneralSelection.selector_collection(where_cond).map { |c| c.attributes.symbolize_keys }
+    res = Classification::GeneralSelection.selector_collection(where_cond).map(&:symbolize_keys)
     # Get a list of implementations that may have alt_options defined
     impl_classes = implementation_classes
     # Include the non-dynamic items

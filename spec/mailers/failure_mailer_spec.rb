@@ -11,7 +11,7 @@ RSpec.describe FailureMailer, type: :mailer do
 
   describe 'notify job failures' do
     let(:job) { @job ||= Redcap::CaptureRecordsJob.new }
-    let(:mail) { FailureMailer.notify_job_failure(nil, job.to_yaml).deliver_now }
+    let(:mail) { FailureMailer.notify_job_failure(nil, job.to_yaml, 'exception message').deliver_now }
     it 'renders the subject' do
       expect(mail.subject).to eq('delayed_job failure')
     end
