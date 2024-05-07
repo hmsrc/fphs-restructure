@@ -18,16 +18,16 @@ class HelpController < ApplicationController
   def index
     return not_found unless request.format.to_sym.in?(%i[html md]) || !request.path.include?('.')
 
-    redirect_to help_page_path(library: library,
+    redirect_to help_page_path(library:,
                                section: index_section,
                                subsection: index_subsection,
-                               display_as: display_as)
+                               display_as:)
   end
 
   #
   # Show the requested help page
   def show
-    redirect_to help_index_path if library.blank? || section.blank? || subsection.blank?
+    return redirect_to help_index_path if library.blank? || section.blank? || subsection.blank?
 
     return not_found unless request.format.to_sym.in?(%i[html md js]) || !request.path.include?('.')
 
@@ -78,7 +78,10 @@ class HelpController < ApplicationController
             @index_subsection = IntroductionDocument
             clean_path(suggested || 'app_reference')
           else
-            not_authorized if suggested.present? && suggested != 'guest_reference'
+            if suggested.present? && suggested != 'guest_reference'
+              raise FphsNotAuthorized,
+                    "Not authorized to access library #{suggested}"
+            end
 
             'guest_reference'
           end
