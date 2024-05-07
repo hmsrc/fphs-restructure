@@ -25,7 +25,7 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 - [Changed] handling of item flags for new selector caching
 - [Changed] handling of selector cache handling and application version to log when changes will affect performance
 
-## [8.4.5] - 2024-02-01
+## [8.6.8] - 2024-04-17
 
 - [Added] set_item_flag options to add_flags and remove_flags
 - [Fixed] failure to show Redcap project if it is in the process of being
