@@ -434,7 +434,7 @@ module Dynamic
         RecurringBatchTask.schedule_task self,
                                          { dynamic_def: to_global_id.to_s },
                                          run_every: FieldDefaults.duration(frequency),
-                                         run_at: run_at
+                                         run_at:
 
       end
     end
@@ -503,7 +503,7 @@ module Dynamic
     rescue StandardError => e
       msg = "Failed to get the implementation_class for #{full_implementation_class_name} in #{self.class} #{self&.id} : #{e}"
       Rails.logger.warn msg
-      Rails.logger.warn e.backtrace.join("\n")
+      # Rails.logger.warn e.backtrace.join("\n")
       raise e, msg
     end
 
