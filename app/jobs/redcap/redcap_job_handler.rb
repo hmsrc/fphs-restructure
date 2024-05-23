@@ -17,9 +17,15 @@ module Redcap
     end
 
     def create_failure_record(exception, action, project_admin)
-      e = exception
-      result = { error: e, backtrace: e.backtrace[0..20].join("\n") }
-      project_admin.record_job_request(action, result: result)
+      error = exception
+      backtrace = error.backtrace[0..20].join("\n")
+      if error.respond_to? :response
+        response = error.response
+        result = { error:, response:, backtrace: }
+      else
+        result = { error:, backtrace: }
+      end
+      project_admin.record_job_request(action, result:)
     end
   end
 end
