@@ -119,7 +119,7 @@ module GeneralDataConcerns
                                 TrackerHistory
                                   .where(item_id: id,
                                          item_type: self.class.name,
-                                         master_id: master_id)
+                                         master_id:)
                                   .order(id: :asc)
                               end
   end
@@ -226,7 +226,9 @@ module GeneralDataConcerns
 
   def as_json(extras = {})
     self.current_user ||= extras[:current_user] if extras[:current_user]
-    if allows_current_user_access_to?(:access)
+    if extras[:force_plain_json]
+      extras = {}
+    elsif allows_current_user_access_to?(:access)
 
       extras[:include] ||= {}
       extras[:methods] ||= []
