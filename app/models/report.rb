@@ -273,7 +273,7 @@ class Report < ActiveRecord::Base
   end
 
   def invalidate_cache
-    logger.info 'Not invalidating cache for report'
+    logger.debug "Not invalidating cache (#{self.class.name})"
   end
 
   def options_valid?

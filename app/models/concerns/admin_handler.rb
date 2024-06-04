@@ -233,7 +233,7 @@ module AdminHandler
   # Invalidate the cache and latest update value
   # @return [<Type>] <description>
   def invalidate_cache
-    logger.info "User Access Control added or updated (#{self.class.name}). Invalidating cache."
+    logger.info "Admin record added or updated (#{self.class.name}). Invalidating cache"
 
     # Allows caching in other classes to reset
     self.class.reset_latest_update

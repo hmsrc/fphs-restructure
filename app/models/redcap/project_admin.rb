@@ -377,8 +377,8 @@ module Redcap
     # @param [Admin::AdminBase] ref_record
     # @return [ActiveRecord::Relation]
     def self.existing_jobs(job_class, ref_record)
-      Delayed::Job.lookup_jobs_by job_class: job_class,
-                                  ref_record: ref_record,
+      Delayed::Job.lookup_jobs_by job_class:,
+                                  ref_record:,
                                   queue: ProjectAdmin::JobQueue,
                                   failed: false
     end
@@ -393,12 +393,12 @@ module Redcap
       result ||= { requested: true }
 
       curr_job_requests[action] =
-        Redcap::ClientRequest.create current_admin: current_admin || admin,
-                                     action: action,
-                                     server_url: server_url,
-                                     name: name,
+        Redcap::ClientRequest.create(current_admin: current_admin || admin,
+                                     action:,
+                                     server_url:,
+                                     name:,
                                      redcap_project_admin: self,
-                                     result: result
+                                     result:)
     end
 
     #
@@ -413,7 +413,7 @@ module Redcap
       return unless res
 
       res.update current_admin: current_admin || admin,
-                 result: result
+                 result:
     end
 
     #
@@ -461,6 +461,10 @@ module Redcap
       data_options.prefix_dynamic_model_config_library.blank? || dynamic_storage&.dynamic_model_config_library_added?
     end
 
+    def invalidate_cache
+      logger.debug "Not invalidating cache (#{self.class.name})"
+    end
+
     private
 
     #
@@ -483,13 +487,13 @@ module Redcap
     end
 
     def reset_field_metadata
-      redcap_data_dictionary&.update!(captured_metadata: nil, field_count: nil, current_admin: current_admin)
+      redcap_data_dictionary&.update!(captured_metadata: nil, field_count: nil, current_admin:)
     end
 
     #
     # Capture the data dictionary metadata from REDCap and store to table
     def capture_data_dictionary
-      dd = redcap_data_dictionary || create_redcap_data_dictionary(current_admin: current_admin)
+      dd = redcap_data_dictionary || create_redcap_data_dictionary(current_admin:)
 
       res = dd.capture_data_dictionary
       dd.reload
@@ -561,7 +565,7 @@ module Redcap
     def set_data_dictionary_version
       self.data_dictionary_version = redcap_data_dictionary.captured_metadata_digest
       save_options
-      update_columns(options: options)
+      update_columns(options:)
     end
 
     #
@@ -581,9 +585,9 @@ module Redcap
       curr_job_requests[action] ||=
         Redcap::ClientRequest
         .where(
-          action: action,
-          server_url: server_url,
-          name: name,
+          action:,
+          server_url:,
+          name:,
           redcap_project_admin_id: id
         )
         .order(
