@@ -102,9 +102,9 @@ class Report < ActiveRecord::Base
   # @param name [String] full name of the report
   # @return [String] short_name for the report
   def self.resource_name_for_named_report(name, item_type = nil)
-    res = Report.active.where(name: name)
+    res = Report.active.where(name:)
 
-    res = res.where(item_type: item_type) if item_type
+    res = res.where(item_type:) if item_type
 
     res.order(updated_at: :desc).first&.alt_resource_name
   end
@@ -247,7 +247,7 @@ class Report < ActiveRecord::Base
 
   # Validate the generated resource_name is not a duplicate
   def valid_resource_name?
-    test = { short_name: short_name, item_type: item_type }
+    test = { short_name:, item_type: }
 
     res = self.class.active.where(test)
     return if (res.pluck(:id) - [id]).empty?
