@@ -270,7 +270,7 @@ class Admin::MigrationGenerator
   #                               such as 'app-export'
   def add_schema(export_type = nil)
     mig_text = schema_generator_script(db_migration_schema, 'create')
-    write_db_migration mig_text, "#{db_migration_schema}_schema", export_type: export_type
+    write_db_migration mig_text, "#{db_migration_schema}_schema", export_type:
   end
 
   #
@@ -542,7 +542,7 @@ class Admin::MigrationGenerator
           self.table_name = '#{table_name}'
           self.class_name = '#{class_name}'
           self.fields = %i[#{migration_fields_array.join(' ')}]
-          self.table_comment = '#{tcs[:table]}'
+          self.table_comment = #{tcs[:table].to_json}
           self.fields_comments = #{(tcs[:fields] || {}).to_h}
           self.db_configs = #{(db_configs || {}).to_h}
           self.no_master_association = #{!!no_master_association}
