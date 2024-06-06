@@ -37,7 +37,7 @@ class ApplicationJob < ActiveJob::Base
       job_id = job.id if job.respond_to? :id
       nj = FailureMailer.notify_job_failure(
         job_id,
-        JSON.parse(job.to_json(force_plain_json: true)).to_yaml,
+        job.inspect.gsub(' @', "\n@"),
         exception.to_s
       )
 
@@ -48,7 +48,9 @@ class ApplicationJob < ActiveJob::Base
       end
       DateTime.now.to_s
     end
-  rescue StandardError => e
+  rescue Exception => e
+    puts e
+    puts e.backtrace.join("\n")
     Rails.logger.error "Failed to send notify_failure: #{e}"
     Rails.logger.error e.backtrace.join("\n")
   end
