@@ -24,6 +24,12 @@ class FailureMailer < ActionMailer::Base
       #{job_yaml}"
     END_TEXT
 
+    if Settings::FailureNotificationsToEmail.blank?
+      Rails.logger.warn "Settings::FailureNotificationsToEmail is blank - no notify_job_failure will be sent.\n#{body}"
+      return
+    end
+
+    Rails.logger.info "Sending job failure message:\n#{body}"
     options = {
       body:,
       subject: 'delayed_job failure'

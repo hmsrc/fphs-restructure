@@ -12,6 +12,16 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
+## Unreleased
+
+- [Changed] settings to ensure proper nil results for empty environment variables
+- [Added] edit_as options to select_user_with fields
+- [Fixed] issue where table comments with apostrophes break the migration with a syntax error. Fixes #331 and #332
+- [Changed] logging of job failure notification
+- [Fixed] error reporting failed job
+- [Changed] cache invalidation to avoid unnecessary requests to clear the cache
+- [Fixed] spec to clear cache between requests
+
 ## [8.6.10] - 2024-05-23
 
 - [Added] the http content response to a Redcap job error to aid debugging issues

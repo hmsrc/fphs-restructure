@@ -232,6 +232,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
 
     stub_request_records @project[:server_url], @project[:api_key], 'updated_records'
 
+    Rails.cache.clear
     dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
     dr.retrieve
     dr.summarize_fields
@@ -412,6 +413,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
     expect(files.map { |f| "#{f.path}/#{f.file_name}" }.sort).to eq ["#{rc.dynamic_model_table}/file-fields/4/file1", "#{rc.dynamic_model_table}/file-fields/4/signature"]
 
     # Repeat - should not update the files
+    Rails.cache.clear
     dr = Redcap::DataRecords.new(rc, 'TestFileFieldRec')
     dr.retrieve
     dr.send(:capture_files, dr.records[1])
@@ -420,6 +422,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
     expect(files.count).to eq 0
 
     # Reset with new file content
+    Rails.cache.clear
     mock_file_field_requests
     dr = Redcap::DataRecords.new(rc, 'TestFileFieldRec')
     dr.retrieve
@@ -511,6 +514,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       rc.api_client.send :clear_cache, rc.api_client.send(:cache_key, :records, rc.records_request_options)
 
       stub_request_records @project[:server_url], @project[:api_key], 'missing_record'
+      Rails.cache.clear
       dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
       dr.retrieve
       dr.summarize_fields
@@ -566,6 +570,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       rc.api_client.send :clear_cache, rc.api_client.send(:cache_key, :records, rc.records_request_options)
 
       stub_request_records @project[:server_url], @project[:api_key], 'missing_record'
+      Rails.cache.clear
       dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
       dr.retrieve
       dr.summarize_fields
@@ -608,6 +613,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       rc.api_client.send :clear_cache, rc.api_client.send(:cache_key, :records, rc.records_request_options)
 
       stub_request_records @project[:server_url], @project[:api_key], 'missing_record'
+      Rails.cache.clear
       dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
       dr.retrieve
       dr.summarize_fields
