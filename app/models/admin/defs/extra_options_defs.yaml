@@ -27,6 +27,9 @@
     field_name:
       depends_on_field_name: conditional value
       current_mode: show | edit
+    submit_buttons_<button_id>: |
+      Controls the display of a display button, identified by <button_id> being
+      the underscored id representing the button label
   view_options:
     show_embedded_at_top: |
       true | false to position a single auto loaded embedded item
@@ -84,7 +87,8 @@
   filestore:
     container: {}
   save_action:
-    label: button label
+    label: button label 
+    # May also use an array of labels for multiple alternative buttons, in combination with show_if control of the one shown
     on_update:
       create_next_creatable:
         if: 'ref: ** conditions reference **'
