@@ -285,10 +285,14 @@
               <%= show_caption_before :submit, caption_before %>
             </li>
           <% end %>
-          <li class="list-group-item submit-action-container">
-            <%= form.submit class: "btn btn-primary", value: save_label %>
+          <% save_labels = save_label.is_a?(Array) ? save_label : [save_label] 
+             save_labels.each do |sl|
+          %>
+          <li class="list-group-item submit-action-container <%=form_object_item_type_us.hyphenate%>-submit_buttons_<%=sl.id_underscore%>">
+            <%= form.submit class: "btn btn-primary", value: sl %>
             <% if show_cancel %><%= inline_cancel_button('btn btn-danger pull-right', "Cancel") %><% end %>
           </li>
+          <% end %>
         <% end %>
       </ul>
       <% if disabled_form %></fieldset><% end %>
