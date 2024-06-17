@@ -90,7 +90,7 @@
       col_footer = Formatter::Substitution.substitute(col_footer, data: sub_data, tag_subs: nil).html_safe
 
   %>
-    <% if !@master_id %>
+    <% if !@master_id && !col_url %>
     <%= render partial: 'layouts/error_page_block', locals: {error_title: 'Not Found', text: 'The requested resource was not found' } %>
     <% elsif inner_rows %>
     <div class="standalone-page-col-with-rows <%=col_classes%>" id="<%=col_block_id%>">
