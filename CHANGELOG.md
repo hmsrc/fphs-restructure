@@ -14,6 +14,10 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Fixed] issue in selector cache, where callers were sensitive to attributes with symbol or string keys
+- [Changed] parallel tests to ask for sudo early in the process if needed
+- [Added] spec for getting master id using MSID in conditions
+- [Fixed] dashboard error not being to load report resources
 - [Added] definition for multiple save buttons, with show_if control
 
 ## [8.6.11] - 2024-06-11
