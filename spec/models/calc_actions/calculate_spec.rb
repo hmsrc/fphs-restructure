@@ -1265,10 +1265,10 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     conf = setup_config(confy)
 
     return_failures = {}
-    res = ConditionalActions.new conf, @al, return_failures: return_failures
+    res = ConditionalActions.new(conf, @al, return_failures:)
     cai = res.calc_action_if
-    expect(cai).to be(true), "calc_action_if failed #{ { return_failures: return_failures,
-                                                         confy: confy,
+    expect(cai).to be(true), "calc_action_if failed #{ { return_failures:,
+                                                         confy:,
                                                          al: @al,
                                                          al1: @al1,
                                                          zip: "#{a1.zip} for #{a1}" } }"
@@ -1507,7 +1507,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
     a = res.calc_action_if
     expect(a).to be(false),
-                 "calc_action_if failed - #{{ confy: confy, city: @al.master.addresses.first.city, data: @al.master.player_contacts.first.data }}"
+                 "calc_action_if failed - #{{ confy:, city: @al.master.addresses.first.city, data: @al.master.player_contacts.first.data }}"
   end
 
   it 'handles deep references' do
@@ -2726,7 +2726,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       m.current_user = @user
       data = "(516)123-7612-#{DateTime.now.to_f}"
       @pc = m.player_contacts.first
-      @pc.update! data: data, rec_type: 'phone', rank: 10, source: 'nflpa'
+      @pc.update! data:, rec_type: 'phone', rank: 10, source: 'nflpa'
 
       expect(@new_al.extra_log_type).not_to be nil
       expect(m.activity_log__player_contact_phones.where(extra_log_type: 'primary').count).to be > 0
@@ -3028,7 +3028,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       m.current_user = @user
       data = "(516)123-7612-#{DateTime.now.to_f}"
       @pc = m.player_contacts.first
-      @pc.update! data: data, rec_type: 'phone', rank: 10, source: 'nflpa'
+      @pc.update! data:, rec_type: 'phone', rank: 10, source: 'nflpa'
       @pc.master.player_contacts.where.not(id: @pc.id).update_all(master_id: @junk_master)
 
       expect(@new_al.extra_log_type).not_to be nil
@@ -3688,6 +3688,28 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       expect(res).to eq @m2.id
     end
 
+    it 'finds a master record from a crosswalk field' do
+      ms = Master.where.not(msid: nil).limit(3)
+      msid = ms[1].msid
+      mid = ms[1].id
+
+      expect(ms.length).to eq 3
+      expect(msid).not_to be nil
+      expect(ms.pluck(:msid).uniq.length).to eq 3
+
+      conf = {
+        masters: {
+          msid:,
+          id: 'return_value'
+        }
+      }
+
+      ca = ConditionalActions.new conf, @al
+
+      res = ca.get_this_val
+      expect(res).to eq mid
+    end
+
     it 'returns a player record from another master record' do
       conf = {
         masters: {},
@@ -3749,7 +3771,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       expect(res.calc_action_if).to be true
       expect(return_failures).to be_empty
     end
@@ -3764,7 +3786,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       expect(res.calc_action_if).to be false
       expect(return_failures).to eq({ all: { this: { user_id: -999 } } })
     end
@@ -3782,7 +3804,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       expect(res.calc_action_if).to be true
 
       conf = {
@@ -3799,7 +3821,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       expect(res.calc_action_if).to be true
     end
 
@@ -3816,7 +3838,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures.dig(:all, :this, :user_id)).to eq(invalid_error_message: 'The user had a bad ID')
@@ -3836,7 +3858,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
       return_failures = {}
 
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({ all: { this: { id: { invalid_error_message: 'Something was bad' } } } })
@@ -3855,7 +3877,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({ all: { this: { id: { invalid_error_message: 'Something was bad' }, user_id: { invalid_error_message: 'The user had a bad ID' } } } })
@@ -3874,7 +3896,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be true
 
@@ -3892,7 +3914,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       }
 
       return_failures = {}
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be true
     end
@@ -3912,7 +3934,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
       return_failures = {}
 
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({ any: { this: { id: { invalid_error_message: 'All were bad' } } } })
@@ -3932,7 +3954,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
       return_failures = {}
 
-      res = ConditionalActions.new conf, @al, return_failures: return_failures
+      res = ConditionalActions.new(conf, @al, return_failures:)
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({ any: { this: { user_id: { invalid_error_message: 'The user had a bad ID' } } } })
