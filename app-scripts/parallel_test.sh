@@ -7,6 +7,11 @@ echo > tmp/working_failing_specs.log
 unset QUICK
 unset RUBY_DEBUG_OPEN
 
+if [ ! "${USE_PG_HOST}" ]; then
+  echo "sudo is required to clean the database. Enter your password if prompted"
+  sudo whoami
+fi
+
 # Ensure the tests run cleanly
 export DISABLE_SPRING=1
 spring stop
