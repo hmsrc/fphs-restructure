@@ -28,8 +28,7 @@ class User < ActiveRecord::Base
 
   belongs_to :app_type, class_name: 'Admin::AppType', optional: true
 
-  attr_accessor :terms_of_use
-  attr_accessor :client_localized
+  attr_accessor :terms_of_use, :client_localized
 
   default_scope -> { order email: :asc }
   scope :not_template, -> { where('email NOT LIKE ?', Settings::TemplateUserEmailPatternForSQL) }
@@ -96,7 +95,7 @@ class User < ActiveRecord::Base
   # Get the admin that corresponds to this user
   # @return [Admin | nil]
   def matching_admin
-    Admin.active.where(email: email).first
+    Admin.active.find_by(email:)
   end
 
   #
@@ -216,6 +215,11 @@ class User < ActiveRecord::Base
   # method provided by devise recoverable module; Override so job notifications can be executed
   def send_reset_password_instructions
     return if a_template_or_batch_user? || !allow_users_to_register?
+
+    if disabled
+      raise FphsGeneralError,
+            'User profile does not exist or was disabled - contact an administrator to reset the password'
+    end
 
     if do_not_email
       raise FphsGeneralError,

@@ -12,7 +12,12 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Fixed] password self-reset fails with exception if user is disabled - fixes #342
+- [Added] field option for blank_preset_value and allow substitutions in preset_value - fixes #220
+
+## [8.6.12] - 2024-06-24
 
 - [Fixed] issue in selector cache, where callers were sensitive to attributes with symbol or string keys
 - [Changed] parallel tests to ask for sudo early in the process if needed
