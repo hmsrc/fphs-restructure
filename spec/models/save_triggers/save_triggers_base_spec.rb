@@ -48,6 +48,10 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
             - select_call_direction
             - extra_text
 
+          field_options:
+            select_who:
+              blank_preset_value: 'from preset value - {{select_call_direction}}'
+
           save_trigger:
             on_update:
               update_this:
@@ -87,6 +91,7 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
                                                                        select_who: 'user',
                                                                        extra_log_type: 'save_trigger_test_2')
       expect(al.select_who).to eq 'user'
+      expect(al.select_call_direction).to eq 'from player'
     end
 
     it 'runs the on_create trigger when an instance is created' do
@@ -116,6 +121,15 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
       al.current_user = @master.current_user
       al.update!(select_call_direction: 'to player')
       expect(al.select_who).to eq 'updated value'
+    end
+
+    it 'sets a preset value, which can be overridden in the on_update trigger' do
+      al = @player_contact.activity_log__player_contact_phones.create!(select_call_direction: 'from player',
+                                                                       extra_log_type: 'save_trigger_test_2')
+      expect(al.select_who).to eq 'from preset value - from player'
+      al.skip_save_trigger = false
+      al.update!(select_call_direction: 'make update')
+      expect(al.select_who).to eq 'updated value2'
     end
   end
 
