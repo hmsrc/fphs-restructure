@@ -128,9 +128,15 @@
         NOTE this is set in the form fields UI only if the item has been created and the current value is blank.
         It is not set before building the instances, so will not be available for data conditions.
       preset_value: |
-        default value | now() | today() 
+        default value | now() | today() | \{\{substitutions\}\}
         
         NOTE this is set when building the instances and may be used to drive logic like an embed_resource_name field
+      blank_preset_value: |
+        default value | now() | today() | \{\{substitutions\}\}
+        
+        NOTE this is set only if the attribute is blank when building the instances 
+        and may be used to drive logic like an embed_resource_name field
+
       no_downcase: true - to prevent downcasing of the attribute when stored to the database
       view_original_case: true - to prevent the UI capitalizing downcased fields
       format: plain | markdown - for free text editor fields such as notes and description
