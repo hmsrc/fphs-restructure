@@ -217,6 +217,11 @@ class User < ActiveRecord::Base
   def send_reset_password_instructions
     return if a_template_or_batch_user? || !allow_users_to_register?
 
+    if disabled
+      raise FphsGeneralError,
+            'User profile does not exist or was disabled - contact an administrator to reset the password'
+    end
+
     if do_not_email
       raise FphsGeneralError,
             "User profile set to 'no email' - contact an administrator to reset the password"
