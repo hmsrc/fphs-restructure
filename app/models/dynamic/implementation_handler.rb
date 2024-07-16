@@ -224,6 +224,7 @@ module Dynamic
     def handle_record_batch_trigger(alt_user: nil)
       as_user = alt_user || user
       self.current_user = as_user
+      self.save_trigger_results ||= {}
       option_type_config&.calc_batch_trigger self
     end
 

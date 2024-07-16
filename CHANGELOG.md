@@ -12,7 +12,14 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Added] iteration through save triggers based on an array of values - closes #348
+- [Added] save triggers definition as a list of triggers instead of a hash - closes #347
+- [Added] updated_items element to save_trigger_results for update_reference trigger - fixes #345
+- [Added] save trigger create_reference in a specific record - fixes #346
+
+## [8.6.13] - 2024-06-24
 
 - [Fixed] password self-reset fails with exception if user is disabled - fixes #342
 - [Added] field option for blank_preset_value and allow substitutions in preset_value - fixes #220

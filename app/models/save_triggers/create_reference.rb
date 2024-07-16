@@ -12,8 +12,8 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
   def perform
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
-    @item.save_trigger_results['created_references'] = []
-    @item.save_trigger_results['created_items'] = []
+    @item.save_trigger_results['created_references'] ||= []
+    @item.save_trigger_results['created_items'] ||= []
 
     @model_defs.each do |model_def|
       model_def.each do |model_name, config|
@@ -77,7 +77,20 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
             when 'master_with_reference'
               ModelReference.create_from_master_with in_master, new_item, force_create:
             else
-              raise FphsException, "Unknown 'in' value in create_reference"
+
+              unless create_in.is_a?(Hash) && create_in[:specific_record]
+                raise FphsException,
+                      "Unknown 'in' value in create_reference"
+              end
+
+              # A specific instance is the target for the reference from_record
+              # Include return: return_result to return the actual instance
+              ca = ConditionalActions.new create_in[:specific_record], @item
+              ci = ca.get_this_val
+              puts ci
+              raise FphsException, "Result for 'in' hash is not an instance" unless ci.is_a? UserBase
+
+              ModelReference.create_with ci, new_item, force_create:
             end
 
           @item.save_trigger_results['created_references'] << res

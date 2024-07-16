@@ -31,6 +31,8 @@ class SaveTriggers::CreateMaster < SaveTriggers::SaveTriggersBase
     config = @config
     vals = {}
 
+    @item.save_trigger_results['created_masters'] ||= []
+
     if config[:if]
       ca = ConditionalActions.new config[:if], @item
       return unless ca.calc_action_if
@@ -54,6 +56,8 @@ class SaveTriggers::CreateMaster < SaveTriggers::SaveTriggersBase
       @item.save_trigger_results['created_master'] =
         @new_master =
           Master.create_master_record @item.current_user, empty: true, extra_ids: vals
+
+      @item.save_trigger_results['created_masters'] << @new_master
 
       if move_this
         new_master_id = @new_master.id
