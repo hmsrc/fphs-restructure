@@ -32,6 +32,8 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
   def perform
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
+    @item.save_trigger_results['updated_items'] = []
+
     @model_defs.each do |model_def|
       model_def.each do |_model_name, config|
         vals = {}
@@ -62,6 +64,7 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
           res.ignore_configurable_valid_if = true if config[:force_not_valid]
           res.force_save! if config[:force_not_editable_save]
           res.update! vals.merge(current_user: @item.current_user || @item.user)
+          @item.save_trigger_results['updated_items'] << res
         end
       end
     end
