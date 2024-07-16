@@ -84,17 +84,17 @@ module OptionConfigs
           return true
         end
 
-        calc_list_of_triggers(obj, save_trigger, action)
+        iterate_triggers_for_action(obj, save_trigger, action)
       end
 
       def calc_batch_trigger(obj)
         action = :on_record
-        calc_list_of_triggers(obj, batch_trigger, action)
+        iterate_triggers_for_action(obj, batch_trigger, action)
       end
 
       private
 
-      def calc_list_of_triggers(obj, trigger, action)
+      def iterate_triggers_for_action(obj, trigger, action)
         res = true
         # Only run through configs that were returned in the save_options for this action
         all_configs = trigger[action]
@@ -102,17 +102,38 @@ module OptionConfigs
         all_configs.each do |configs|
           next unless configs
 
-          sub_trigger = { action => configs }
-          ca = ConditionalActions.new sub_trigger, obj
-          save_options = ca.calc_save_option_if
+          iter_configs = configs[:each] || { do: configs }
 
-          if save_options.is_a?(Hash) && save_options[action]
-            configs = configs.slice(*save_options[action].keys)
-            res &&= self.class.calc_triggers(obj, configs)
+          val_configs = iter_configs[:value]
+          iter_values = if val_configs
+                          FieldDefaults.calculate_default obj, val_configs
+                        else
+                          [nil]
+                        end
+
+          iter_values.each_with_index do |iter_value, iter_index|
+            obj.save_trigger_results['iterator_index'] = iter_index
+            obj.save_trigger_results['iterator_value'] = iter_value
+            all_iter_configs = iter_configs[:do]
+            all_iter_configs = [all_iter_configs] unless all_iter_configs.is_a? Array
+            all_iter_configs.each do |iter_config|
+              res &&= calc_triggers_for_action(obj, action, iter_config)
+            end
           end
         end
 
         res
+      end
+
+      def calc_triggers_for_action(obj, action, configs)
+        sub_trigger = { action => configs }
+        ca = ConditionalActions.new sub_trigger, obj
+        save_options = ca.calc_save_option_if
+
+        return unless save_options.is_a?(Hash) && save_options[action]
+
+        configs = configs.slice(*save_options[action].keys)
+        self.class.calc_triggers(obj, configs)
       end
     end
   end

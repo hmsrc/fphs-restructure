@@ -101,6 +101,37 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
                         - {{notes}}
                         - this was updated with player contact phone {{player_contact_phones.first.data}}
 
+        save_trigger_test_4:
+          label: Save Trigger Test 4
+          fields:
+            - select_call_direction
+            - extra_text
+
+          field_options:
+            select_who:
+              blank_preset_value: 'a,b,c'
+
+          save_trigger:
+            on_update:
+              - update_this:
+                  one:
+                    with:
+                      notes: |-
+                        List of results
+              - each:
+                  value: '{{{select_who::split_csv}}}'
+                  do:
+                    - update_this:
+                        one:
+                          with:
+                            notes: |-
+                              {{notes}}
+                              - {{save_trigger_results.iterator_index}} => {{save_trigger_results.iterator_value}}
+                    - update_this:
+                        one:
+                          with:
+                            select_who: 'an iterator'
+
       ENDDEF
 
       al_def.extra_log_types = config
@@ -123,6 +154,7 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
       setup_access :activity_log__player_contact_phone__save_trigger_test_1, resource_type: :activity_log_type, access: :create, user: @user
       setup_access :activity_log__player_contact_phone__save_trigger_test_2, resource_type: :activity_log_type, access: :create, user: @user
       setup_access :activity_log__player_contact_phone__save_trigger_test_3, resource_type: :activity_log_type, access: :create, user: @user
+      setup_access :activity_log__player_contact_phone__save_trigger_test_4, resource_type: :activity_log_type, access: :create, user: @user
       expect(@user.has_access_to?(:create, :activity_log_type, :activity_log__player_contact_phone__save_trigger_test_1)).to be_truthy
       al_def.add_master_association
 
@@ -187,6 +219,23 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
         - this was updated with player contact test@test.tst
         - this was updated with player contact phone (617)794-2300
       END_TEXT
+    end
+
+    it 'runs a list of triggers for each value specified' do
+      al = @player_contact.activity_log__player_contact_phones.create!(select_call_direction: 'from player',
+                                                                       select_who: 'a,b,c',
+                                                                       extra_log_type: 'save_trigger_test_4')
+      expect(al.select_who).to eq 'a,b,c'
+      al.skip_save_trigger = false
+      al.update!(select_call_direction: 'to player')
+      expect(al.select_who).to eq 'an iterator'
+      expect(al.notes).to eq <<~END_TEXT
+        List of results
+        - 0 => a
+        - 1 => b
+        - 2 => c
+      END_TEXT
+        .strip
     end
   end
 
