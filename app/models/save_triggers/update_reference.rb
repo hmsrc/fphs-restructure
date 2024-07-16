@@ -32,7 +32,7 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
   def perform
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
-    @item.save_trigger_results['updated_items'] = []
+    @item.save_trigger_results['updated_items'] ||= []
 
     @model_defs.each do |model_def|
       model_def.each do |_model_name, config|

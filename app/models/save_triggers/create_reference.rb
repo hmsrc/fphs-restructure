@@ -12,8 +12,8 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
   def perform
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
-    @item.save_trigger_results['created_references'] = []
-    @item.save_trigger_results['created_items'] = []
+    @item.save_trigger_results['created_references'] ||= []
+    @item.save_trigger_results['created_items'] ||= []
 
     @model_defs.each do |model_def|
       model_def.each do |model_name, config|
