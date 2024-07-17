@@ -7,7 +7,7 @@ echo > tmp/working_failing_specs.log
 unset QUICK
 unset RUBY_DEBUG_OPEN
 
-if [ ! "${USE_PG_HOST}" ]; then
+if [ ! "${USE_PG_HOST}" ] && [ "${NO_CLEAN_DB}" != 'true' ]; then
   echo "sudo is required to clean the database. Enter your password if prompted"
   sudo whoami
 fi
@@ -26,9 +26,11 @@ fi
 echo "Setup filestore"
 app-scripts/setup-dev-filestore.sh
 
-echo "Clean database"
-app-scripts/drop-test-db.sh
-app-scripts/create-test-db.sh
+if [ "${NO_CLEAN_DB}" != 'true' ]; then
+  echo "Clean database"
+  app-scripts/drop-test-db.sh
+  app-scripts/create-test-db.sh
+fi
 reset
 
 if [ "${SKIP_ZEITWERK}" != 'true' ]; then
@@ -54,6 +56,8 @@ if [ -z "$@" ]; then
 else
   specs="$@"
 fi
+
+start_date=$(date)
 
 echo "========================================================================"
 echo "Number of processes: ${PARALLEL_TEST_PROCESSORS}"
@@ -95,3 +99,6 @@ echo "Runs with Failures: $(grep 'Failures: ' tmp/failing_specs.log | wc -l)" >>
 echo "==>>>> $(date)" >> tmp/working_failing_specs.log
 echo "========================================================================" >> tmp/working_failing_specs.log
 mv tmp/working_failing_specs.log tmp/failing_specs.log
+
+echo "Started at  ${start_date}"
+echo "Finished at $(date)"
