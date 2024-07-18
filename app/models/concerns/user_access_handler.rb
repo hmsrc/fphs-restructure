@@ -42,10 +42,10 @@ module UserAccessHandler
     clear_has_access_to! if user_access_controls_updated?
     clear_role_names! if user_roles_updated?
 
-    key = "#{perform}-#{resource_type}-#{named}-#{with_options}-#{alt_app_type_id || app_type_id}"
-    return @has_access_to[key] if @has_access_to.key?(key) && !force_reset
+    ckey = "has_access_to--#{perform}-#{resource_type}-#{named}-#{with_options}-#{alt_app_type_id || app_type_id}"
+    return @has_access_to[ckey] if @has_access_to.key?(ckey) && !force_reset
 
-    @has_access_to[key] =
+    @has_access_to[ckey] =
       Admin::UserAccessControl.access_for?(self,
                                            perform,
                                            resource_type,
@@ -83,11 +83,11 @@ module UserAccessHandler
     @latest_user_access_control = Admin::UserAccessControl.latest_update(force: true)
     @has_access_to = {}
   end
-  
+
   def clear_role_names!
     @latest_user_role = Admin::UserRole.latest_update(force: true)
     @role_names = nil
-    @app_type_role_names = {} 
+    @app_type_role_names = {}
     # Updated roles also lead to has_access_to evaluations requiring refresh
     clear_has_access_to!
   end

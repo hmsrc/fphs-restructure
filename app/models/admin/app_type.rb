@@ -120,7 +120,7 @@ class Admin
     # @return [ActiveRecord::Relation]
     def associated_activity_logs(valid_resources_only: false, not_resource_names: nil)
       @associated_activity_logs ||= {}
-      ckey = "#{valid_resources_only}=#{not_resource_names}"
+      ckey = "associated_activity_logs--#{valid_resources_only}=#{not_resource_names}"
       got = @associated_activity_logs[ckey]
       return got if got
 
@@ -148,7 +148,7 @@ class Admin
 
     def associated_dynamic_models(valid_resources_only: true, not_resource_names: nil)
       @associated_dynamic_models ||= {}
-      ckey = "#{valid_resources_only}=#{not_resource_names}"
+      ckey = "associated_dynamic_models--#{valid_resources_only}=#{not_resource_names}"
       got = @associated_dynamic_models[ckey]
       return got if got
 
