@@ -17,6 +17,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   validate :correct_access_valid?
 
   after_save :clear_user_access_cache
+  after_save :reset_associated_items!
 
   attr_accessor :allow_bad_resource_name
 
@@ -174,28 +175,76 @@ class Admin::UserAccessControl < Admin::AdminBase
 
     app_type_id = alt_app_type_id.is_a?(Admin::AppType) ? alt_app_type_id.id : alt_app_type_id
     app_type_id ||= user&.app_type_id
-    cache_key =
-      "#{user&.id}-#{can_perform}-#{on_resource_type}-#{named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
-    res = Rails.cache.fetch(cache_key) do
-      evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
-                          alt_role_name:,
-                          add_conditions:)
+    user_id = user.is_a?(User) ? user.id : user
+
+    cache_key = cache_key_for_access_for(user_id, can_perform, on_resource_type, named, app_type_id, alt_role_name,
+                                         add_conditions)
+
+    Rails.cache.fetch(cache_key) do
+      rns = evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
+                                alt_role_name:,
+                                add_conditions:)
+      rns[named.to_sym]
     end
+  end
 
-    return unless res
+  def self.cache_key_for_access_for(*args)
+    "access-for--#{args.join('-')}"
+  end
 
-    find(res)
+  #
+  # Find out if the user can perform a specific action on a list of named resource type in his current app type
+  # Optionally provide can_perform=nil to find a record for any access level or
+  # an array to check for multiple possible options
+  # If it is necessary to check for access to a resource on an app type that is not the user's current one,
+  # or the user is nil, specify the alt_app_type_id
+  # Similarly, an alt_role_name can be specified
+  # @param [User] user
+  # @param [nil | Array | Symbol] can_perform - access level (Array or Symbol) or combo access level (Symbol)
+  # @param [Symbol | String] on_resource_type - valid resource type
+  # @param [Array{Symbol | String}] list_named - resource names
+  # @param [nil] with_options - not used - will raise an exception if set
+  # @param [Admin::AppType | Integer] alt_app_type_id - app type or ID for the app type to
+  #                                                     apply to if the user does not have a current app_type set
+  # @param [String] alt_role_name - for an Admin::UserRole when the role control is to override the default controls
+  # @param [Hash] add_conditions - additional conditions to apply to scoped user and roles
+  # @return [Hash{Symbol, Admin::UserAccessControl | nil}] - hash of results, with resource_name as key
+  def self.access_for_list?(user, can_perform, on_resource_type, list_named, with_options = nil,
+                            alt_app_type_id: nil, alt_role_name: nil, add_conditions: nil)
+    raise FphsException, 'Options can not be added to access_for?' if with_options
+
+    app_type_id = alt_app_type_id.is_a?(Admin::AppType) ? alt_app_type_id.id : alt_app_type_id
+    app_type_id ||= user&.app_type_id
+    user_id = user.is_a?(User) ? user.id : user
+
+    cache_key =
+      "access-for-list--#{user_id}-#{can_perform}-#{on_resource_type}-#{list_named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
+
+    Rails.cache.fetch(cache_key) do
+      res = evaluate_access_for(user, can_perform, on_resource_type, list_named, app_type_id,
+                                alt_role_name:,
+                                add_conditions:)
+
+      # Store the individual results so they can be reused
+      res.each do |k, v|
+        ck = cache_key_for_access_for(user_id, can_perform, on_resource_type, k, app_type_id, alt_role_name,
+                                      add_conditions)
+        Rails.cache.write(cache_key, v)
+      end
+
+      res
+    end
   end
 
   # @param [User] user
   # @param [nil | Array | Symbol] can_perform - access level (Array or Symbol) or combo access level (Symbol)
   # @param [Symbol | String] on_resource_type - valid resource type
-  # @param [Symbol | String] named - resource name
+  # @param [Symbol | String | Array{Symbol | String}] named - resource name or array of resource names
   # @param [Admin::AppType | Integer] alt_app_type_id - app type or ID for the app type to
   #                                                     apply to if the user does not have a current app_type set
   # @param [String] alt_role_name - for an Admin::UserRole when the role control is to override the default controls
   # @param [Hash] add_conditions - additional conditions to apply to scoped user and roles
-  # @return [id | nil] - id of the UserAccessControl
+  # @return [Hash{String => UserAccessControl} | nil] - Hash of { resource_name => UserAccessControl }
   def self.evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
                                alt_role_name: nil, add_conditions: nil)
 
@@ -216,19 +265,28 @@ class Admin::UserAccessControl < Admin::AdminBase
     # Get the user's own access first, roles next, and the fallback of null last. If the
     # user does not have her own access, then if she is a member of role_name, that'll be used and finally
     # the default for the app type will return instead,
-    # so that .first is always the most appropriate value
-    res = where(primary_conditions).scope_user_and_role(user, app_type_id, alt_role_name)
-    res = res.where(add_conditions) if add_conditions
-    res = res.first
+    # so that first result is always the most appropriate value
+    accesses = where(primary_conditions).scope_user_and_role(user, app_type_id, alt_role_name)
+    accesses = accesses.where(add_conditions) if add_conditions
 
-    if res && can_perform
-      can_perform = [can_perform] unless can_perform.is_a? Array
-      res_access = nil
-      res_access = res.access.to_sym if res.access
-      return nil unless res_access.in?(can_perform)
+    results = {}
+    accesses.each do |res|
+      next unless res
+
+      rn = res.resource_name.to_sym
+      # Skip if a result has already been found. We only want the first one, even if it was nil
+      next if results.key?(rn)
+
+      results[rn] = if can_perform
+                      can_perform = [can_perform] unless can_perform.is_a? Array
+                      res_access = res.access&.to_sym
+                      res = nil unless res_access.in?(can_perform)
+                      res
+                    else
+                      res
+                    end
     end
-
-    res&.id
+    results
   end
 
   #
@@ -257,12 +315,13 @@ class Admin::UserAccessControl < Admin::AdminBase
   #
   # Check which tables a user can view in the current app type, or an alternative app type if specified
   def self.viewable_tables(user, alt_app_type_id: nil)
-    view = {}
-    resource_names_for(:table).each do |r|
-      view[r.to_sym] = !!access_for?(user, :access, :table, r, alt_app_type_id:)
+    ckey = "viewable_tables--#{user.id}-#{user.app_type_id}--#{alt_app_type_id}"
+    Rails.cache.fetch(ckey) do
+      allow = {}
+      names = resource_names_for(:table)
+      res = access_for_list?(user, :access, :table, names, alt_app_type_id:)
+      res.transform_values { |r| r&.resource_name }
     end
-
-    view
   end
 
   #
@@ -381,5 +440,9 @@ class Admin::UserAccessControl < Admin::AdminBase
   # are cleared when a user access control changes
   def clear_user_access_cache
     user&.clear_has_access_to!
+  end
+
+  def reset_associated_items!
+    Admin::AppType.reset_memo_associated_items!
   end
 end

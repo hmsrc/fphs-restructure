@@ -253,6 +253,7 @@ class ExternalIdentifier < ActiveRecord::Base
     return unless label && !disabled
 
     Tracker.add_record_update_entries name.singularize, current_admin, 'record'
+    Classification::Protocol.reset_memos
     # flag items are added when item flag names are added to the list
     # Tracker.add_record_update_entries self.name.singularize, current_admin, 'flag'
   end

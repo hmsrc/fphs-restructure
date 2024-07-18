@@ -103,7 +103,7 @@ module EditFields
       unless got
 
         @gs_exists ||= {}
-        ckey = "#{form_object_instance.class.name}--#{curr_field_name_sym}"
+        ckey = "edit_form_field--#{form_object_instance.class.name}--#{curr_field_name_sym}"
         if @gs_exists[ckey].nil?
           @gs_exists[ckey] =
             !!Classification::GeneralSelection.exists_for?(form_object_instance, curr_field_name_sym)
