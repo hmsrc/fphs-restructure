@@ -33,7 +33,7 @@ module AlternativeIds
     # @return [Boolean]
     def crosswalk_attr?(attr_name, access_by: nil)
       attr_name = attr_name.to_sym
-      crosswalk_attrs(access_by: access_by).include?(attr_name)
+      crosswalk_attrs(access_by:).include?(attr_name)
     end
 
     #
@@ -74,6 +74,7 @@ module AlternativeIds
     # @return [Hash{Symbol => ExternalIdentifier}]
     def external_id_definitions_access_by(access_by)
       key = access_by_key(access_by)
+      @external_id_definitions_access_by ||= {}
       if @external_id_definitions_access_by&.key?(key)
         user_results = @external_id_definitions_access_by[key]
       else
@@ -124,14 +125,14 @@ module AlternativeIds
     # @return [Boolean]
     def external_id?(attr_name, access_by: nil)
       attr_name = attr_name.to_sym
-      external_id_matching_fields(access_by: access_by).include? attr_name
+      external_id_matching_fields(access_by:).include? attr_name
     end
 
     # All alternative ID field names (as symbols)
     # @param [User] access_by - (optional) user making the request to apply access controls
     # @return [Array{Symbol}]
     def alternative_id_fields(access_by: nil)
-      crosswalk_attrs(access_by: access_by) + external_id_matching_fields(access_by: access_by)
+      crosswalk_attrs(access_by:) + external_id_matching_fields(access_by:)
     end
 
     #
@@ -142,7 +143,7 @@ module AlternativeIds
     # @return [Boolean]
     def alternative_id?(attr_name, access_by: nil)
       attr_name = attr_name.to_sym
-      alternative_id_fields(access_by: access_by).include?(attr_name)
+      alternative_id_fields(access_by:).include?(attr_name)
     end
 
     #
@@ -185,7 +186,7 @@ module AlternativeIds
     # @param [User] access_by
     # @return [String]
     def access_by_key(access_by)
-      "#{access_by.id}--#{access_by.app_type_id}"
+      "access_by--#{access_by.id}--#{access_by.app_type_id}"
     end
 
     #

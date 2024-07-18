@@ -23,7 +23,7 @@
     
     
     unless @memo_dyncats
-      @dyn_cat_no_details = DynamicModel.categories - ['details']
+      @dyn_cat_no_details = (DynamicModel.categories - ['details']).uniq
       showdyncats = (@dyn_cat_no_details).length > 1
       showdyncats &&= DynamicModel.active_model_configurations.where(category: @dyn_cat_no_details)
                                     .all

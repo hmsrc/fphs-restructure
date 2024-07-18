@@ -42,6 +42,6 @@ module ESignImportConfig
     enable_user_app_access app_name, for_user
     for_user.update!(app_type: @app_type)
     # Ensure we have adequate access controls
-    add_user_to_role role, for_user: for_user
+    add_user_to_role role, for_user:
   end
 end

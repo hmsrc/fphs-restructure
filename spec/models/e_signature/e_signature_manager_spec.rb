@@ -10,6 +10,13 @@ RSpec.describe 'electronic signature of records', type: 'model' do
   before :example do
     ESignImportConfig.import_config
     setup_config
+    aldef = ActivityLog::PlayerInfoESign.definition
+    aldef.current_admin = @admin
+    aldef.update_tracker_events
+
+    aldef = ::IpaInexChecklist.definition
+    aldef.current_admin = @admin
+    aldef.update_tracker_events
 
     @user_0, @good_password_0 = create_user
     @user, @good_password = create_user

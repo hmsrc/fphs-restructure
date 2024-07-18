@@ -65,11 +65,20 @@ class Report < ActiveRecord::Base
     if user.has_access_to?(:read, :report, :_all_reports_)
       all
     else
+
+      names = all.map { |r| [r.alt_resource_name, r.id] } + all.map { |r| [r.name, r.id] }
+      names = names.to_h
+
+      accesses = Admin::UserAccessControl.access_for_list?(user, :read, :report, names.keys)
+
       ns = []
-      all.each do |r|
-        ns << r.id if report_available_to_user r, user
+      ns = accesses.map do |rn, uac|
+        next unless uac
+
+        names[rn.to_s]
       end
 
+      ns.compact!
       where(id: ns)
     end
   end

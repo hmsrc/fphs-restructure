@@ -145,6 +145,7 @@ module SetupHelper
 
   def self.reload_configs
     Rails.logger.info 'Reload configs'
+    Admin::AppType.reset_memo_associated_items!
     AppControl.define_models
     DynamicModel.enable_active_configurations disable_on_failure: true
     ItemFlag.enable_active_configurations
@@ -402,7 +403,7 @@ module SetupHelper
 
     als = ActivityLog.active.where(name:)
     als.where('id <> ?', als.first&.id).update_all(disabled: true) if als.count != 1
-
+    reload_configs
     format = config_fn.split('.').last.to_sym
 
     res = Admin::AppTypeImport.import_config(File.read(Rails.root.join(config_dir, config_fn)),

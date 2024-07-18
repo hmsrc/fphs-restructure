@@ -86,6 +86,7 @@ class Admin
       # If it wasn't present, the result was nil and we should skip this, since it
       # indicates we don't want to make any changes
       clean_user_access_controls if import_results['user_access_controls']
+      Admin::AppType.reset_memo_associated_items!
       app_type&.reload
 
       [app_type, results]
