@@ -142,6 +142,7 @@ class DynamicModel < ActiveRecord::Base
     return unless name && !disabled
 
     Tracker.add_record_update_entries table_name.singularize, current_admin, 'record'
+    Classification::Protocol.reset_memos
   end
 
   #
