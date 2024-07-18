@@ -39,8 +39,15 @@ module UserAccessHandler
   def has_access_to?(perform, resource_type, named, with_options = nil, alt_app_type_id: nil, force_reset: nil)
     @has_access_to ||= {}
 
-    clear_has_access_to! if user_access_controls_updated?
-    clear_role_names! if user_roles_updated?
+    if user_access_controls_updated?
+      clear_has_access_to!
+      force_reset = true
+    end
+
+    if user_roles_updated?
+      clear_role_names!
+      force_reset = true
+    end
 
     ckey = "has_access_to--#{perform}-#{resource_type}-#{named}-#{with_options}-#{alt_app_type_id || app_type_id}"
     return @has_access_to[ckey] if @has_access_to.key?(ckey) && !force_reset

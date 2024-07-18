@@ -10,7 +10,10 @@ module Dynamic
 
       after_save :add_master_association, if: -> { @regenerate }
       after_save :add_user_access_controls, if: -> { @regenerate }
+
+      # This double reset is intentional
       after_save :reset_active_model_configurations!
+      after_commit :reset_active_model_configurations!
 
       after_commit :update_tracker_events, if: -> { @regenerate }
       after_commit :clean_schema, if: -> { @regenerate }
@@ -147,6 +150,11 @@ module Dynamic
       # so that an implementation can always look up the current definition rapidly
       def definition_cache
         @definition_cache ||= {}
+      end
+
+      def reset_active_model_configurations!
+        Admin::AppType.reset_memo_associated_items!
+        @active_model_configurations = nil
       end
 
       # End of class_methods

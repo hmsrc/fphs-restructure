@@ -24,6 +24,7 @@ RSpec.describe SaveTriggers::SetItemFlags, type: :model do
     add_reference_def_to(@al, [player_contacts: { from: 'this', add: 'many' }])
     expect(@al.master_id).to eq @master.id
     setup_access @al.resource_name, resource_type: :activity_log_type, access: :create, user: @user
+    Classification::Protocol.reset_record_updates_protocol!
   end
 
   it 'sets flags on an item using a list of ids' do

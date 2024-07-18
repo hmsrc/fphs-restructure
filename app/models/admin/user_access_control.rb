@@ -17,6 +17,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   validate :correct_access_valid?
 
   after_save :clear_user_access_cache
+  after_save :reset_associated_items!
 
   attr_accessor :allow_bad_resource_name
 
@@ -176,8 +177,8 @@ class Admin::UserAccessControl < Admin::AdminBase
     app_type_id ||= user&.app_type_id
     user_id = user.is_a?(User) ? user.id : user
 
-    cache_key =
-      "access-for--#{user_id}-#{can_perform}-#{on_resource_type}-#{named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
+    cache_key = cache_key_for_access_for(user_id, can_perform, on_resource_type, named, app_type_id, alt_role_name,
+                                         add_conditions)
 
     Rails.cache.fetch(cache_key) do
       rns = evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
@@ -185,6 +186,10 @@ class Admin::UserAccessControl < Admin::AdminBase
                                 add_conditions:)
       rns[named.to_sym]
     end
+  end
+
+  def self.cache_key_for_access_for(*args)
+    "access-for--#{args.join('-')}"
   end
 
   #
@@ -216,9 +221,18 @@ class Admin::UserAccessControl < Admin::AdminBase
       "access-for-list--#{user_id}-#{can_perform}-#{on_resource_type}-#{list_named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
 
     Rails.cache.fetch(cache_key) do
-      evaluate_access_for(user, can_perform, on_resource_type, list_named, app_type_id,
-                          alt_role_name:,
-                          add_conditions:)
+      res = evaluate_access_for(user, can_perform, on_resource_type, list_named, app_type_id,
+                                alt_role_name:,
+                                add_conditions:)
+
+      # Store the individual results so they can be reused
+      res.each do |k, v|
+        ck = cache_key_for_access_for(user_id, can_perform, on_resource_type, k, app_type_id, alt_role_name,
+                                      add_conditions)
+        Rails.cache.write(cache_key, v)
+      end
+
+      res
     end
   end
 
@@ -426,5 +440,9 @@ class Admin::UserAccessControl < Admin::AdminBase
   # are cleared when a user access control changes
   def clear_user_access_cache
     user&.clear_has_access_to!
+  end
+
+  def reset_associated_items!
+    Admin::AppType.reset_memo_associated_items!
   end
 end

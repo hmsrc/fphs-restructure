@@ -33,12 +33,14 @@ class Classification::Protocol < ActiveRecord::Base
     all_active.select { |r| r.name == name }.first
   end
 
-  # A simple method to cache the record that is used to indicate Tracker Updates
-  # so that we can quickly and repetitively user this
+  # A simple method to memoize the record that is used to indicate Tracker Updates
+  # so that we can quickly and repetitively use this
   def self.record_updates_protocol
-    Rails.cache.fetch 'record_updates_protocol' do
-      enabled.updates.take
-    end
+    @record_updates_protocol ||= enabled.updates.reload.take
+  end
+
+  def self.reset_record_updates_protocol!
+    @record_updates_protocol = nil
   end
 
   def reset_memos
@@ -49,5 +51,6 @@ class Classification::Protocol < ActiveRecord::Base
     @all_active = nil
     Classification::SubProcess.reset_memos
     Classification::ProtocolEvent.reset_memos
+    reset_record_updates_protocol!
   end
 end
