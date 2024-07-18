@@ -68,8 +68,11 @@ module Dynamic
       # This is typically used to improve load times and ensure we only generate
       # templates for models that will actually be used.
       # @return [ActiveRecord::Relation] scoped results
-      def active_model_configurations
-        # return @active_model_configurations if @active_model_configurations
+      def active_model_configurations(force_update: nil)
+        @active_model_configurations ||= {}
+        ckey = "active_model_configurations--#{name}-#{table_name}"
+        got = @active_model_configurations[ckey]
+        return got if got && !Admin::AppType.active_app_types_changed? && !force_update
 
         olat = Admin::AppType.active_app_types
 
@@ -84,13 +87,14 @@ module Dynamic
             # Compare against string class names, to avoid autoload errors
             case name
             when 'ActivityLog'
-              res = app_type.associated_activity_logs(not_resource_names: got_names)
+              res = app_type.associated_activity_logs(not_resource_names: got_names, force_update:)
               resnames = app_type.associated_activity_log_names
             when 'DynamicModel'
-              res = app_type.associated_dynamic_models(valid_resources_only: false, not_resource_names: got_names)
+              res = app_type.associated_dynamic_models(valid_resources_only: false, not_resource_names: got_names,
+                                                       force_update:)
               resnames = app_type.associated_dynamic_model_names
             when 'ExternalIdentifier'
-              res = app_type.associated_external_identifiers(not_resource_names: got_names)
+              res = app_type.associated_external_identifiers(not_resource_names: got_names, force_update:)
               resnames = app_type.associated_external_identifier_names
             end
             if resnames.present? && (resnames - got_names).present?
@@ -115,11 +119,7 @@ module Dynamic
           dma = dma.where(schema_name: schemas) if has_schema_name
         end
 
-        @active_model_configurations = dma
-      end
-
-      def reset_active_model_configurations!
-        @active_model_configurations = nil
+        @active_model_configurations[ckey] = dma
       end
 
       # Get all the resource names for options configs in all active dynamic definitions
@@ -232,8 +232,9 @@ module Dynamic
       #
       # Get the timestamp for the latest definition stored in the DB.
       # @return [DateTime]
-      def latest_stored_update
-        active_model_configurations
+      def latest_stored_update(using: nil)
+        using ||= active_model_configurations
+        using
           .select(:updated_at)
           .reorder('')
           .order('updated_at desc nulls last')

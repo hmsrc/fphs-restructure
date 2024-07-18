@@ -18,8 +18,11 @@ module OptionConfigs
 
       plural_name = external_id_type.plural_name
 
+      can_create = current_user.has_access_to?(:create, :table, plural_name)
+      can_edit = can_create || current_user.has_access_to?(:edit, :table, plural_name)
+
       {
-        def_record: def_record,
+        def_record:,
         def_version: def_record.def_version,
         caption: view_options[:header_caption] || external_id_type.label,
         button_label: option_type_config.button_label || external_id_type.label,
@@ -28,10 +31,8 @@ module OptionConfigs
         resource_name: def_record.resource_name,
         implementation_class: def_record.implementation_class,
         model_data_type: :external_identifier,
-        prevent_edit: external_id_type.prevent_edit? ||
-          !(current_user.has_access_to? :edit, :table, plural_name),
-        prevent_create: external_id_type.prevent_create? ||
-          !(current_user.has_access_to? :create, :table, plural_name),
+        prevent_edit: external_id_type.prevent_edit? || can_edit,
+        prevent_create: external_id_type.prevent_create? || !can_create,
         item_list: field_list,
         caption_before: option_type_config.caption_before,
         dialog_before: option_type_config.dialog_before,
@@ -39,7 +40,7 @@ module OptionConfigs
         show_if: option_type_config.show_if,
         data_sort: [:desc, 'data-updated-at-ts'],
         category: def_record.category,
-        view_options: view_options,
+        view_options:,
         extra_class: view_options[:extra_class],
         template_class: nil,
         extra_data_attribs: field_list.include?('rec_type') ? [:rec_type] : nil,
@@ -48,7 +49,7 @@ module OptionConfigs
         extra_options_config: option_type_config,
         external_id_options: {
           label: external_id_type.label,
-          formatter: formatter,
+          formatter:,
           attribute: external_id_type.external_id_attribute.to_s
         },
         orientation: 'vertical',
@@ -80,9 +81,11 @@ module OptionConfigs
       data_sort = [:desc, 'data-rank'] if def_record.model_class&.attribute_names&.include? 'rank'
       default_options = option_type_config
       view_options = default_options.view_options
+      can_create = current_user.has_access_to?(:create, :table, def_record.full_item_type_name.pluralize)
+      can_edit = can_create || current_user.has_access_to?(:edit, :table, def_record.full_item_type_name.pluralize)
 
       {
-        def_record: def_record,
+        def_record:,
         def_version: def_record.def_version,
         caption: view_options[:header_caption] || def_record.name,
         button_label: default_options.button_label,
@@ -91,16 +94,16 @@ module OptionConfigs
         resource_name: def_record.resource_name,
         implementation_class: def_record.implementation_class,
         model_data_type: :dynamic_model,
-        prevent_edit: !(current_user.has_access_to? :edit, :table, def_record.full_item_type_name.pluralize),
-        prevent_create: !(current_user.has_access_to? :create, :table, def_record.full_item_type_name.pluralize),
-        item_list: item_list,
+        prevent_edit: !can_edit,
+        prevent_create: !can_create,
+        item_list:,
         caption_before: default_options.caption_before,
         dialog_before: default_options.dialog_before,
         labels: default_options.labels,
         show_if: default_options.show_if,
-        data_sort: data_sort,
+        data_sort:,
         category: def_record.category,
-        view_options: view_options,
+        view_options:,
         references: option_type_config.references,
         embed: direct_embed_type(def_record, option_type_config),
         extra_class: view_options[:extra_class],
@@ -134,9 +137,11 @@ module OptionConfigs
 
       full_name = def_record.full_item_type_name
       data_action_when = "data_#{current_definition.action_when_attribute}".to_sym
+      can_create = current_user.has_access_to?(:create, :table, def_record.full_item_type_name.pluralize)
+      can_edit = can_create || current_user.has_access_to?(:edit, :table, def_record.full_item_type_name.pluralize)
 
       {
-        def_record: def_record,
+        def_record:,
         def_version: def_record.def_version,
         caption: view_options[:header_caption] || option_type_config.label,
         name: "#{full_name}_#{option_type_config.name}",
@@ -146,8 +151,8 @@ module OptionConfigs
         resource_name: "#{full_name}__#{option_type_config.name}",
 
         button_label: option_type_config.button_label,
-        prevent_edit: !(current_user.has_access_to? :edit, :table, def_record.full_item_type_name.pluralize),
-        prevent_create: !(current_user.has_access_to? :create, :table, def_record.full_item_type_name.pluralize),
+        prevent_edit: !can_edit,
+        prevent_create: !can_create,
         only_see_presence: current_user.has_access_to?(
           :see_presence,
           :activity_log_type,
@@ -174,7 +179,7 @@ module OptionConfigs
         references: option_type_config.references,
         embed: direct_embed_type(def_record, option_type_config),
         show_if: option_type_config.show_if,
-        view_options: view_options,
+        view_options:,
         extra_data_attribs: [:extra_log_type],
         extra_options_config: option_type_config
       }
@@ -183,13 +188,16 @@ module OptionConfigs
     def self.activity_log_all_configs_mapping(def_record, current_user)
       current_definition = def_record.current_definition || def_record
 
+      can_create = current_user.has_access_to?(:create, :table, def_record.full_item_type_name.pluralize)
+      can_edit = can_create || current_user.has_access_to?(:edit, :table, def_record.full_item_type_name.pluralize)
+
       {
-        def_record: def_record,
+        def_record:,
         def_version: def_record.def_version,
         caption: def_record.name,
         name: def_record.item_type_name,
-        prevent_edit: !(current_user.has_access_to? :edit, :table, def_record.full_item_type_name.pluralize),
-        prevent_create: !(current_user.has_access_to? :create, :table, def_record.full_item_type_name.pluralize),
+        prevent_edit: !can_edit,
+        prevent_create: !can_create,
         item_list: def_record.implementation_class.view_attribute_list,
         implementation_class: def_record.implementation_class,
         implementation_class_name: def_record.item_type_name,

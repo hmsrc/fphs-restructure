@@ -490,6 +490,9 @@ class ActivityLog < ActiveRecord::Base
         logger.info "Adding a new Activity protocol event #{pe.id}"
       end
     end
+
+    Classification::Protocol.reset_memos
+
     true
   end
 

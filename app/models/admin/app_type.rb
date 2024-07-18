@@ -19,6 +19,7 @@ class Admin
     validate :name_not_already_taken
     validates :label, presence: true
 
+    after_save :reset_active_app_types!
     after_create :add_template_access
     after_create :setup_migrations
     after_create :add_admin_user_access
@@ -37,13 +38,25 @@ class Admin
       name
     end
 
+    #
+    # Has the active_app_types list of definitions changed since it was last queried?
+    def self.active_app_types_changed?
+      olat = Settings::OnlyLoadAppTypes
+      res = @old_olat != olat
+      Rails.logger.warn "active_app_types_changed since last query: #{@old_olat} => #{olat}" if res
+      res
+    end
+
     def self.active_app_types
       olat = Settings::OnlyLoadAppTypes
-      if olat
-        Admin::AppType.active.where(id: olat).reload
-      else
-        active.reload
-      end
+      return @active_app_types if @old_olat == olat && @active_app_types
+
+      @old_olat = olat
+      @active_app_types = if olat
+                            Admin::AppType.active.where(id: olat).reload
+                          else
+                            active.reload
+                          end
     end
 
     def self.all_ids_available_to(user)
@@ -92,7 +105,7 @@ class Admin
     end
 
     def valid_user_access_controls
-      user_access_controls.valid_resources.reorder('').order(id: :asc)
+      @valid_user_access_controls ||= user_access_controls.valid_resources.reorder('').order(id: :asc)
     end
 
     # Select any tables that have some kind of access
@@ -104,66 +117,91 @@ class Admin
       associated_activity_logs valid_resources_only: true
     end
 
-    # Select activity logs that have some kind of access, typically scoped to a specific app type
-    # @return [ActiveRecord::Relation]
-    def associated_activity_logs(valid_resources_only: false, not_resource_names: nil)
-      nrn = not_resource_names
+    def memoize_associated_items(type, ckey, force_update: nil, &block)
+      memo = self.class.memo_associated_items(type)
+      memokey = "associated_items--#{type}--#{ckey}"
+      return memo[memokey] if memo.key?(memokey) && !force_update
 
-      uacs = if valid_resources_only
-               user_access_controls.valid_resources([:table])
-             else
-               user_access_controls.active
-             end
-
-      get_names =
-        uacs.where(resource_type: :table)
-            .select { |a| a.access && a.resource_name.start_with?('activity_log__') && (nrn.nil? || !a.resource_name.in?(nrn)) }
-      names = get_names.map { |n| n.resource_name.singularize.sub('activity_log__', '') }.uniq
-      names += get_names.map { |n| n.resource_name.sub('activity_log__', '') }.uniq
-      self.associated_activity_log_names = names
-
-      ActivityLog.active.where("
-        (rec_type is NULL OR rec_type = '') AND (process_name IS NULL OR process_name = '') AND item_type in (?)
-    OR (process_name IS NULL OR process_name = '') AND (item_type || '_' || rec_type) in (?)
-    OR (rec_type IS NULL OR rec_type = '') AND (item_type || '_' || process_name) in (?)
-    ", names, names, names).reorder('').order(id: :asc)
+      memo[memokey] = block.call
     end
 
-    def associated_dynamic_models(valid_resources_only: true, not_resource_names: nil)
-      nrn = not_resource_names
+    def self.memo_associated_items(type)
+      @memo_associated_items ||= {}
+      @memo_associated_items[type] ||= {}
+    end
 
-      uacs = if valid_resources_only
-               user_access_controls.valid_resources([:table])
-             else
-               user_access_controls.active
-             end
+    def self.reset_memo_associated_items!
+      @memo_associated_items = {}
+    end
 
-      self.associated_dynamic_model_names =
-        uacs.where(resource_type: :table)
-            .select { |a| a.access && a.resource_name.start_with?('dynamic_model__') && (nrn.nil? || !a.resource_name.in?(nrn)) }
-            .map { |n| n.resource_name.sub('dynamic_model__', '') }
-            .uniq
+    # Select activity logs that have some kind of access, typically scoped to a specific app type
+    # @return [ActiveRecord::Relation]
+    def associated_activity_logs(valid_resources_only: false, not_resource_names: nil, force_update: nil)
+      memoize_associated_items(:activity_logs, [valid_resources_only, not_resource_names], force_update:) do
+        nrn = not_resource_names
 
-      DynamicModel.active.where(table_name: associated_dynamic_model_names).reorder('').order(id: :asc)
+        uacs = if valid_resources_only
+                 user_access_controls.valid_resources([:table])
+               else
+                 user_access_controls.active
+               end
+
+        get_names =
+          uacs.where(resource_type: :table)
+              .select { |a| a.access && a.resource_name.start_with?('activity_log__') && (nrn.nil? || !a.resource_name.in?(nrn)) }
+        names = get_names.map { |n| n.resource_name.singularize.sub('activity_log__', '') }.uniq
+        names += get_names.map { |n| n.resource_name.sub('activity_log__', '') }.uniq
+        self.associated_activity_log_names = names
+
+        sql = <<~END_SQL
+          (rec_type is NULL OR rec_type = '') AND (process_name IS NULL OR process_name = '') AND item_type in (?)
+          OR (process_name IS NULL OR process_name = '') AND (item_type || '_' || rec_type) in (?)
+          OR (rec_type IS NULL OR rec_type = '') AND (item_type || '_' || process_name) in (?)
+        END_SQL
+        ActivityLog.active.where(sql, names, names, names).reorder('').order(id: :asc)
+      end
+    end
+
+    def associated_dynamic_models(valid_resources_only: true, not_resource_names: nil, force_update: nil)
+      memoize_associated_items(:dynamic_models, [valid_resources_only, not_resource_names], force_update:) do
+        nrn = not_resource_names
+
+        uacs = if valid_resources_only
+                 user_access_controls.valid_resources([:table])
+               else
+                 user_access_controls.active
+               end
+
+        self.associated_dynamic_model_names =
+          uacs.where(resource_type: :table)
+              .select { |a| a.access && a.resource_name.start_with?('dynamic_model__') && (nrn.nil? || !a.resource_name.in?(nrn)) }
+              .map { |n| n.resource_name.sub('dynamic_model__', '') }
+              .uniq
+
+        DynamicModel.active.where(table_name: associated_dynamic_model_names).reorder('').order(id: :asc)
+      end
     end
 
     #
     # Get external identifiers that are active and associated with this app type
     # though user access controls being assigned to them
     # @return [ActiveRecord::Relation] external identifiers returned
-    def associated_external_identifiers(not_resource_names: nil)
-      nrn = not_resource_names
-      eids = ExternalIdentifier.active.pluck(:name)
+    def associated_external_identifiers(_valid_resources_only: true, not_resource_names: nil, force_update: nil)
+      memoize_associated_items(:external_identifiers, [_valid_resources_only, not_resource_names],
+                               force_update:) do
+        nrn = not_resource_names
+        eids = ExternalIdentifier.active.pluck(:name)
 
-      self.associated_external_identifier_names =
-        user_access_controls
-        .valid_resources([:table])
-        .where(resource_type: :table)
-        .select { |a| a.access && a.resource_name.in?(eids) && (nrn.nil? || !a.resource_name.in?(nrn)) }
-        .map(&:resource_name)
-        .uniq
+        self.associated_external_identifier_names =
+          user_access_controls
+          .valid_resources([:table])
+          .where(resource_type: :table)
+          .select { |a| a.access && a.resource_name.in?(eids) && (nrn.nil? || !a.resource_name.in?(nrn)) }
+          .map(&:resource_name)
+          .uniq
 
-      ExternalIdentifier.active.where(name: associated_external_identifier_names).reorder('').order(id: :asc)
+        ExternalIdentifier.active.where(name: associated_external_identifier_names).reorder('').order(id: :asc)
+      end
     end
 
     def associated_reports
@@ -318,13 +356,13 @@ class Admin
       Admin::UserAccessControl.create!(role_name: Settings::AppTemplateRole, app_type: self,
                                        resource_type: :general, resource_name: :app_type,
                                        access: :read,
-                                       user: User.template_user, current_admin: current_admin)
+                                       user: User.template_user, current_admin:)
     end
 
     def setup_migrations
       return true unless Settings::AllowDynamicMigrations
 
-      return true if self.class.active.where(default_schema_name: default_schema_name).count > 1
+      return true if self.class.active.where(default_schema_name:).count > 1
 
       migration_generator = Admin::MigrationGenerator.new(default_schema_name)
       migration_generator.add_schema
@@ -341,8 +379,8 @@ class Admin
                                       access: :read,
                                       resource_type: :general,
                                       resource_name: :app_type,
-                                      user: user,
-                                      current_admin: current_admin
+                                      user:,
+                                      current_admin:
     end
 
     #
@@ -366,6 +404,16 @@ class Admin
       end
 
       res
+    end
+
+    private
+
+    def reset_active_app_types!
+      self.class.reset_active_app_types!
+    end
+
+    def self.reset_active_app_types!
+      @active_app_types = nil
     end
   end
 end

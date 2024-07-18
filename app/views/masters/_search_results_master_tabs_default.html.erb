@@ -20,18 +20,25 @@
     <% end %>
 
     <%
-    showdyncats = (DynamicModel.categories - ['details']).length > 1
-    showdyncats &&= (DynamicModel.categories - ['details'])
-                      .map{|cat| DynamicModel.active_model_configurations.where(category: cat)
-                                  .all
-                                  .select {|d| true_master_viewables.include? d.model_association_name }.length }.sum > 0
+    
+    
+    unless @memo_dyncats
+      @dyn_cat_no_details = (DynamicModel.categories - ['details']).uniq
+      showdyncats = (@dyn_cat_no_details).length > 1
+      showdyncats &&= DynamicModel.active_model_configurations.where(category: @dyn_cat_no_details)
+                                    .all
+                                    .first { |d| true_master_viewables.include? d.model_association_name }
+                                    
+                                     
+      @memo_dyncats = showdyncats
+    end
     if showdyncats
     %>
     <li role="presentation" class="dropdown">
       <a href="#" class="dropdown-toggle" id="dm-tag-drop" data-toggle="dropdown" aria-controls="dm-tag-drop-contents" aria-expanded="false"><span class="caret"></span> records</a>
       <ul class="dropdown-menu" aria-labelledby="dm-tag-drop" id="dm-tag-drop-contents">
     <%end%>
-    <% (DynamicModel.categories - ['details']).each do |cat| %>
+    <% (@dyn_cat_no_details).each do |cat| %>
       <% if DynamicModel.active_model_configurations.where(category: cat).all.select {|d| true_master_viewables.include? d.model_association_name }.length  > 0 %>
     <li role="presentation" class="<%= cat.underscore.in?(default_panels) ? 'on-open-click' : '' %>">
       <a href="#/" data-toggle="collapse" data-panel-tab="<%=cat.underscore%>" data-target="#<%=cat%>-{{id}}" class="collapsed scroll-to-expanded "><%= cat.underscore.humanize.downcase %></a>
