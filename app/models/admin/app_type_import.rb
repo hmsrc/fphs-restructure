@@ -254,10 +254,11 @@ class Admin
         begin
           app_type_item, item_changes = create_or_update(app_type_item, new_vals)
         rescue StandardError, FphsException => e
-          raise unless skip_fail
-
           fres = identifier_hash(app_type_item, found_with_conditions)
           fres['exception!'] = self.class.clean_exception(e)
+          Rails.logger.warn fres
+          raise unless skip_fail
+
           failures << fres
         end
 

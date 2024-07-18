@@ -46,12 +46,12 @@ module UserAccessHandler
     return @has_access_to[key] if @has_access_to.key?(key) && !force_reset
 
     @has_access_to[key] =
-      Admin::UserAccessControl.access_for? self,
+      Admin::UserAccessControl.access_for?(self,
                                            perform,
                                            resource_type,
                                            named,
                                            with_options,
-                                           alt_app_type_id: alt_app_type_id
+                                           alt_app_type_id:)
   end
 
   #
@@ -68,11 +68,7 @@ module UserAccessHandler
   # the one we last saw within this instance. Handles automatic memo clearing to
   # support changes to user access controls in spec tests
   def user_access_controls_updated?
-    if @latest_user_access_control != Admin::UserAccessControl.latest_update
-      @latest_user_access_control = Admin::UserAccessControl.latest_update
-    else
-      false
-    end
+    @latest_user_access_control != Admin::UserAccessControl.latest_update
   end
 
   #
@@ -87,10 +83,11 @@ module UserAccessHandler
     @latest_user_access_control = Admin::UserAccessControl.latest_update(force: true)
     @has_access_to = {}
   end
-
+  
   def clear_role_names!
     @latest_user_role = Admin::UserRole.latest_update(force: true)
     @role_names = nil
+    @app_type_role_names = {} 
     # Updated roles also lead to has_access_to evaluations requiring refresh
     clear_has_access_to!
   end

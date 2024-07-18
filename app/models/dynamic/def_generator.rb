@@ -29,7 +29,7 @@ module Dynamic
         preload
 
         begin
-          dma = active_model_configurations
+          dma = active_model_configurations force_update: true
 
           logger.info "Generating models #{name} #{dma.length}"
 
@@ -104,7 +104,7 @@ module Dynamic
         return if utd || utd.nil?
 
         Rails.logger.warn "Refreshing outdated #{name}"
-
+        reset_active_model_configurations!
         defs = active_model_configurations.reorder('').order('updated_at desc nulls last')
         any_new = false
         defs.each do |d|

@@ -174,17 +174,28 @@ class Admin::UserAccessControl < Admin::AdminBase
 
     app_type_id = alt_app_type_id.is_a?(Admin::AppType) ? alt_app_type_id.id : alt_app_type_id
     app_type_id ||= user&.app_type_id
+    user_id = user.is_a?(User) ? user.id : user
+
     cache_key =
-      "#{user&.id}-#{can_perform}-#{on_resource_type}-#{named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
-    res = Rails.cache.fetch(cache_key) do
+      "#{user_id}-#{can_perform}-#{on_resource_type}-#{named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
+
+    Rails.cache.fetch(cache_key) do
       evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
                           alt_role_name:,
                           add_conditions:)
     end
+    # # Avoid an unnecessary find if evaluate access was run, rather than populated from cache
+    # uac = nil
+    # uac_id = Rails.cache.fetch(cache_key) do
+    #   uac = evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
+    #                             alt_role_name:,
+    #                             add_conditions:)
+    #   uac&.id
+    # end
 
-    return unless res
+    # return unless uac_id
 
-    find(res)
+    # uac || find(uac_id)
   end
 
   # @param [User] user
@@ -195,7 +206,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   #                                                     apply to if the user does not have a current app_type set
   # @param [String] alt_role_name - for an Admin::UserRole when the role control is to override the default controls
   # @param [Hash] add_conditions - additional conditions to apply to scoped user and roles
-  # @return [id | nil] - id of the UserAccessControl
+  # @return [UserAccessControl | nil] - id of the UserAccessControl
   def self.evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
                                alt_role_name: nil, add_conditions: nil)
 
@@ -225,10 +236,10 @@ class Admin::UserAccessControl < Admin::AdminBase
       can_perform = [can_perform] unless can_perform.is_a? Array
       res_access = nil
       res_access = res.access.to_sym if res.access
-      return nil unless res_access.in?(can_perform)
+      res = nil unless res_access.in?(can_perform)
     end
 
-    res&.id
+    res
   end
 
   #
@@ -257,12 +268,14 @@ class Admin::UserAccessControl < Admin::AdminBase
   #
   # Check which tables a user can view in the current app type, or an alternative app type if specified
   def self.viewable_tables(user, alt_app_type_id: nil)
-    view = {}
-    resource_names_for(:table).each do |r|
-      view[r.to_sym] = !!access_for?(user, :access, :table, r, alt_app_type_id:)
+    ckey = "#{user.id}-#{user.app_type_id}--#{alt_app_type_id}"
+    Rails.cache.fetch(ckey) do
+      allow = {}
+      resource_names_for(:table).each do |r|
+        allow[r.to_sym] = !!access_for?(user, :access, :table, r, alt_app_type_id:)
+      end
+      allow
     end
-
-    view
   end
 
   #

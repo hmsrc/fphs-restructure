@@ -204,6 +204,18 @@ class User < ActiveRecord::Base
     Admin::AppType.all_available_to(self)
   end
 
+  def app_type_role_names(conditions = {})
+    @app_type_role_names = {} if user_roles_updated? || user_access_controls_updated?
+    @app_type_role_names ||= {}
+
+    got = @app_type_role_names[conditions]
+    return got if got
+
+    @app_type_role_names[conditions] = Admin::UserRole.active_app_roles(self, app_type: [app_type_id, nil])
+                                                      .select('app_type_id, role_name').distinct.order(app_type_id: :asc)
+                                                      .pluck(:app_type_id, :role_name)
+  end
+
   # Send user confirmation email if self registering
   # method provided by devise confirmable module; Override so job notifications can be executed
   def send_on_create_confirmation_instructions

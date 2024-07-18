@@ -37,13 +37,25 @@ class Admin
       name
     end
 
+    #
+    # Has the active_app_types list of definitions changed since it was last queried?
+    def self.active_app_types_changed?
+      olat = Settings::OnlyLoadAppTypes
+      res = @old_olat != olat
+      Rails.logger.warn "active_app_types_changed since last query: #{@old_olat} => #{olat}" if res
+      res
+    end
+
     def self.active_app_types
       olat = Settings::OnlyLoadAppTypes
-      if olat
-        Admin::AppType.active.where(id: olat).reload
-      else
-        active.reload
-      end
+      return @active_app_types if @old_olat == olat && @active_app_types
+
+      @old_olat = olat
+      @active_app_types = if olat
+                            Admin::AppType.active.where(id: olat).reload
+                          else
+                            active.reload
+                          end
     end
 
     def self.all_ids_available_to(user)
@@ -92,7 +104,7 @@ class Admin
     end
 
     def valid_user_access_controls
-      user_access_controls.valid_resources.reorder('').order(id: :asc)
+      @valid_user_access_controls ||= user_access_controls.valid_resources.reorder('').order(id: :asc)
     end
 
     # Select any tables that have some kind of access
@@ -107,6 +119,11 @@ class Admin
     # Select activity logs that have some kind of access, typically scoped to a specific app type
     # @return [ActiveRecord::Relation]
     def associated_activity_logs(valid_resources_only: false, not_resource_names: nil)
+      @associated_activity_logs ||= {}
+      ckey = "#{valid_resources_only}=#{not_resource_names}"
+      got = @associated_activity_logs[ckey]
+      return got if got
+
       nrn = not_resource_names
 
       uacs = if valid_resources_only
@@ -122,7 +139,7 @@ class Admin
       names += get_names.map { |n| n.resource_name.sub('activity_log__', '') }.uniq
       self.associated_activity_log_names = names
 
-      ActivityLog.active.where("
+      @associated_activity_logs[ckey] = ActivityLog.active.where("
         (rec_type is NULL OR rec_type = '') AND (process_name IS NULL OR process_name = '') AND item_type in (?)
     OR (process_name IS NULL OR process_name = '') AND (item_type || '_' || rec_type) in (?)
     OR (rec_type IS NULL OR rec_type = '') AND (item_type || '_' || process_name) in (?)
@@ -130,6 +147,11 @@ class Admin
     end
 
     def associated_dynamic_models(valid_resources_only: true, not_resource_names: nil)
+      @associated_dynamic_models ||= {}
+      ckey = "#{valid_resources_only}=#{not_resource_names}"
+      got = @associated_dynamic_models[ckey]
+      return got if got
+
       nrn = not_resource_names
 
       uacs = if valid_resources_only
@@ -144,7 +166,8 @@ class Admin
             .map { |n| n.resource_name.sub('dynamic_model__', '') }
             .uniq
 
-      DynamicModel.active.where(table_name: associated_dynamic_model_names).reorder('').order(id: :asc)
+      @associated_dynamic_models[ckey] =
+        DynamicModel.active.where(table_name: associated_dynamic_model_names).reorder('').order(id: :asc)
     end
 
     #
@@ -318,13 +341,13 @@ class Admin
       Admin::UserAccessControl.create!(role_name: Settings::AppTemplateRole, app_type: self,
                                        resource_type: :general, resource_name: :app_type,
                                        access: :read,
-                                       user: User.template_user, current_admin: current_admin)
+                                       user: User.template_user, current_admin:)
     end
 
     def setup_migrations
       return true unless Settings::AllowDynamicMigrations
 
-      return true if self.class.active.where(default_schema_name: default_schema_name).count > 1
+      return true if self.class.active.where(default_schema_name:).count > 1
 
       migration_generator = Admin::MigrationGenerator.new(default_schema_name)
       migration_generator.add_schema
@@ -341,8 +364,8 @@ class Admin
                                       access: :read,
                                       resource_type: :general,
                                       resource_name: :app_type,
-                                      user: user,
-                                      current_admin: current_admin
+                                      user:,
+                                      current_admin:
     end
 
     #
