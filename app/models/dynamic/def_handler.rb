@@ -68,8 +68,11 @@ module Dynamic
       # This is typically used to improve load times and ensure we only generate
       # templates for models that will actually be used.
       # @return [ActiveRecord::Relation] scoped results
-      def active_model_configurations
-        # return @active_model_configurations if @active_model_configurations
+      def active_model_configurations(force_update: nil)
+        @active_model_configurations ||= {}
+        ckey = "#{name}-#{table_name}"
+        got = @active_model_configurations[ckey]
+        return got if got && !Admin::AppType.active_app_types_changed? && !force_update
 
         olat = Admin::AppType.active_app_types
 
@@ -115,7 +118,7 @@ module Dynamic
           dma = dma.where(schema_name: schemas) if has_schema_name
         end
 
-        @active_model_configurations = dma
+        @active_model_configurations[ckey] = dma
       end
 
       def reset_active_model_configurations!

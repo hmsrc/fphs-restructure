@@ -4,7 +4,7 @@ module AdminHelper
   def edit_path(id, opt = {})
     return unless id
 
-    redir = { action: :edit, id: id }
+    redir = { action: :edit, id: }
     redir.merge! opt
     url_for(redir)
   end
@@ -51,7 +51,7 @@ module AdminHelper
     if val.present? || title == 'all'
       like_type = title.to_s.end_with?('__%')
       title = title[0..-4] if like_type
-      linkres = link_to(title, index_path(filter: filter),
+      linkres = link_to(title, index_path(filter:),
                         class: "btn #{val.blank? && prev_val.blank? || val.to_s == prev_val.to_s ? 'btn-primary' : 'btn-default'} btn-sm #{like_type ? 'like-type' : ''}")
       if like_type
         @shown_filter_break = false
@@ -91,7 +91,7 @@ module AdminHelper
     end
 
     res += render(partial: 'admin_handler/filters',
-                  locals: { fo: fo, filters_on_multiple: filters_on_multiple, these_filters: these_filters })
+                  locals: { fo:, filters_on_multiple:, these_filters: })
 
     res.html_safe
   end
@@ -134,7 +134,7 @@ module AdminHelper
   end
 
   def admin_last_updated_by_icon(list_item)
-    return unless list_item.admin
+    return unless list_item.admin_id
 
     res = <<~END_HTML
       <span class="hidden">#{list_item.updated_at}</span>
