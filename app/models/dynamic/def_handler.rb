@@ -70,7 +70,7 @@ module Dynamic
       # @return [ActiveRecord::Relation] scoped results
       def active_model_configurations(force_update: nil)
         @active_model_configurations ||= {}
-        ckey = "#{name}-#{table_name}"
+        ckey = "active_model_configurations--#{name}-#{table_name}"
         got = @active_model_configurations[ckey]
         return got if got && !Admin::AppType.active_app_types_changed? && !force_update
 
