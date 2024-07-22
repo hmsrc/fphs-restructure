@@ -230,8 +230,8 @@ class Tracker < UserBase
   # those changes in the tracker history.
   def self.add_record_update_entries(name, admin, update_type = 'record')
     begin
-      protocol = Classification::Protocol.updates.first
-      sp = protocol.sub_processes.find_by_name("#{update_type} updates")
+      protocol = Classification::Protocol.updates.reload.first
+      sp = protocol.sub_processes.find_by_name("#{update_type} updates").reload
       values = []
 
       name = name.humanize.downcase
