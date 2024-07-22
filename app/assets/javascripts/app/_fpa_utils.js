@@ -405,6 +405,13 @@ _fpa.utils.parseLocaleDate = function (stre) {
   return new Date(isoDate);
 };
 
+// Returns a JS object.
+_fpa.utils.parseLocaleDateTime = function (stre) {
+  const format = UserPreferences.date_time_format();
+  const isoDate = _fpa.utils.DateTime.fromFormat(stre, format).toISO();
+  return new Date(isoDate);
+};
+
 // Take yyyy-mm-dd... and make it mm/dd/yyyy
 _fpa.utils.isoDateStringToLocale = function (stre) {
   if (_fpa.utils.is_blank(stre)) return stre;
