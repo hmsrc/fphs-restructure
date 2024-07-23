@@ -32,12 +32,9 @@ class Classification::ProtocolEvent < ActiveRecord::Base
     "#{protocol_name} #{sub_process_name}"
   end
 
-  def self.all_active
-    @all_active ||= active
-  end
-
+  # Use #select so we don't have to requery for each request for this scope
   def self.find_by_name(name)
-    all_active.select { |r| r.name == name }.first
+    active.select { |r| r.name == name }.first
   end
 
   # Allows app type import to function
@@ -65,6 +62,6 @@ class Classification::ProtocolEvent < ActiveRecord::Base
   end
 
   def self.reset_memos
-    @all_active = nil
+    # @all_active = nil
   end
 end

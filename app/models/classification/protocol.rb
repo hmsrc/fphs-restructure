@@ -25,12 +25,9 @@ class Classification::Protocol < ActiveRecord::Base
     id
   end
 
-  def self.all_active
-    @all_active ||= active
-  end
-
+  # Use #select so we don't have to requery for each request for this scope
   def self.find_by_name(name)
-    all_active.select { |r| r.name == name }.first
+    active.select { |r| r.name == name }.first
   end
 
   # A simple method to memoize the record that is used to indicate Tracker Updates
@@ -48,7 +45,7 @@ class Classification::Protocol < ActiveRecord::Base
   end
 
   def self.reset_memos
-    @all_active = nil
+    # @all_active = nil
     Classification::SubProcess.reset_memos
     Classification::ProtocolEvent.reset_memos
     reset_record_updates_protocol!
