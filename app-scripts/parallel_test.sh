@@ -100,5 +100,5 @@ echo "==>>>> $(date)" >> tmp/working_failing_specs.log
 echo "========================================================================" >> tmp/working_failing_specs.log
 mv tmp/working_failing_specs.log tmp/failing_specs.log
 
-echo "Started at  ${start_date}"
-echo "Finished at $(date)"
+echo "Started at  ${start_date}" >> tmp/failing_specs.log
+echo "Finished at $(date)" >> tmp/failing_specs.log

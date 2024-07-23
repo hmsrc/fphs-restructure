@@ -47,9 +47,9 @@ class Admin
       res
     end
 
-    def self.active_app_types
+    def self.active_app_types(force: nil)
       olat = Settings::OnlyLoadAppTypes
-      return @active_app_types if @old_olat == olat && @active_app_types
+      return @active_app_types if @old_olat == olat && @active_app_types && !force
 
       @old_olat = olat
       @active_app_types = if olat

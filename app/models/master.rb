@@ -46,35 +46,58 @@ class Master < ActiveRecord::Base
   def self.set_associations_for_subject_searches
     # inverse_of required to ensure the current_user propagates between associated models correctly
     has_many Settings::DefaultSubjectInfoTableName.to_sym,
-             -> { order(Master.subject_info_rank_order_clause) },
+             lambda {
+               eager_load(:user)
+                 .order(Master.subject_info_rank_order_clause)
+             },
              inverse_of: :master
 
     has_one Settings::DefaultSubjectInfoTableName.singularize.to_sym,
-            -> { order(Master.subject_info_rank_order_clause) },
+            lambda {
+              eager_load(:user)
+                .order(Master.subject_info_rank_order_clause)
+            },
             inverse_of: :master
 
     has_many Settings::DefaultSecondaryInfoTableName.to_sym,
+             -> { eager_load(:user) },
              inverse_of: :master
 
     has_many Settings::DefaultContactInfoTableName.to_sym,
-             -> { order(RankNotNullClause) },
+             lambda {
+               eager_load(:user)
+                 .order(RankNotNullClause)
+             },
              inverse_of: :master
 
     has_many Settings::DefaultAddressInfoTableName.to_sym,
-             -> { order(RankNotNullClause) },
+             lambda {
+               eager_load(:user)
+                 .order(RankNotNullClause)
+             },
              inverse_of: :master
 
     # Associations to allow advanced searches for NOT
     has_many :not_tracker_histories,
-             -> { order(TrackerHistoryEventOrderClause) },
+             lambda {
+               eager_load(:user)
+                 .order(TrackerHistoryEventOrderClause)
+             },
              class_name: 'TrackerHistory'
 
     has_many :not_trackers,
-             -> { order(TrackerEventOrderClause) },
+             lambda {
+               eager_load(:user)
+                 .order(TrackerEventOrderClause)
+             },
              class_name: 'Tracker'
 
     # This association is provided to allow 'simple' search on names in player_infos OR pro_infos
     has_many :general_infos,
+             lambda {
+               eager_load(:user)
+                 .order(Master.subject_info_rank_order_clause)
+             },
              class_name: Settings::DefaultSubjectInfoTableName.singularize.camelize
   end
 
@@ -96,14 +119,14 @@ class Master < ActiveRecord::Base
   has_many :trackers,
            lambda {
              includes(:protocol)
-               .preload(:protocol, :sub_process, :protocol_event, :user)
+               .eager_load(:protocol, :sub_process, :protocol_event, user: [:user_preference])
                .order(TrackerEventOrderClause)
            },
            inverse_of: :master
 
   has_many :tracker_histories,
            lambda {
-             preload(:protocol, :sub_process, :protocol_event, :user)
+             eager_load(:protocol, :sub_process, :protocol_event, user: [:user_preference])
                .order(TrackerHistoryEventOrderClause)
            },
            inverse_of: :master
@@ -111,13 +134,16 @@ class Master < ActiveRecord::Base
   # Allow calc actions and substitutions to work correctly
   has_many :tracker_history,
            lambda {
-             preload(:protocol, :sub_process, :protocol_event, :user)
+             eager_load(:protocol, :sub_process, :protocol_event, user: [:user_preference])
                .order(TrackerHistoryEventOrderClause)
            },
            inverse_of: :master
 
   has_many :latest_tracker_history,
-           -> { order(id: :desc).limit(1) },
+           lambda {
+             eager_load(:protocol, :sub_process, :protocol_event, user: [:user_preference])
+               .order(id: :desc).limit(1)
+           },
            class_name: 'TrackerHistory',
            inverse_of: :master
 
@@ -217,11 +243,11 @@ class Master < ActiveRecord::Base
   def self.find_with(params, access_by: nil)
     req_type = params[:type]
 
-    if req_type && crosswalk_attr?(req_type, access_by: access_by) && params[:id]
+    if req_type && crosswalk_attr?(req_type, access_by:) && params[:id]
       # The requested type is a master crosswalk attribute.
       # Find the master and retrieve the value
       Master.send("find_by_#{req_type}", params[:id])
-    elsif req_type && alternative_id?(req_type, access_by: access_by) && params[:id]
+    elsif req_type && alternative_id?(req_type, access_by:) && params[:id]
       # The requested type is a master crosswalk attribute.
       # Find the master and retrieve the value
       Master.find_with_alternative_id(req_type, params[:id], access_by)

@@ -220,6 +220,8 @@ module UserSupport
     user = alt_user || @user
     res = user.has_access_to? :access, :table, resource_name
     if res && res.user_id == user.id
+      # Find it, as the object is not actually a database record
+      res = Admin::UserAccessControl.find(res.id)
       res.disabled = true
       res.current_admin = @admin
       res.save!
@@ -238,6 +240,7 @@ module UserSupport
     user = alt_user || @user
     in_app_type ||= user.app_type
     res = user.has_access_to? :access, :table, resource_name, alt_app_type_id: in_app_type
+    res = Admin::UserAccessControl.find(res.id)
     return unless res && res.user_id == user.id
 
     res.disabled = true
@@ -250,6 +253,14 @@ module UserSupport
     expect(user).to be_a User
     expect(user.id).to equal @user.id
     validate_scantron_setup
+    validate_update_protocol_setup
+  end
+
+  def validate_update_protocol_setup
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'created player info')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'updated player info')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'created player contact')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'updated player contact')).not_to be nil
   end
 
   def validate_scantron_setup
