@@ -186,7 +186,7 @@ module AlternativeIds
     # @param [User] access_by
     # @return [String]
     def access_by_key(access_by)
-      "access_by--#{access_by.id}--#{access_by.app_type_id}"
+      "access_by--#{access_by.id}--#{access_by.current_sign_in_at&.to_i}-#{access_by.app_type_id}"
     end
 
     #
