@@ -180,12 +180,20 @@ class Admin::UserAccessControl < Admin::AdminBase
     cache_key = cache_key_for_access_for(user&.id, user&.current_sign_in_at&.to_i, can_perform, on_resource_type, named, app_type_id, alt_role_name,
                                          add_conditions)
 
-    Rails.cache.fetch(cache_key) do
+    res = Rails.cache.fetch(cache_key) do
       rns = evaluate_access_for(user, can_perform, on_resource_type, named, app_type_id,
                                 alt_role_name:,
                                 add_conditions:)
       rns[named.to_sym]
     end
+    remake_from_attributes(res)
+  end
+
+  def self.remake_from_attributes(attribs)
+    return unless attribs
+
+    current_admin_id = attribs.delete('admin_id')
+    Admin::UserAccessControl.new(attribs)
   end
 
   def self.cache_key_for_access_for(*args)
@@ -282,9 +290,9 @@ class Admin::UserAccessControl < Admin::AdminBase
                       can_perform = [can_perform] unless can_perform.is_a? Array
                       res_access = res.access&.to_sym
                       res = nil unless res_access.in?(can_perform)
-                      res
+                      res&.attributes
                     else
-                      res
+                      res&.attributes
                     end
     end
     results
@@ -321,7 +329,7 @@ class Admin::UserAccessControl < Admin::AdminBase
       allow = {}
       names = resource_names_for(:table)
       res = access_for_list?(user, :access, :table, names, alt_app_type_id:)
-      res.transform_values { |r| r&.resource_name }
+      res.transform_values { |r| remake_from_attributes(r)&.resource_name }
     end
   end
 
