@@ -230,8 +230,8 @@ class Tracker < UserBase
   # those changes in the tracker history.
   def self.add_record_update_entries(name, admin, update_type = 'record')
     begin
-      protocol = Classification::Protocol.updates.first
-      sp = protocol.sub_processes.find_by_name("#{update_type} updates")
+      protocol = Classification::Protocol.updates.reload.first
+      sp = protocol.sub_processes.active.reload.find_by_name("#{update_type} updates").reload
       values = []
 
       name = name.humanize.downcase
@@ -244,7 +244,7 @@ class Tracker < UserBase
     values << { name: "updated #{name.downcase}", sub_process_id: sp.id }
 
     values.each do |v|
-      res = sp.protocol_events.find_or_initialize_by(v)
+      res = sp.protocol_events.active.find_or_initialize_by(v)
       if res.admin_id
         # logger.info "Did not add protocol event #{v} in #{protocol.id} / #{sp.id}"
       else
@@ -255,7 +255,7 @@ class Tracker < UserBase
   end
 
   # Find the protocol_events record that matches the rec_type and set the protocol_event attribute in this tracker
-  def set_record_updates_event(record)
+  def set_record_updates_event(record, first_attempt: true)
     # Decide if this is a new or updated record. Check both id_changed? and save_change_to_id? since we can't be sure
     # if we'll be in an after_save or after_commit callback
     new_rec = record.id_changed? || record.saved_change_to_id?
@@ -265,6 +265,17 @@ class Tracker < UserBase
 
     return if protocol_event
 
+    # Stop things breaking unnecessarily
+    if first_attempt
+      msg = 'Tracker needs to retry getting create/update protocol events'
+      logger.warn msg
+      puts msg if Rails.env.test?
+      Classification::Protocol.reset_memos
+      sub_process.reload.protocol_events.reload
+      return set_record_updates_event(record, first_attempt: false)
+    end
+
+    puts "Bad Protocol Event: #{rec_type}: #{record.attributes}" if Rails.env.test?
     raise "Bad protocol_event (#{rec_type}) for tracker #{record}. If you believe it should exist, "\
           'check double spacing is correct in the definition for namespaced classes.'
   end
