@@ -12,7 +12,22 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Added] eager loading of various models to improve performance and reduce database hits
+- [Removed] unnecessary TrackerHandler
+- [Fixed] caching of user access controls to avoid storing an ActiveRecord instance
+- [Added] preloading to reduce n+1 lookups
+- [Changed] cache keys
+- [Fixed] broken scope for lookups by name
+- [Changed] handling and reporting of adding tracker update protocol events
+- [Fixed] specs to avoid common issues
+- [Added] times to output for analysis
+- [Fixed] seed to handle disabled items
+- [Fixed] parsing of date times for user preferences
+- [Fixed] issue importing new app type
+
+## [8.6.15] - 2024-07-18
 
 - [Added] significant cache and user access lookup changes to improve performance
 
