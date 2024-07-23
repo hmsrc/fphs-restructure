@@ -250,6 +250,14 @@ module UserSupport
     expect(user).to be_a User
     expect(user.id).to equal @user.id
     validate_scantron_setup
+    validate_update_protocol_setup
+  end
+
+  def validate_update_protocol_setup
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'created player info')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'updated player info')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'created player contact')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'updated player contact')).not_to be nil
   end
 
   def validate_scantron_setup
