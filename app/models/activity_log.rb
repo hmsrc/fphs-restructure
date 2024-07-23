@@ -606,7 +606,7 @@ class ActivityLog < ActiveRecord::Base
 
         res = klass.const_set(model_class_name, a_new_class)
         # Do the include after naming, to ensure the correct names are used during initialization
-        res.include TrackerHandler
+        # res.include TrackerHandler
         res.include WorksWithItem
         res.include UserHandler
         res.include Dynamic::ActivityLogImplementer
