@@ -47,6 +47,7 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
 
     # Prevent user from being able to create player contact records
     uac = @user.has_access_to? :access, :table, :player_contacts
+    uac = Admin::UserAccessControl.find(uac.id)
     uac.update! current_admin: @admin, user: @user, access: nil,
                 resource_type: :table, resource_name: :player_contacts
 
