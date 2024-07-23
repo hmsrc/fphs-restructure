@@ -782,12 +782,9 @@ module HandlesUserBase
 
     return unless !persisted? && !can_create?
 
-    msg = if Rails.env.test?
-            "This item can not be created (#{respond_to?(:human_name) ? human_name : self.class.name})" \
-            " - #{current_user.email} - #{current_user.app_type&.name}"
-          else
-            "This item can not be created (#{respond_to?(:human_name) ? human_name : self.class.name})"
-          end
+    msg = "This item can not be created (#{respond_to?(:human_name) ? human_name : self.class.name})" \
+          " - #{current_user.email} - #{current_user.app_type&.name}"
+
     raise FphsException, msg
   end
 
