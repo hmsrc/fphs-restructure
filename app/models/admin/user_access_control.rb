@@ -159,7 +159,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   # If it is necessary to check for access to a resource on an app type that is not the user's current one,
   # or the user is nil, specify the alt_app_type_id
   # Similarly, an alt_role_name can be specified
-  # @param [User] user
+  # @param [User] user - optional
   # @param [nil | Array | Symbol] can_perform - access level (Array or Symbol) or combo access level (Symbol)
   # @param [Symbol | String] on_resource_type - valid resource type
   # @param [Symbol | String] named - resource name
@@ -173,11 +173,11 @@ class Admin::UserAccessControl < Admin::AdminBase
                        alt_app_type_id: nil, alt_role_name: nil, add_conditions: nil)
     raise FphsException, 'Options can not be added to access_for?' if with_options
 
+    user = User.find(user) if user.is_a?(Integer)
     app_type_id = alt_app_type_id.is_a?(Admin::AppType) ? alt_app_type_id.id : alt_app_type_id
     app_type_id ||= user&.app_type_id
-    user_id = user.is_a?(User) ? user.id : user
 
-    cache_key = cache_key_for_access_for(user_id, can_perform, on_resource_type, named, app_type_id, alt_role_name,
+    cache_key = cache_key_for_access_for(user&.id, user&.current_sign_in_at&.to_i, can_perform, on_resource_type, named, app_type_id, alt_role_name,
                                          add_conditions)
 
     Rails.cache.fetch(cache_key) do
@@ -189,7 +189,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   end
 
   def self.cache_key_for_access_for(*args)
-    "access-for--#{args.join('-')}"
+    "access-for--#{args.join('-')}-#{latest_update}"
   end
 
   #
@@ -213,12 +213,12 @@ class Admin::UserAccessControl < Admin::AdminBase
                             alt_app_type_id: nil, alt_role_name: nil, add_conditions: nil)
     raise FphsException, 'Options can not be added to access_for?' if with_options
 
+    user = User.find(user) if user.is_a?(Integer)
     app_type_id = alt_app_type_id.is_a?(Admin::AppType) ? alt_app_type_id.id : alt_app_type_id
     app_type_id ||= user&.app_type_id
-    user_id = user.is_a?(User) ? user.id : user
 
-    cache_key =
-      "access-for-list--#{user_id}-#{can_perform}-#{on_resource_type}-#{list_named}-#{app_type_id}-#{alt_role_name}-#{add_conditions}"
+    cache_key = cache_key_for_access_for('access-for-list', user&.id, user&.current_sign_in_at&.to_i, can_perform,
+                                         on_resource_type, list_named, app_type_id, alt_role_name, add_conditions)
 
     Rails.cache.fetch(cache_key) do
       res = evaluate_access_for(user, can_perform, on_resource_type, list_named, app_type_id,
@@ -226,8 +226,9 @@ class Admin::UserAccessControl < Admin::AdminBase
                                 add_conditions:)
 
       # Store the individual results so they can be reused
-      res.each do |k, v|
-        ck = cache_key_for_access_for(user_id, can_perform, on_resource_type, k, app_type_id, alt_role_name,
+      res.each do |named, v|
+        # The cache key must match that in #access_for?
+        ck = cache_key_for_access_for(user&.id, user&.current_sign_in_at&.to_i, can_perform, on_resource_type, named, app_type_id, alt_role_name,
                                       add_conditions)
         Rails.cache.write(cache_key, v)
       end
@@ -315,7 +316,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   #
   # Check which tables a user can view in the current app type, or an alternative app type if specified
   def self.viewable_tables(user, alt_app_type_id: nil)
-    ckey = "viewable_tables--#{user.id}-#{user.app_type_id}--#{alt_app_type_id}"
+    ckey = cache_key_for_access_for('viewable_tables--', user.id, user.current_sign_in_at&.to_i, alt_app_type_id)
     Rails.cache.fetch(ckey) do
       allow = {}
       names = resource_names_for(:table)
