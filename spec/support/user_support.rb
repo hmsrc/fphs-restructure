@@ -220,6 +220,8 @@ module UserSupport
     user = alt_user || @user
     res = user.has_access_to? :access, :table, resource_name
     if res && res.user_id == user.id
+      # Find it, as the object is not actually a database record
+      res = Admin::UserAccessControl.find(res.id)
       res.disabled = true
       res.current_admin = @admin
       res.save!
@@ -238,6 +240,7 @@ module UserSupport
     user = alt_user || @user
     in_app_type ||= user.app_type
     res = user.has_access_to? :access, :table, resource_name, alt_app_type_id: in_app_type
+    res = Admin::UserAccessControl.find(res.id)
     return unless res && res.user_id == user.id
 
     res.disabled = true
