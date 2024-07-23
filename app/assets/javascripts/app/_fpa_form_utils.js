@@ -189,9 +189,7 @@ _fpa.form_utils = {
   locale_datetime_to_iso(v) {
     if (!v) return;
 
-    var d = Date.parse(v);
-    var d2 = new Date(d);
-    return d2.toISOString();
+    return _fpa.utils.parseLocaleDateTime(v).asYMD();
   },
 
   // Handle big-select fields

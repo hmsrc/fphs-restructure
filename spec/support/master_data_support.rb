@@ -35,8 +35,8 @@ module MasterDataSupport
         nick_name: pick_from(other_names).downcase,
         birth_date: bd,
         death_date: dd,
-        rank: rank,
-        start_year: start_year,
+        rank:,
+        start_year:,
         college: pick_from(colleges).downcase,
         source: 'nflpa',
         end_year: opt(start_year ? start_year + rand(2) : nil),
@@ -66,7 +66,7 @@ module MasterDataSupport
         nick_name: pick_from(other_names).downcase,
         birth_date: bd,
         death_date: dd,
-        start_year: start_year,
+        start_year:,
         college: pick_from(colleges).downcase,
         end_year: opt(start_year ? start_year + rand(12) : nil),
         pro_id: rand(100_000)
@@ -112,6 +112,11 @@ module MasterDataSupport
   def create_data_set(options = {})
     # Count the number of master records created
     @master_count = 0
+
+    # Check trackers will work
+    seed_database
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'created player info')).not_to be nil
+    expect(Classification::ProtocolEvent.active.reload.find_by(name: 'updated player info')).not_to be nil
 
     # Start the user number embedded in the email address at a random number
     @user_start = rand 1_000_000_000

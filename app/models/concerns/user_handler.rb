@@ -9,7 +9,7 @@ module UserHandler
 
     scope :active, lambda {
       if attribute_names.include?('disabled')
-        where Arel.sql('disabled is null or disabled = false')
+        where disabled: [nil, false]
       else
         self
       end
@@ -29,12 +29,25 @@ module UserHandler
       # Standard associations
       Rails.logger.debug "Associating master as inverse of #{assoc_inverse}"
       belongs_to :master, **assoc_rules
-      has_many :trackers, as: :item, inverse_of: :item if self != Tracker && self != TrackerHistory
+      if self != Tracker && self != TrackerHistory
+        has_many :trackers, as: :item, inverse_of: :item
+
+        has_many :tracker_histories,
+                 lambda { |item|
+                   eager_load(:user)
+                     .where(item_id: item.id,
+                            item_type: item.class.name,
+                            master_id: item.master_id)
+                     .order(id: :asc)
+                 },
+                 as: :item, inverse_of: :item
+
+      end
     end
 
     belongs_to :created_by_user, class_name: 'User', optional: true if attribute_names.include? 'created_by_user_id'
 
-    has_many :item_flags, -> { preload(:item_flag_name) }, as: :item, inverse_of: :item
+    has_many :item_flags, -> { eager_load(:item_flag_name) }, as: :item, inverse_of: :item
 
     validate :source_correct
     validate :rank_correct
