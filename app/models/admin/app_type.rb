@@ -119,7 +119,7 @@ class Admin
 
     def memoize_associated_items(type, ckey, force_update: nil, &block)
       memo = self.class.memo_associated_items(type)
-      memokey = "associated_items--#{type}--#{ckey}"
+      memokey = "associated_items--#{id}--#{type}--#{ckey}"
       return memo[memokey] if memo.key?(memokey) && !force_update
 
       memo[memokey] = block.call
