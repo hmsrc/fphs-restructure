@@ -64,7 +64,7 @@ class ModelReference < ActiveRecord::Base
                            to_record_master_id: to_item.master_id,
                            user: to_item.master_user,
                            current_user: to_item.master_user,
-                           force_create: force_create
+                           force_create:
   end
 
   # Create a reference from a master only, not an individual item.
@@ -77,7 +77,7 @@ class ModelReference < ActiveRecord::Base
                            to_record_master_id: to_item.master_id,
                            user: to_item.master_user,
                            current_user: to_item.master_user,
-                           force_create: force_create
+                           force_create:
   end
 
   # Find the configuration of the creatable reference for the pair of records representing a ModelReference
@@ -196,8 +196,8 @@ class ModelReference < ActiveRecord::Base
       recs = recs.active if active
       res = []
       recs.each do |r|
-        res << ModelReference.new(from_record_type: from_record_type,
-                                  from_record_id: from_record_id,
+        res << ModelReference.new(from_record_type:,
+                                  from_record_id:,
                                   from_record_master_id: from_item_or_master.id,
                                   to_record_type: r.class.name,
                                   to_record_id: r.id,
@@ -205,10 +205,10 @@ class ModelReference < ActiveRecord::Base
                                   current_user: from_item_or_master.current_user)
       end
     elsif from_item_or_master.is_a? Master
-      res = ModelReference.find_records_in_master to_record_type: to_record_type,
+      res = ModelReference.find_records_in_master(to_record_type:,
                                                   master: from_item_or_master,
-                                                  filter_by: filter_by,
-                                                  active: active
+                                                  filter_by:,
+                                                  active:)
     else
       cond = { from_record_type: from_item_or_master.class.name, from_record_id: from_item_or_master.id }
       cond[:to_record_type] = to_record_type if to_record_type
@@ -251,13 +251,13 @@ class ModelReference < ActiveRecord::Base
   def self.find_records_in_master(master: nil, to_record_type: nil, filter_by: nil,
                                   ref_order: default_ref_order, active: nil)
     res = []
-    cond = { master: master }
+    cond = { master: }
     filter_by = substitute_filter(filter_by, master)
     cond.merge! filter_by if filter_by
 
     to_record_class_for_type(to_record_type).where(cond).order(ref_order).each do |i|
       recs = ModelReference.where from_record_master_id: master.id,
-                                  to_record_type: to_record_type,
+                                  to_record_type:,
                                   to_record_id: i.id,
                                   to_record_master_id: i.master_id
       recs = recs.active if active
@@ -308,7 +308,7 @@ class ModelReference < ActiveRecord::Base
     if filter.is_a? Hash
       filter.each do |k, v|
         if v.is_a?(String) && v.include?('{{')
-          filter[k] = Formatter::Substitution.substitute(v, data: data, ignore_missing: true)
+          filter[k] = Formatter::Substitution.substitute(v, data:, ignore_missing: true)
         end
       end
     end
@@ -324,7 +324,7 @@ class ModelReference < ActiveRecord::Base
     rec_type.ns_camelize.constantize
   rescue NameError => e
     Rails.logger.error "Attempt to get to_record_class_for_type #{rec_type} failed as the type does not exist.\n"\
-                        "#{e.backtrace[0..20].join("\n")}"
+                        "#{e}\n#{e.short_string_backtrace}"
     nil
   end
 
@@ -557,15 +557,15 @@ class ModelReference < ActiveRecord::Base
       ane = false
     end
 
-    @can_disable = (!pd && (!from_record || ane || from_record.can_edit?))
+    @can_disable = !pd && (!from_record || ane || from_record.can_edit?)
   end
 
   # Ensures that parent records are updated in the UI if a change has been made to the reference, such as disabling it
   def referenced_from
     [{
-      from_record_master_id: from_record_master_id,
-      from_record_type_us: from_record_type_us,
-      from_record_id: from_record_id
+      from_record_master_id:,
+      from_record_type_us:,
+      from_record_id:
     }]
   end
 
