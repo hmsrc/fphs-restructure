@@ -321,6 +321,9 @@
           do:
             - <trigger 1> # a trigger configuration such as update_this:
             - <trigger 2>
+          # The iterator index and value can be accessed inside the triggers with:
+          # - {{save_trigger_results.iterator_index}}
+          # - {{save_trigger_results.iterator_value}}
 
     on_update: {}
     
