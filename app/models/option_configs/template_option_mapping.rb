@@ -21,6 +21,8 @@ module OptionConfigs
       can_create = current_user.has_access_to?(:create, :table, plural_name)
       can_edit = can_create || current_user.has_access_to?(:edit, :table, plural_name)
 
+      default_options = option_type_config
+      view_options = default_options.view_options
       {
         def_record:,
         def_version: def_record.def_version,
@@ -48,12 +50,12 @@ module OptionConfigs
         embed: direct_embed_type(def_record, option_type_config),
         extra_options_config: option_type_config,
         external_id_options: {
-          label: external_id_type.label,
+          label: default_options.label || external_id_type.label,
           formatter:,
           attribute: external_id_type.external_id_attribute.to_s
         },
         orientation: 'vertical',
-        add_item_label: external_id_type.label,
+        add_item_label: default_options.button_label || external_id_type.label,
         column_defs: def_record.model_class&.columns_hash
       }
     end
