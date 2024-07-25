@@ -12,3 +12,5 @@
               field_name_4: 
                 reference_name:
                   field_name: return_value
+          # NOTE: this sets:
+          # - save_trigger_results.created_masters (with the master record created, if it was created)

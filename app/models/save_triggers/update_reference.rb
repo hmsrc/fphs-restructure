@@ -33,6 +33,7 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
     @model_defs = [@model_defs] unless @model_defs.is_a? Array
 
     @item.save_trigger_results['updated_items'] ||= []
+    @item.save_trigger_results['updated_results'] ||= []
 
     @model_defs.each do |model_def|
       model_def.each do |_model_name, config|
@@ -42,7 +43,10 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
         # on the outer processing in ActivityLogOptions#calc_save_trigger_if
         if config[:if]
           ca = ConditionalActions.new config[:if], @item
-          next unless ca.calc_action_if
+          unless ca.calc_action_if
+            @item.save_trigger_results['updated_results'] << false
+            next
+          end
         end
 
         config[:with].each do |fn, def_val|
@@ -65,6 +69,7 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
           res.force_save! if config[:force_not_editable_save]
           res.update! vals.merge(current_user: @item.current_user || @item.user)
           @item.save_trigger_results['updated_items'] << res
+          @item.save_trigger_results['updated_results'] << true
         end
       end
     end

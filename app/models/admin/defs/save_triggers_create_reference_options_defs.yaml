@@ -24,4 +24,7 @@
 
             to_existing_record: # use an existing record of type "model_name", rather than creating a new one
               record_id: 'Hash with return_value, such as {model_name: {match: value, id: "return_value"\}\}'
-    
+          # NOTE: this sets:
+          # - save_trigger_results.created_references (list of model_reference items created - skipped if an item wasn't created)
+          # - save_trigger_results.created_items (list of created items - skipped if an item wasn't created)
+          # - save_trigger_results.created_results (list of results indicating if an item was created based on "if:" conditions)
