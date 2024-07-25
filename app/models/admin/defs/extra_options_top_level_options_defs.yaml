@@ -48,6 +48,12 @@ _configurations:
     app_type: optionally specify an app_type id to force the use of a batch user when perfoming actions
     user: optionally specify a user id (or email) to force use of the specified user when perfoming actions
   tab_caption: a markdown string to be shown at the top of activity log panels (between header title and action buttons)
+  uniqueness_fields: check for uniqueness of an external identifier based on multiple fields, rather than the external id attribute alone
+    # Provide a list of fields (including the external id attribute name if required) to check uniqueness against. 
+    # If no uniqueness check is required, specify 'id'.
+    # NOTE: searches through the UI against the external ID (using the default capabilities)
+    # may now return multiple results, since there is currently no way to specify the other fields that make up a unique search.
+  can_change_master: allow assigned external identifiers to be moved to a different master record
 
 # To add a table or view to the data dictionary, add the _data_dictionary: with
 # the essential keys, study: and domain:, plus any others that are required.

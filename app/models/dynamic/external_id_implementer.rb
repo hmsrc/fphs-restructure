@@ -314,7 +314,7 @@ module Dynamic
         next_item.send("#{k}=", v) unless v.blank? || k.in?(%w[user_id master_id])
       end
 
-      next_item.current_user = c_user
+      next_item.current_user = c_user if c_user
       self.existing_item_updated = next_item
 
       next_item.attributes
@@ -403,6 +403,21 @@ module Dynamic
       self.external_id = self.class.external_id_range.min
     end
 
+    #
+    # Check if an external id, or a set of uniqueness fields, has already been added to the database.
+    # If it has, return the ActiveRecord that has it. If not, return nil
+    # @return [ActiveRecord | nil]
+    def already_taken
+      uniqueness_fields = self.class.definition.configurations&.dig(:uniqueness_fields) || [self.class.external_id_attribute]
+
+      cond = uniqueness_fields.map { |f| [f, attributes[f.to_s]] }.to_h
+      self.class.find_by(cond)
+    end
+
+    def can_change_master?
+      changeable = self.class.definition.configurations&.dig(:can_change_master)
+    end
+
     def external_id_tests
       errors.add self.class.external_id_attribute, 'can not be blank' if external_id.blank?
 
@@ -410,7 +425,7 @@ module Dynamic
         errors.add self.class.external_id_attribute, 'can not be changed'
       end
 
-      if persisted? && master_id_changed? && !master_id_was.nil?
+      if persisted? && master_id_changed? && !master_id_was.nil? && !can_change_master?
         errors.add :master, "record this #{self.class.label} is associated with can not be changed"
       end
 
@@ -420,7 +435,7 @@ module Dynamic
 
       return unless external_id_changed? || !persisted?
 
-      s = self.class.find_by_external_id(external_id)
+      s = already_taken
       return unless s
 
       errors.add self.class.external_id_attribute, 'already exists in this master record' if s.master_id == master_id
