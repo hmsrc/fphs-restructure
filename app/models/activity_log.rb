@@ -390,7 +390,7 @@ class ActivityLog < ActiveRecord::Base
   def self.routes_load
     mn = nil
     begin
-      m = enabled
+      m = active
       return if m.empty?
 
       Rails.application.routes.draw do

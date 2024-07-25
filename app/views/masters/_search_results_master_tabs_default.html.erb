@@ -56,7 +56,7 @@
     </li>
     <% end %>
 
-    <% ActivityLog.enabled.each do |a| %>
+    <% ActivityLog.active.each do |a| %>
       <% if master_viewables[a.full_item_types_name.to_sym]
         initial_show = (default_panels.length == 0 && app_config_text(:show_activity_log_panel) == a.item_type_name) || a.item_type_name.in?(default_panels)
       %>
