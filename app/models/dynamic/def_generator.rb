@@ -470,6 +470,13 @@ module Dynamic
       ActiveRecord::Base.connection.schema_cache.clear!
     end
 
+    # Get a complete set of all tables to be accessed by embed configurations
+    def all_direct_embed_tables
+      option_configs.map(&:embed).compact.map do |oc|
+        oc.dup
+      end
+    end
+
     # Get a complete set of all tables to be accessed by model reference configurations,
     # with a value representing what they are associated from.
     def all_referenced_tables

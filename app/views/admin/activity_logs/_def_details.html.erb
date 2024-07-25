@@ -2,12 +2,12 @@
 <div class="al-details-section">
   <label>item type name</label>
   <p class="al-item-type">
-  <%= object_instance.full_item_type_name %>
+  <code><%= object_instance.full_item_type_name %></code>
   </p>
 
   <label>resource name</label>
   <p class="al-resource-name">
-  <%= object_instance.resource_name %>
+  <code><%= object_instance.resource_name %></code>
   </p>
 
   <label>database <%= object_instance.table_or_view || '<span class="info-danger">not defined</span>'.html_safe %></label>
@@ -45,6 +45,7 @@
   <% end %>
 
   <label>all fields</label>
+  <p>Set of all fields aggregated from all activities.</p>
   <p class="al-field-list">
   <ul class="activity-list">
     <li><%= object_instance.all_implementation_fields
@@ -57,6 +58,7 @@
 
 <div class="activity-list-section">
   <label>activities</label>
+  <p>Click an activity name to jump to its definition. Each activity shown lists the fields defined for it.</p>
   <ul class="activity-list">
   <% object_instance.option_configs_names&.each do |name| 
        conf = object_instance.option_type_config_for(name)
@@ -77,8 +79,45 @@
 <%= render partial: 'admin/common_templates/def_details_libraries', locals: {object_instance: object_instance} %>
 <%= render partial: 'admin/common_templates/def_details_dialogs', locals: {object_instance: object_instance} %>
 
+<div class="activity-list-embeds">
+  <label>embeds</label>
+  <p>Add <code>embed:</code> configurations to directly embed another dynamic definition. This uses database joins, 
+  rather than an intermediate model references to access embedded records.</p>
+  <ul class="al-reference-list al-embed-list">
+  <% shown_refs = []
+     object_instance.all_direct_embed_tables.each do |ref| 
+  
+      got = ref.dig(:resource_model_def, :resource_item_name)
+      unless shown_refs.include?(got)
+        shown_refs << got
+        to_table_name = ref.dig(:resource_model_def, :table_name)
+        type = ref.dig(:resource_model_def, :type)
+        link = case type  
+                when :dynamic_model then admin_dynamic_models_path(filter: { table_name: to_table_name, disabled: :enabled } )
+                when :activity_log then admin_activity_logs_path(filter: { table_name: to_table_name, disabled: :enabled } )
+                when :external_identifier then admin_external_identifiers_path(filter: { name: to_table_name, disabled: :enabled } )
+                end
+        if link
+  %>
+    <li>
+      <%= link_to(got, link, target: '_blank') %>
+      <ul>
+        <li>table: <%= to_table_name %></li>
+      </ul>
+  <%    else %>
+    <%= got %>
+  <%    end %>
+    </li>
+    <%  end %>
+  <% end %>
+  </ul>
+</div>
+
 <div class="activity-list-references">
   <label>references</label>
+  <p>Add <code>references:</code> configurations to connect to other dynamic definitions. This connects through
+  an intermediate `model_references` database table, allowing arbitrary connections to be made between records.</p>
+  
   <ul class="al-reference-list">
   <% shown_refs = []
      object_instance.all_referenced_tables.each do |ref| 
@@ -119,6 +158,7 @@
 
 <div class="activity-list-file-filters">
   <label>file filters</label>
+  <p>File containers use file filters to define which filenames can be viewed for a specific activity or default configuration.</p>
   <p>
   <%= link_to(link_label_open_in_new("edit"),
         admin_nfs_store_filter_filters_path(filter: {resource_name: "#{object_instance.full_item_type_name}__%"}),

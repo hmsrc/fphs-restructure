@@ -73,6 +73,7 @@ module OptionConfigs
       clean_filestore_def
       clean_fields_def
       clean_field_options_def
+      clean_embed_def
       clean_references_def
       clean_save_triggers
       clean_batch_triggers
@@ -219,6 +220,23 @@ module OptionConfigs
       oc = self.valid_if[:on_create] || {}
       self.valid_if[:on_update] = os.merge(ou)
       self.valid_if[:on_create] = os.merge(oc)
+    end
+
+    def clean_embed_def
+      return unless embed
+
+      rn = embed[:resource_name]
+      resource = Resources::Models.find_by(resource_name: rn)
+      embed[:resource_model_def] = resource
+
+      return if resource && resource[:model]
+
+      Rails.logger.warn "embed for #{rn} does not exist as a class in #{name} / #{config_obj.name}"
+      # Log this as a warning, not an error, since we are not able to control the order of items being created
+      # in an app import, and many references to underlying definitions will not yet have been created
+      failed_config :embed,
+                    "embed for #{rn} does not exist as a class in #{name} / #{config_obj.name}",
+                    level: :warn
     end
 
     def clean_references_def
