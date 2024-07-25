@@ -9,7 +9,7 @@ module ViewHandlers
     InactiveRank = 0
 
     included do
-      validates :zip, "validates/zip": true, allow_blank: true if attribute_names.include? :zip
+      validates :zip, "validates/zip": true, allow_blank: true if attribute_names.include? 'zip'
     end
 
     class_methods do
