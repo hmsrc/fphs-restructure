@@ -88,7 +88,7 @@
               condition: |
                 "one of:"
                 - 'IS NOT NULL', 'IS NULL'
-                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*'
+                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*', 'in?'
                 - '= ANY' -  The value of this field (must be scalar) matches any value from the retrieved array field
                 - '= ANY REV' -  Reverse the operator order
                 - '<> ANY' -  The value of this field (must be scalar) must not match any value from the retrieved array field

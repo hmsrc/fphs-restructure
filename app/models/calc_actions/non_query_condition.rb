@@ -10,7 +10,7 @@ module CalcActions
     NonQueryNestedKeyNames = %i[this referring_record top_referring_record this_references parent_references
                                 parent_or_this_references reference validate].freeze
 
-    SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~'].freeze
+    SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?'].freeze
 
     attr_accessor :table, :field_name, :condition_def, :current_instance, :return_failures,
                   :conditions, :condition_config
@@ -189,8 +189,8 @@ module CalcActions
         ca = ConditionalActions.new({ field_name => expected_val },
                                     in_instance,
                                     current_scope: @condition_scope,
-                                    return_failures: return_failures,
-                                    return_this: return_this)
+                                    return_failures:,
+                                    return_this:)
         res = ca.calc_action_if
         @skip_merge = true
 
@@ -304,7 +304,11 @@ module CalcActions
     def test_simple_conditions(condition, test_val, exp_val)
       case condition
       when '=', '=='
-        test_val == exp_val
+        if exp_val.is_a?(Array) && !test_val.is_a?(Array)
+          test_val.in?(exp_val)
+        else
+          test_val == exp_val
+        end
       when '<>'
         test_val != exp_val
       when '~'
@@ -381,7 +385,12 @@ module CalcActions
         if value_here.is_a?(Hash)
           value_here = value_here.stringify_keys[seg]
         elsif value_here.is_a?(Array)
-          seg = 0 if seg == 'first'
+          seg = case seg
+                when 'first'
+                  0
+                when 'last'
+                  -1
+                end
           seg = seg.to_i
           value_here = value_here[seg]
         end
@@ -394,7 +403,7 @@ module CalcActions
     # @param key [Symbol]
     # @return [True | False]
     def non_query_nested_key_name?(key)
-      (key.in?(NonQueryNestedKeyNames) || selection_type?(key))
+      key.in?(NonQueryNestedKeyNames) || selection_type?(key)
     end
   end
 end
