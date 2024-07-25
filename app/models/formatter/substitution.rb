@@ -70,7 +70,7 @@ module Formatter
       tags = all_content.scan(/{{#{TagnameRegExString}}}/).uniq
       tags.each do |tag_container|
         tag = tag_container[2..-3]
-        tag_value = value_for_tag(tag, sub_data, tag_subs: tag_subs, ignore_missing: ignore_missing)
+        tag_value = value_for_tag(tag, sub_data, tag_subs:, ignore_missing:)
 
         # Finally, substitute the results into the original text
         all_content.gsub!(tag_container, tag_value)
@@ -91,7 +91,7 @@ module Formatter
         # Replace each tag [[tag]], representing functional directives, such as shortlink production
         tags.each do |tag_container|
           tag = tag_container[2..-3]
-          tag_value = functional_directive(tag, sub_data, ignore_missing: ignore_missing)
+          tag_value = functional_directive(tag, sub_data, ignore_missing:)
 
           # Make the replacement
           all_content.gsub!(tag_container, tag_value) if tag_value
@@ -148,8 +148,10 @@ module Formatter
       first_format_directive = tag_split[1]
       this_ignore_missing = :show_blank if first_format_directive == 'ignore_missing'
 
-      unless d.is_a?(Hash) && (d&.key?(tag_name.to_s) || d&.key?(tag_name.to_sym)) ||
-             tag.index(OverrideTags) || d.is_a?(Enumerable) && (tag_name.to_s == tag_name.to_s.to_i.to_s)
+      unless d.is_a?(Hash) && (d&.key?(tag_name.to_s) ||
+              d&.key?(tag_name.to_sym)) ||
+             tag.index(OverrideTags) ||
+             d.is_a?(Enumerable) && (tag_name.to_s == tag_name.to_s.to_i.to_s || tag_name.in?(['first', 'last']))
         unless ignore_missing || this_ignore_missing
           raise FphsException,
                 "Data (#{d.class.name}) does not contain the tag '#{tag_name}' " \
@@ -331,7 +333,11 @@ module Formatter
       tagp = tag_and_operator.split('::')
       tag = tagp.first
 
-      if data.is_a?(Enumerable) && tag.to_i.to_s == tag
+      if data.is_a?(Enumerable) && (tag.to_i.to_s == tag || tag.in?(['first', 'last']))
+        tag = case tag
+              when 'first' then '0'
+              when 'last' then '-1'
+              end
         orig_val = data[tag.to_i]
       else
         current_user = data[:current_user_instance] || data[:current_user]
@@ -346,12 +352,12 @@ module Formatter
 
       res = orig_val || ''
 
-      res = Formatter::Formatters.formatter_do(res.class, res, current_user: current_user)
+      res = Formatter::Formatters.formatter_do(res.class, res, current_user:)
 
       return if res.nil? && tagp[1] != 'ignore_missing'
 
-      # Automatically titleize names
-      tagp << 'titleize' if tagp.length == 1 && (tag == 'name' || tag.end_with?('_name'))
+      # Automatically titleize names (only if the returned value is a string)
+      tagp << 'titleize' if res.is_a?(String) && tagp.length == 1 && (tag == 'name' || tag.end_with?('_name'))
       tagp[1..].each do |op|
         res = TagFormatter.format_with(op, res, orig_val, current_user, tag, data)
       end
@@ -376,7 +382,7 @@ module Formatter
 
     def self.template_block(tag, data)
       block_name = tag.sub('template_block_', '').gsub('_', ' ')
-      ApplicationController.helpers.template_block(block_name, data: data)
+      ApplicationController.helpers.template_block(block_name, data:)
     end
 
     def self.glyphicon(tag, _data)
@@ -441,7 +447,7 @@ module Formatter
         item_reference = false
         ref_parts.each do |name|
           # Get the associated item, based on the current part of the substitution name
-          res_data = get_associated_item(master, name, res_data, item_reference: item_reference)
+          res_data = get_associated_item(master, name, res_data, item_reference:)
 
           break unless res_data.present?
 
