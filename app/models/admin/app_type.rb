@@ -274,19 +274,27 @@ class Admin
                   )
             ms << res if res
           end
-          c.save_trigger.each do |_d, st|
-            ns = st[:notify] || []
-            ns = [ns] if ns.is_a? Hash
+          c.save_trigger.each do |_d, sts|
+            sts = [sts] unless sts.is_a? Array
+            sts.each do |stconfig|
+              stsconfigs = stconfig.dig(:each, :do) || stconfig
+              stsconfigs = [stsconfigs] unless stsconfigs.is_a? Array
 
-            ns.each do |v|
-              lt = v[:layout_template]
-              ct = v[:content_template]
-              mt = v[:type]
+              stsconfigs.each do |st|
+                ns = st[:notify] || []
+                ns = [ns] if ns.is_a? Hash
 
-              res = Admin::MessageTemplate.active.find_by(name: lt, message_type: mt, template_type: 'layout')
-              ms << res if res
-              res = Admin::MessageTemplate.active.find_by(name: ct, message_type: mt, template_type: 'content')
-              ms << res if res
+                ns.each do |v|
+                  lt = v[:layout_template]
+                  ct = v[:content_template]
+                  mt = v[:type]
+
+                  res = Admin::MessageTemplate.active.find_by(name: lt, message_type: mt, template_type: 'layout')
+                  ms << res if res
+                  res = Admin::MessageTemplate.active.find_by(name: ct, message_type: mt, template_type: 'content')
+                  ms << res if res
+                end
+              end
             end
           end
         end
