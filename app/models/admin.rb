@@ -44,7 +44,7 @@ class Admin < ActiveRecord::Base
   # Get the user that corresponds to this admin
   # @return [User | nil]
   def matching_user
-    User.active.where(email: email).first
+    User.active.find_by(email:)
   end
 
   # Get the current app type for the user that corresponds to this admin

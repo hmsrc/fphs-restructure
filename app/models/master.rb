@@ -337,6 +337,8 @@ class Master < ActiveRecord::Base
       @current_user = user
     elsif user.is_a?(Integer)
       @current_user = User.find(user)
+    elsif user.nil?
+      raise 'Setting current_user to nil is not allowed'
     else
       raise 'Attempting to set current_user with non user: ' \
              "#{user} #{user.class.name} #{user.class.__id__} #{User.__id__}"
