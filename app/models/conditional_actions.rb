@@ -4,12 +4,15 @@ class ConditionalActions
   include CalcActions::Calculate
   attr_accessor :current_instance, :action_conf, :return_failures, :current_scope, :condition_config
 
-  def initialize(action_conf, current_instance, return_failures: nil, current_scope: nil, return_this: nil)
+  def initialize(action_conf, current_instance, return_failures: nil, current_scope: nil, return_this: nil,
+                 top_level_error: nil, top_level_error_above: nil)
     action_conf = action_conf.symbolize_keys if action_conf.is_a?(Hash)
     @action_conf = action_conf
     @current_instance = current_instance
     @return_failures = return_failures
     @return_this ||= return_this || { value: nil }
+    @top_level_error = top_level_error
+    @top_level_error_above = top_level_error_above
 
     # For the lowest level, setup the query with the master record
     # If current_scope is specified, then we are at a sub condition level, and the
@@ -18,7 +21,7 @@ class ConditionalActions
                         current_instance.class.no_master_association
                        current_instance.class
                      else
-                       current_scope || Master.select(:id).where(id: current_instance.master.id)
+                       current_scope || Master.select(:id).where(id: current_instance.master_id)
                      end
   end
 

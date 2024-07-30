@@ -155,7 +155,11 @@ module CalcActions
       # The condition scope must be ordered in reverse, as always, and if we
       # only are requesting a single result then limit 1, otherwise get all results for the list
       cs = @condition_scope.order(id: :desc)
-      cs = cs.limit(1) if return_value_from_query? || return_result_from_query?
+      if return_value_from_query? || return_result_from_query?
+        cs = cs.limit(1)
+        # Clean up the current value to avoid issues
+        self.this_val = nil
+      end
       first_cond_res = cs.first
 
       # If a result was found process the returns, otherwise continue
@@ -511,9 +515,9 @@ module CalcActions
 
       @this_val_where = {
         assoc: join_table_name,
-        field_name: field_name,
+        field_name:,
         table_name: ModelReference.record_type_to_ns_table_name(join_table_name).to_sym,
-        mode: mode
+        mode:
       }
     end
 
@@ -540,15 +544,29 @@ module CalcActions
     # Setup the condition config for this loop's condition
     # @param [Hash] condition_config
     def setup_condition_config(condition_config)
-      @condition_config = condition_config
+      @condition_config = condition_config.dup
+
+      iem = @condition_config.delete(:invalid_error_message)
       # Check if the first key is a selection type. If it is, wrap it in a
       # {this: original hash} to make it easier to process consistently
-      @condition_config = { this: @condition_config } if selection_type?(@condition_config.first.first)
+      this_condition_config = if selection_type?(@condition_config.first.first)
+                                self.top_level_error_above = top_level_error
+                                add_this = true
+                                { this: @condition_config }
+                              else
+                                @condition_config
+                              end
+      self.top_level_error ||= iem
 
-      @non_query_conditions = NonQueryCondition.new(current_instance: current_instance,
-                                                    condition_config: @condition_config,
-                                                    return_failures: return_failures,
-                                                    return_this: return_this)
+      @non_query_conditions = NonQueryCondition.new(current_instance:,
+                                                    condition_config: this_condition_config,
+                                                    return_failures:,
+                                                    return_this:,
+                                                    top_level_error:,
+                                                    top_level_error_above:)
+
+      @condition_config[:invalid_error_message] = iem if iem
+      @condition_config = this_condition_config if add_this
       @condition_config
     end
 
@@ -572,11 +590,21 @@ module CalcActions
         if selection_type?(table_name)
           # Nested conditions are ignored, since they are
           # handled directly in the condition processing logic
-
+        elsif c_table == :invalid_error_message
+          self.top_level_error_above ||= top_level_error
+          self.top_level_error ||= t_conds
+          @non_query_conditions.top_level_error = top_level_error
+          @non_query_conditions.top_level_error_above = top_level_error_above
         else
           @non_query_conditions.table = table_name
           t_conds.each do |field_name, val|
-            next if field_name == :invalid_error_message
+            if field_name == :invalid_error_message
+              # self.top_level_error_above = top_level_error
+              # self.top_level_error = val
+              # @non_query_conditions.top_level_error = top_level_error
+              # @non_query_conditions.top_level_error_above = top_level_error_above
+              next
+            end
 
             if val.is_a?(Hash) && !val.key?(:element)
               # Since the conditional value is actually a hash, we need to
@@ -735,6 +763,7 @@ module CalcActions
       merge_failures(@condition_type => @condition_values) unless @res_q
 
       @res_q ||= @non_query_conditions.condition_type_any
+      @skip_merge ||= @non_query_conditions.skip_merge
       merge_failures(@condition_type => @non_query_conditions.conditions) unless @res_q
 
       @cond_res = @res_q
@@ -818,8 +847,10 @@ module CalcActions
         next unless st
 
         ca = ConditionalActions.new({ c_type => t_conds }, current_instance, current_scope: @condition_scope,
-                                                                             return_failures: return_failures,
-                                                                             return_this: return_this)
+                                                                             return_failures:,
+                                                                             return_this:,
+                                                                             top_level_error:,
+                                                                             top_level_error_above:)
         res_a = ca.calc_action_if
 
         if return_first_false

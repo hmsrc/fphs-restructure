@@ -738,7 +738,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     res = ConditionalActions.new conf, @al
     expect(res.calc_action_if).to be false
 
-    # Need all: before named table
+    # Automatically add all: before named table
     conf = {
       # Negate the nested result
       not_all_dms: {
@@ -765,11 +765,14 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     }
 
     res = ConditionalActions.new conf, @al
+    fin = nil
     expect do
-      res.calc_action_if
-    end.to raise_error FphsException
+      fin = res.calc_action_if
+    end.not_to raise_error
 
-    # Need all: before named table
+    expect(fin).to be_falsey
+
+    # Automatically add all: before named table
     conf = {
       # Negate the nested result
       not_all_dms: {
@@ -797,9 +800,10 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
     res = ConditionalActions.new conf, @al
     expect do
-      res.calc_action_if
-    end.to raise_error FphsException
+      fin = res.calc_action_if
+    end.not_to raise_error
 
+    expect(fin).to be_falsey
     # Check that calc_query_conditions handles nested any conditions OK
     conf = {
 
@@ -3881,6 +3885,90 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({ all: { this: { id: { invalid_error_message: 'Something was bad' }, user_id: { invalid_error_message: 'The user had a bad ID' } } } })
+    end
+
+    it 'returns a top level error, overriding those further down the tree' do
+      # Without a top level error it returns the individual results
+      conf = {
+        all: {
+          any: {
+            all_creator: {
+              all: {
+                this: {
+                  user_id: {
+                    user: 'BAD id'
+                  }
+                }
+              },
+              not_any: {
+                this: {
+                  id: @al.id
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return_failures = {}
+      res = ConditionalActions.new(conf, @al, return_failures:)
+      b = res.calc_action_if
+      expect(b).to be false
+      expect(return_failures).to eq({
+                                      all: { this: { user_id: nil } },
+                                      not_any: { this: { id: @al.id } }
+                                    })
+
+      # With a top level error it just returns that
+      conf = {
+        all: {
+          any: {
+            all_creator: {
+              invalid_error_message: 'Top error!',
+              all: {
+                this: {
+                  user_id: {
+                    user: 'BAD id'
+                  }
+                }
+              },
+              not_any: {
+                this: {
+                  id: @al.id
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return_failures = {}
+      res = ConditionalActions.new(conf, @al, return_failures:)
+      b = res.calc_action_if
+      expect(b).to be false
+      expect(return_failures).to eq({
+                                      all: { this: { top_level_error: { invalid_error_message: 'Top error!' } } },
+                                      not_any: { this: { top_level_error: { invalid_error_message: 'Top error!' } } }
+                                    })
+    end
+
+    it 'returns no error if custom error is set to blank' do
+      conf = {
+        all_creator: {
+          this: {
+            user_id: {
+              user: 'BAD id',
+              invalid_error_message: ''
+            }
+          }
+        }
+      }
+
+      return_failures = {}
+      res = ConditionalActions.new(conf, @al, return_failures:)
+      b = res.calc_action_if
+      expect(b).to be false
+      expect(return_failures.dig(:all, :this, :user_id)).to be nil
     end
 
     it 'returns no custom error if valid (any must match)' do

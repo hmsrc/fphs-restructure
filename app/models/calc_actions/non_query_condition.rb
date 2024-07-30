@@ -18,7 +18,8 @@ module CalcActions
     #
     # @return [true | false]
     def initialize(current_instance: nil, table: nil, field_name: nil, condition_def: nil,
-                   return_failures: nil, return_this: nil, condition_config: nil)
+                   return_failures: nil, return_this: nil, condition_config: nil,
+                   top_level_error: nil, top_level_error_above: nil)
       self.current_instance = current_instance
       self.table = table
       self.field_name = field_name
@@ -26,6 +27,8 @@ module CalcActions
       self.return_failures = return_failures
       self.return_this = return_this
       self.condition_config = condition_config
+      self.top_level_error = top_level_error
+      self.top_level_error_above = top_level_error_above
 
       self.conditions = {}
     end
@@ -182,7 +185,7 @@ module CalcActions
         self.field_name = :all
       end
 
-      if selection_type? field_name
+      if selection_type?(field_name)
         #### Handle a Nested Condition
         # If we have the field name key being all, any, etc, then run the nested conditions
         # with the current condition scope
@@ -190,22 +193,49 @@ module CalcActions
                                     in_instance,
                                     current_scope: @condition_scope,
                                     return_failures:,
-                                    return_this:)
+                                    return_this:,
+                                    top_level_error:,
+                                    top_level_error_above:)
         res = ca.calc_action_if
         @skip_merge = true
-
       elsif expected_val.keys.first == :validate
         #### Handle validate
         # take the validate definition and calculate the result
         res = calc_complex_validation expected_val[:validate], in_instance.attributes[field_name.to_s]
 
-      else
-        #### Something was wrong in the definition
-        raise FphsException, <<~ERROR_MSG
-          calc_non_query_condition field is not a selection type or :validate hash. Ensure you have an all, any, not_any, not_all before all nested expressions.
+      elsif !selection_type?(field_name) &&
+            expected_val.values.find { |f| f.is_a?(Hash) && f.values.include?('return_value') }
 
-          #{@condition_config.to_yaml}
-        ERROR_MSG
+        ca = ConditionalActions.new({ all: expected_val },
+                                    in_instance,
+                                    current_scope: @condition_scope,
+                                    return_failures:,
+                                    return_this:,
+                                    top_level_error:,
+                                    top_level_error_above:)
+        returned_value = ca.get_this_val
+        @skip_merge = true
+        res = in_instance.attributes[field_name.to_s] == returned_value
+      else
+        #### Handle a Nested Condition
+        # If we have the field name key being all, any, etc, then run the nested conditions
+        # with the current condition scope
+        ca = ConditionalActions.new({ all: { field_name => expected_val } },
+                                    in_instance,
+                                    current_scope: @condition_scope,
+                                    return_failures:,
+                                    return_this:,
+                                    top_level_error:,
+                                    top_level_error_above:)
+        res = ca.calc_action_if
+        @skip_merge = true
+
+        #### Something was wrong in the definition
+        # raise FphsException, <<~ERROR_MSG
+        #   calc_non_query_condition field is not a selection type or :validate hash. Ensure you have an all, any, not_any, not_all before all nested expressions.
+
+        #   #{@condition_config.to_yaml}
+        # ERROR_MSG
       end
       res
     end
@@ -390,6 +420,8 @@ module CalcActions
                   0
                 when 'last'
                   -1
+                else
+                  seg
                 end
           seg = seg.to_i
           value_here = value_here[seg]
