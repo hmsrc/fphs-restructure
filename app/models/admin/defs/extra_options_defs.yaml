@@ -139,6 +139,8 @@
 
       no_downcase: true - to prevent downcasing of the attribute when stored to the database
       view_original_case: true - to prevent the UI capitalizing downcased fields
+      view_with_formats: |
+        list of formatters to apply to a string field when being viewed
       format: plain | markdown - for free text editor fields such as notes and description
       config:
         _comment: additional configurations for editor fields

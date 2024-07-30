@@ -487,17 +487,20 @@ _fpa.utils.pretty_print = function (stre, options_hash) {
           //stre = Handlebars.Utils.escapeExpression(stre);
           stre = _fpa.utils.capitalize(stre);
           if (options_hash.remove_tags) stre = _fpa.utils.remove_tags(stre);
-          return stre;
         } else {
           stre = _fpa.utils.nl2br(stre);
           if (options_hash.remove_tags) stre = _fpa.utils.remove_tags(stre);
-          return stre;
         }
       } else {
         stre = _fpa.utils.nl2br(stre);
         if (options_hash.remove_tags) stre = _fpa.utils.remove_tags(stre);
-        return stre;
       }
+
+      if (options_hash.view_with_formats) {
+        var formatters = options_hash.view_with_formats
+        stre = _fpa.tag_formatter.format_all(stre, formatters, '', {})
+      }
+      return stre;
     } else {
       return null;
     }
