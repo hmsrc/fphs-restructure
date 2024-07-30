@@ -337,6 +337,7 @@ module Formatter
         tag = case tag
               when 'first' then '0'
               when 'last' then '-1'
+              else tag
               end
         orig_val = data[tag.to_i]
       else
