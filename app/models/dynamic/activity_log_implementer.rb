@@ -163,13 +163,19 @@ module Dynamic
       def creatables(current_user, def_record: nil, current_activity: nil, include_references: true)
         def_record ||= definition
         res = {}
+        orig_elt = current_activity['extra_log_type']
 
         def_record.option_configs.each do |c|
           result = current_user.has_access_to?(:create, :activity_log_type, c.resource_name)
-          result &&= c.calc_if(:creatable_if, current_activity) if current_activity
+          if current_activity
+            current_activity['extra_log_type'] = c.name&.to_s
+            result &&= c.calc_if(:creatable_if, current_activity)
+          end
           result &&= !(c.view_options && c.view_options[:only_create_as_reference]) unless include_references
           res[c.name] = result ? c.resource_name : nil
         end
+
+        current_activity['extra_log_type'] = orig_elt
 
         res
       end
@@ -319,7 +325,7 @@ module Dynamic
       self.class.creatables master.current_user,
                             def_record: current_definition,
                             current_activity: self,
-                            include_references: include_references
+                            include_references:
     end
 
     def update_action
@@ -348,7 +354,7 @@ module Dynamic
 
       elsif res.nil?
         @latest_item ||= master.send(self.class.assoc_inverse).unscope(:order).order(id: :desc).limit(1).first
-        res = (user_id == master.current_user.id && @latest_item.id == id)
+        res = user_id == master.current_user.id && @latest_item.id == id
         unless res
           Rails.logger.info "Can not edit activity_log_type #{resname} since it has been overridden by a later item"
           return
