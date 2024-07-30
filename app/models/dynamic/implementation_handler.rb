@@ -12,7 +12,7 @@ module Dynamic
 
       # skip_save_trigger: Prevent save triggers from running
       # save_trigger_results: Results from stored locally by save triggers
-      attr_accessor :skip_save_trigger, :save_trigger_results
+      attr_accessor :skip_save_trigger, :save_trigger_results, :skip_presets
     end
 
     class_methods do
@@ -236,6 +236,8 @@ module Dynamic
     # blank_preset_value: only sets the value if it was previously blank, so won't override values in #create! methods
     # By setting ahead of time, things like embed_resource_name can operate.
     def force_preset_values
+      return if skip_presets
+
       fo = option_type_config&.field_options
       return unless fo
 

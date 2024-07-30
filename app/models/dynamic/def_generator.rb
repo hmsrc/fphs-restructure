@@ -199,10 +199,11 @@ module Dynamic
 
         # Check if it can be instantiated correctly - if it can't, allow it to raise an exception
         # since this is seriously unexpected
-        klass.new
+        klass.new(skip_presets: true)
       rescue Exception => e
         err = "Failed to instantiate the class #{icn} in parent #{parent_class}: #{e}"
         logger.warn err
+        logger.warn e.short_string_backtrace
         raise FphsException, err unless opt[:fail_without_exception]
 
         # By default, return false if an error occurred attempting the initialization.
@@ -440,6 +441,7 @@ module Dynamic
       rescue StandardError => e
         err = "Failed to instantiate the class #{full_implementation_class_name}: #{e}"
         logger.warn err
+        logger.warn e.short_string_backtrace
         errors.add :name, err
         # Force exit of callbacks
         raise FphsException, err
