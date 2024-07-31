@@ -360,10 +360,17 @@ module OptionConfigs
       # Make save_trigger.on_save the default for on_create and on_update
       os = self.save_trigger[:on_save]
       if os
-        ou = self.save_trigger[:on_update] || {}
-        oc = self.save_trigger[:on_create] || {}
-        self.save_trigger[:on_update] = os.merge(ou)
-        self.save_trigger[:on_create] = os.merge(oc)
+        os = [os] if os.is_a?(Hash)
+
+        ou = self.save_trigger[:on_update]
+        oc = self.save_trigger[:on_create]
+        ou = [ou] if ou.is_a?(Hash)
+        oc = [oc] if oc.is_a?(Hash)
+
+        ou ||= []
+        oc ||= []
+        self.save_trigger[:on_update] = os + ou
+        self.save_trigger[:on_create] = os + oc
       end
 
       self.save_trigger[:on_upload] ||= {}
