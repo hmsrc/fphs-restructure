@@ -556,7 +556,7 @@ module CalcActions
                               else
                                 @condition_config
                               end
-      self.top_level_error ||= iem
+      self.top_level_error = iem || top_level_error
 
       @non_query_conditions = NonQueryCondition.new(current_instance:,
                                                     condition_config: this_condition_config,

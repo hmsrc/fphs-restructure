@@ -189,15 +189,16 @@ module CalcActions
         #### Handle a Nested Condition
         # If we have the field name key being all, any, etc, then run the nested conditions
         # with the current condition scope
+        # We set top_level_error_above since the all/any/not... indicates we are at a new level
         ca = ConditionalActions.new({ field_name => expected_val },
                                     in_instance,
                                     current_scope: @condition_scope,
                                     return_failures:,
                                     return_this:,
                                     top_level_error:,
-                                    top_level_error_above:)
+                                    top_level_error_above: top_level_error)
         res = ca.calc_action_if
-        @skip_merge = true
+
       elsif expected_val.keys.first == :validate
         #### Handle validate
         # take the validate definition and calculate the result
@@ -217,9 +218,7 @@ module CalcActions
         @skip_merge = true
         res = in_instance.attributes[field_name.to_s] == returned_value
       else
-        #### Handle a Nested Condition
-        # If we have the field name key being all, any, etc, then run the nested conditions
-        # with the current condition scope
+        #### Handle a previously unhandled nested condition
         ca = ConditionalActions.new({ all: { field_name => expected_val } },
                                     in_instance,
                                     current_scope: @condition_scope,
