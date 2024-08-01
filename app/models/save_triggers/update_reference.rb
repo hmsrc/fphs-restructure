@@ -49,14 +49,11 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
           end
         end
 
-        config[:with].each do |fn, def_val|
-          if def_val.is_a? Hash
-            ca = ConditionalActions.new def_val, @item
-            res = ca.get_this_val
-          else
-            res = FieldDefaults.calculate_default @item, def_val
-          end
+        with_result = config[:with_result]
+        handle_with_result with_result, vals
 
+        config[:with].each do |fn, def_val|
+          res = FieldDefaults.calculate_default @item, def_val
           vals[fn] = res
         end
 

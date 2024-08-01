@@ -43,6 +43,9 @@ class SaveTriggers::UpdateThis < SaveTriggers::SaveTriggersBase
           next unless ca.calc_action_if
         end
 
+        with_result = config[:with_result]
+        handle_with_result with_result, vals
+
         config[:with].each do |fn, def_val|
           if def_val.is_a? Hash
             ca = ConditionalActions.new def_val, @item

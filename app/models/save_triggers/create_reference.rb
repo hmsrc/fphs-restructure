@@ -25,6 +25,7 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
         create_in = config[:in]
         create_if = config[:if]
         create_with = config[:with]
+        with_result = config[:with_result]
 
         # We calculate the conditional if inside each item, rather than relying
         # on the outer processing in ActivityLogOptions#calc_save_trigger_if
@@ -37,6 +38,8 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
         end
 
         in_master = @master
+
+        handle_with_result with_result, vals
 
         create_with&.each do |fn, def_val|
           res = FieldDefaults.calculate_default @item, def_val
