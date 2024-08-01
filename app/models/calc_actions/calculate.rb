@@ -32,9 +32,9 @@ module CalcActions
     # We won't use a query join when referring to tables based on these keys
     NonJoinTableNames = %i[this parent referring_record top_referring_record this_references parent_references
                            parent_or_this_references user master condition value hide_error invalid_error_message
-                           role_name reference].freeze
+                           role_name reference ids_referencing].freeze
 
-    ReturnTypes = %w[return_value return_value_list return_result].freeze
+    ReturnTypes = %w[return_value return_value_list return_result return_all_results].freeze
 
     included do
       attr_accessor :condition_scope
@@ -143,7 +143,7 @@ module CalcActions
       @condition_scope
     end
 
-    # Get any requested return_value, return_value_list or return_result
+    # Get any requested return_value, return_value_list, return_result or return_all_results
     # The results are set in the instance attribute #this_val
     # The instance variable @this_val_where defines the return requirements, or may be
     # nil if there is no requirement to return anything
@@ -201,6 +201,13 @@ module CalcActions
         # by id to get a clean result
         rquery = rquery.select("#{tv_tn}.*")
         self.this_val = first_res.class.find(rquery.first.id)
+      elsif return_all_results_from_query?
+        raise "return_result clean table name is blank for (#{@this_val_where[:table_name]})" if tv_tn.blank?
+
+        # Get the return_result instance by getting the first result from the query, then finding the instance
+        # by id to get a clean result
+        rquery = rquery.select("#{tv_tn}.*").reload
+        self.this_val = first_res.class.where(id: rquery.pluck(:id)).reload
       else
         # Run the results query and get either a single result or a list
         rvals = rquery.pluck("#{tn}.#{fn}")
@@ -276,6 +283,38 @@ module CalcActions
         from_instance = @current_instance.reference
         val = from_instance && attribute_from_instance(from_instance, val_item_value)
 
+      elsif val_item_key == :ids_referencing
+        # Get an array of ids for a specified set of "from" items
+        # where the items reference a "target" item, based on a filter
+        # This is different from `this_references` since "from" is unrelated
+        # to the current instance
+        # id:
+        #   ids_referencing:
+        #     target:
+        #       external_items:
+        #         rec_type: val
+        #     from:
+        #       activity_log_items:
+        #         extra_log_type: act1
+        #         return: return_all_results
+        to_record_type = val_item_value[:target].first.first.to_s.singularize
+        filter_by = val_item_value[:target].first.last
+        from_item_def = val_item_value[:from]
+
+        ca = ConditionalActions.new from_item_def, @current_instance
+        from_items = ca.get_this_val
+        unless from_items.present?
+          raise FphsException,
+                'ids_referencing from items was not found - '\
+                'ensure return: return_all_results is specified and at least one result is returned'
+        end
+
+        refs = from_items.map do |item|
+          item.save_trigger_results = current_instance.save_trigger_results
+          item.current_user = current_instance.current_user
+          ModelReference.find_references(item, to_record_type:, filter_by:, active: true).pluck(:from_record_id)
+        end
+        val = refs.flatten.compact
       elsif val_item_key.in? %i[this_references parent_references parent_or_this_references]
         val = references_values(val_item_key, val_item_value, ref_table_name)
       elsif val_item_key == :user
@@ -396,9 +435,7 @@ module CalcActions
 
         # Get the specified attribute's value from each of the model references
         # Generate an array, allowing the conditions to be IN any of these
-        model_refs.each do |mr|
-          val << mr.to_record.attributes[att]
-        end
+        val = model_refs.map { |mr| mr.to_record.attributes[att] }
       end
       val
     end
@@ -423,6 +460,10 @@ module CalcActions
 
       condition = val[:condition]
       return unless condition
+
+      # Special cases
+      condition = '= ANY' if condition == 'in?'
+      condition = '= ANY REV' if condition == 'include?'
 
       # If we have a non-equals condition specified, generate the extra conditions
       if condition.in?(ValidExtraConditions)
@@ -508,6 +549,8 @@ module CalcActions
         mode = 'return_result'
       elsif expected_value_requests_return? :value_list, val
         mode = 'return_value_list'
+      elsif expected_value_requests_return? :all_results, val
+        mode = 'return_all_results'
       end
 
       # If a return mode was specified, set this up to be used in the query
@@ -886,6 +929,11 @@ module CalcActions
     # Does the condition request the return of the instance as a result?
     def return_result_from_query?
       @this_val_where[:mode] == 'return_result'
+    end
+
+    # Does the condition request the return of the instance as a result?
+    def return_all_results_from_query?
+      @this_val_where[:mode] == 'return_all_results'
     end
 
     # Logging of results to aid debugging

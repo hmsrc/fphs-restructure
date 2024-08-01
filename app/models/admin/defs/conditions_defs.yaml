@@ -23,8 +23,20 @@
         any:
           model_table_name:
             field_name: 'any conditional value must be true'
-            
-        
+          model_table_name2:
+            # Get an array of ids for a specified set of "from" items
+            # where the items reference a "target" item, based on a filter
+            # This is different from `this_references` since "from" is unrelated
+            # to the current instance
+            id:
+              ids_referencing:
+                target:
+                  external_items:
+                    rec_type: val
+                from:
+                  activity_log_items:
+                    extra_log_type: act1
+                    return: return_all_results
         not_any:
           model_table_name:
             field_name: 'all conditional values must be false'
@@ -88,7 +100,7 @@
               condition: |
                 "one of:"
                 - 'IS NOT NULL', 'IS NULL'
-                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*', 'in?'
+                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*', 'in?, 'include?'
                 - '= ANY' -  The value of this field (must be scalar) matches any value from the retrieved array field
                 - '= ANY REV' -  Reverse the operator order
                 - '<> ANY' -  The value of this field (must be scalar) must not match any value from the retrieved array field

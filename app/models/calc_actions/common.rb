@@ -20,7 +20,7 @@ module CalcActions
 
     BoolTypeString = '__!BOOL__'
     UnaryConditions = ['IS NOT NULL', 'IS NULL'].freeze
-    BinaryConditions = ['=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~*', '~'].freeze
+    BinaryConditions = ['=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~*', '~', 'in?', 'include?'].freeze
     ValidExtraConditions = (BinaryConditions + UnaryConditions).freeze
 
     attr_accessor :return_this, :top_level_error, :top_level_error_above, :skip_merge

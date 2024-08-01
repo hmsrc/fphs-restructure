@@ -10,6 +10,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
   def setup_config(confy)
     config = YAML.safe_load(confy).deep_symbolize_keys
     @al.reset_model_references
+    @al2.reset_model_references
     config
   end
 
@@ -1682,6 +1683,116 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     res_if = res.calc_action_if
 
     expect(res_if).to be true
+  end
+
+  it 'allows references between arbitrary instances to be checked' do
+    m = @al.master
+
+    m.current_user = @user
+
+    a1 = m.addresses.create! city: 'Portland',
+                             state: 'OR',
+                             zip: rand(99_999).to_s.rjust(5, '0').to_s,
+                             rank: 0,
+                             rec_type: 'home',
+                             source: 'nflpa'
+
+    a2 = m.addresses.create! city: 'Portland',
+                             state: 'OR',
+                             zip: rand(99_999).to_s.rjust(5, '0').to_s,
+                             rank: 10,
+                             rec_type: 'home',
+                             source: 'nflpa'
+
+    a3 = m.addresses.create! city: 'Portland',
+                             state: 'OR',
+                             zip: rand(99_999).to_s.rjust(5, '0').to_s,
+                             rank: 10,
+                             rec_type: 'home',
+                             source: 'nflpa'
+
+    @al.extra_log_type_config.references = {
+      address: {
+        address: {
+          from: 'this',
+          add: 'many'
+        }
+      },
+      player_contact: {
+        player_contact: {
+          from: 'master',
+          add: 'many'
+        }
+      }
+    }
+
+    @al2.extra_log_type_config.references = {
+      address: {
+        address: {
+          from: 'this',
+          add: 'many'
+        }
+      },
+      player_contact: {
+        player_contact: {
+          from: 'master',
+          add: 'many'
+        }
+      }
+    }
+
+    ModelReference.create_with @al, a1, force_create: true
+    ModelReference.create_with @al2, a2, force_create: true
+    ModelReference.create_with @al, a3, force_create: true
+
+    expect(@al.model_references.length).to eq 2
+    expect(@al2.model_references.length).to eq 1
+    expect(ActivityLog::PlayerContactPhone.find_by(select_who: @al.select_who)).to eq @al
+    expect(@al.master_id).to eq @al2.master_id
+    expect(@al0.master_id).to eq @al2.master_id
+    # Does the referenced item work correctly?
+
+    confy = <<~EOF_YAML
+
+      activity_log__player_contact_phones:
+        id:
+          ids_referencing:
+            target:
+              addresses:
+                city: 'portland'
+                zip: '#{a2.zip}'
+            from:
+              activity_log__player_contact_phones:
+                select_who: #{@al2.select_who}
+                return: return_all_results
+        return: return_result
+    EOF_YAML
+
+    conf = setup_config(confy)
+
+    res = ConditionalActions.new conf, @al0
+    expect(res.get_this_val).to eq @al2
+
+    confy = <<~EOF_YAML
+
+      activity_log__player_contact_phones:
+        id:
+          ids_referencing:
+            target:
+              addresses:
+                city: 'portland'
+                zip: '#{a3.zip}'
+            from:
+              activity_log__player_contact_phones:
+                select_who: #{@al.select_who}
+                return: return_all_results
+        return: return_result
+    EOF_YAML
+
+    conf = setup_config(confy)
+
+    res = ConditionalActions.new conf, @al0
+    expect(res.get_this_val).to eq @al
   end
 
   it 'checks IS (NOT) NULL conditions' do
@@ -3915,7 +4026,8 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       b = res.calc_action_if
       expect(b).to be false
       expect(return_failures).to eq({
-                                      all: { this: { user_id: nil } },
+                                      all: { this: { all: { this: { user_id: { user: 'BAD id' } } }, any: { this: { all_creator: { all: { this: { user_id: { user: 'BAD id' } } }, not_any: { this: { id: @al.id } } } } }, not_any: { this: { id: @al.id } }, user_id: nil } },
+                                      any: { this: { all_creator: { this: { all: { this: { user_id: { user: 'BAD id' } } }, not_any: { this: { id: @al.id } } } } } },
                                       not_any: { this: { id: @al.id } }
                                     })
 
