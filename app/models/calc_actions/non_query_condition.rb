@@ -10,7 +10,7 @@ module CalcActions
     NonQueryNestedKeyNames = %i[this referring_record top_referring_record this_references parent_references
                                 parent_or_this_references reference validate].freeze
 
-    SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?'].freeze
+    SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?', 'include?'].freeze
 
     attr_accessor :table, :field_name, :condition_def, :current_instance, :return_failures,
                   :conditions, :condition_config
@@ -310,21 +310,22 @@ module CalcActions
     def eval_simple_condition(test_val, expected_val)
       if expected_val.is_a? Array
         # Since we have expected value as an array, simply see if it includes the value we found
-        return expected_val.include?(test_val)
-      end
-
-      if expected_val.is_a?(Hash) || expected_val.is_a?(Array)
+        expected_val.include?(test_val)
+      elsif expected_val.is_a?(Hash) || expected_val.is_a?(Array)
         condition = expected_val[:condition] || '=='
         exp_val = dynamic_value(expected_val[:value])
-        if condition.in?(SimpleConditions)
-          test_simple_conditions condition, test_val, exp_val
-        elsif condition.in?(UnaryConditions)
-          test_unary_conditions condition, test_val, exp_val
-        elsif condition.in?(ValidExtraConditionsArrays)
-          test_array_conditions condition, test_val, exp_val
-        else
-          raise FphsException, "calc_action this condition is not recognized: #{condition}"
-        end
+        res = if condition.in?(SimpleConditions)
+                test_simple_conditions condition, test_val, exp_val
+              elsif condition.in?(UnaryConditions)
+                test_unary_conditions condition, test_val, exp_val
+              elsif condition.in?(ValidExtraConditionsArrays)
+                test_array_conditions condition, test_val, exp_val
+              else
+                raise FphsException, "calc_action this condition is not recognized: #{condition}"
+              end
+        # Optionally negate the result
+        res = !res if expected_val[:not]
+        res
       else
         test_val == dynamic_value(expected_val)
       end
