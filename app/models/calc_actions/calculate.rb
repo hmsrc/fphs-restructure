@@ -652,7 +652,7 @@ module CalcActions
               next
             end
 
-            if val.is_a?(Hash) && !val.key?(:element)
+            if val.is_a?(Hash) && !val.key?(:element) && !val.key?(:calculate)
               # Since the conditional value is actually a hash, we need to
               # get the value to be matched from another referenced record (or this)
               # Generate the query condition to do this

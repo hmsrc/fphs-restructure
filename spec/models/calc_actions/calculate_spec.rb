@@ -2191,6 +2191,47 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     expect(res.calc_action_if).to be true
   end
 
+  describe 'calculate functions' do
+    it 'calculates the sum of several attributes' do
+      al = create_item
+      al.update! select_who: '2', current_user: @user, master_id: al.master_id
+
+      conf = {
+        all: {
+          this: {
+            dummy: {
+              calculate: {
+                sum: {
+                  attributes: %w[id user_id]
+                }
+              }
+            }
+          }
+        }
+      }
+
+      ca = ConditionalActions.new conf, al
+      result = ca.calc_action_if
+      expect(result).to be false
+
+      conf = {
+        all: {
+          this: {
+            calculate: {
+              sum: {
+                attributes: %w[id user_id]
+              }
+            }
+          }
+        }
+      }
+
+      ca = ConditionalActions.new conf, al
+      result = ca.get_this_val
+      expect(result).to eq(@user.id + al.id)
+    end
+  end
+
   describe 'hash elements' do
     it 'compares a hash element' do
       al = create_item

@@ -13,6 +13,8 @@ module CalcActions
 
     SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?', 'include?'].freeze
 
+    ValidCalculateFunctions = %i[sum min max].freeze
+
     attr_accessor :table, :field_name, :condition_def, :current_instance, :return_failures,
                   :conditions, :condition_config
 
@@ -44,6 +46,8 @@ module CalcActions
 
       # Requesting a return constant in any circumstance requires a non query condition
       non_query_condition = true if field_name == :return_constant
+
+      non_query_condition = true if field_name == :calculate
 
       # If there is a nested condition, the key may represent a non query table name
       val_item_key = definition.is_a?(Hash) && definition.first.is_a?(Hash) && definition.first.first
@@ -155,8 +159,12 @@ module CalcActions
           elsif !in_instance
             # We failed to find the instance we need to continue.
             raise FphsException, "Instance not found for #{table}"
+
+          elsif field_name == :calculate
+            res = eval_calculation(calculate: expected_val)
+            self.this_val = res
           elsif expected_val.is_a?(Hash) && !(
-            expected_val.key?(:element) ||
+            expected_val.key?(:element) || expected_val.key?(:calculate) ||
             expected_val.key?(:condition) && table == :this
           )
             res &&= non_query_expected_val_hash(expected_val)
@@ -246,6 +254,9 @@ module CalcActions
     # Also set a value or result instance if requested
     def non_query_expected_val_not_a_hash(expected_val)
       # Get the value
+
+      expected_val = eval_calculation(expected_val)
+
       loc_this_val = attribute_from_instance(in_instance, field_name)
 
       res = if expected_val.is_a?(Hash) && expected_val[:element] && loc_this_val.is_a?(Hash)
@@ -332,6 +343,18 @@ module CalcActions
       else
         test_val == dynamic_value(expected_val)
       end
+    end
+
+    def eval_calculation(expected_val)
+      calc = expected_val[:calculate] if expected_val.is_a? Hash
+      return expected_val unless calc
+
+      fn = calc.first.first
+      valid_fn = ValidCalculateFunctions.find { |f| f == fn }
+      raise FphsException, "Invalid calculate function: #{fn}" unless valid_fn
+
+      vals = calc.first.last
+      vals[:attributes].map { |a| in_instance.attributes[a] }.send(valid_fn)
     end
 
     def test_simple_conditions(condition, test_val, exp_val)

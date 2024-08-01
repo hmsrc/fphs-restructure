@@ -54,6 +54,27 @@
           embedded_item:
             some_field: return_value
 
+        any_calculation:
+          this:
+            calculate:
+              # Returns value
+              (sum|min|max):
+                attributes:
+                  - attr1
+                  - attr2
+
+        any_comparison_using_a_calculation:
+          this:
+            field_name:
+              # Returns a result if it matches
+              calculate:
+                (sum|min|max):
+                  attributes:
+                    - attr1
+                    - attr2
+              
+                                    
+
         all - users not related to master:
           # if the first key is 'users' then the query will return against all users rather than current master record
           users:
