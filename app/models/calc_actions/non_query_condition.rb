@@ -5,9 +5,10 @@ module CalcActions
   class NonQueryCondition
     include Common
 
-    NonQueryTableNames = %i[this user parent referring_record top_referring_record role_name reference].freeze
+    NonQueryTableNames = %i[this user parent referring_record top_referring_record embedded_item role_name
+                            reference].freeze
 
-    NonQueryNestedKeyNames = %i[this referring_record top_referring_record this_references parent_references
+    NonQueryNestedKeyNames = %i[this referring_record top_referring_record embedded_item this_references parent_references
                                 parent_or_this_references reference validate].freeze
 
     SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?', 'include?'].freeze
@@ -303,6 +304,8 @@ module CalcActions
                                current_instance.top_referring_record
                              when :reference
                                current_instance.reference
+                             when :embedded_item
+                               current_instance.embedded_item
                              end
     end
 

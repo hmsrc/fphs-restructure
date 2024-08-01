@@ -30,7 +30,7 @@ module CalcActions
     include Common
 
     # We won't use a query join when referring to tables based on these keys
-    NonJoinTableNames = %i[this parent referring_record top_referring_record this_references parent_references
+    NonJoinTableNames = %i[this parent embedded_item referring_record top_referring_record this_references parent_references
                            parent_or_this_references user master condition value hide_error invalid_error_message
                            role_name reference ids_referencing].freeze
 
@@ -254,6 +254,9 @@ module CalcActions
 
         val = attribute_from_instance(from_instance, val_item_value)
 
+      elsif val_item_key == :embedded_item
+        from_instance = @current_instance.embedded_item
+        val = from_instance && attribute_from_instance(from_instance, val_item_value)
       elsif val_item_key == :referring_record && !val_item_value.is_a?(Hash)
         # Get a literal value from the current instance's referring_record.
         # This is a record referring to the current instance.

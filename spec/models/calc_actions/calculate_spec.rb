@@ -2799,6 +2799,53 @@ RSpec.describe 'Calculate conditional actions', type: :model do
       res = ca.get_this_val
       expect(res).to eq @alref
     end
+
+    it 'returns the embedded item' do
+      m = @al.master
+      m.current_user = @user
+
+      a1 = m.addresses.create! city: 'Portland',
+                               state: 'OR',
+                               zip: rand(99_999).to_s.rjust(5, '0').to_s,
+                               rank: 0,
+                               rec_type: 'home',
+                               source: 'nflpa'
+
+      @al.extra_log_type_config.references = {
+        address: {
+          address: {
+            from: 'master',
+            add: 'one_to_master'
+          }
+        }
+      }
+
+      ModelReference.create_with @al, a1, force_create: true
+
+      expect(@al.model_references.length).to eq 1
+
+      conf = {
+        embedded_item: {
+          update: 'return_result'
+        }
+      }
+
+      ca = ConditionalActions.new conf, @al
+
+      res = ca.get_this_val
+      expect(res).to eq a1
+
+      conf = {
+        embedded_item: {
+          zip: 'return_value'
+        }
+      }
+
+      ca = ConditionalActions.new conf, @al
+
+      res = ca.get_this_val
+      expect(res).to eq a1.zip
+    end
   end
 
   describe 'finding parent references' do
