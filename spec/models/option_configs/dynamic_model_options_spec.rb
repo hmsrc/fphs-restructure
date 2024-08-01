@@ -18,6 +18,7 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
   before :all do
     DynamicModel.active.where(table_name: 'test_created_by_recs').each { |dm| dm.disable!(@admin) }
+    DynamicModel.reset_active_model_configurations!
   end
 
   before :example do
