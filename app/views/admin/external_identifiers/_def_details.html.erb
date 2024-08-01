@@ -1,5 +1,10 @@
 <% if object_instance.persisted? && object_instance.enabled?%>
 <div class="dynamic-details-section">
+  <% unless object_instance.implementation_class_defined?(::ExternalIdentifier, fail_without_exception: true) %>
+    <label>implementation class not ready</label>
+    <p>Using this definition will fail</p>
+  <% end %>
+
   <label>item type name</label>
   <p class="dynamic-item-type">
   <%= object_instance.full_item_type_name %>
@@ -11,7 +16,9 @@
   </p>
 
   <label>assigned identifiers</label>
-  <p><%=link_to link_label_open_in_new('details'), "/admin/external_identifier_details/#{object_instance.id}", target: '_blank' %>
+  <p><%=link_to link_label_open_in_new('details'), "/admin/external_identifier_details/#{object_instance.id}", target: '_blank' %></p>
+
+  <%= render partial: 'admin/dynamic_models/est_record_count' %>
 
   <% unless object_instance.table_or_view_ready?%>
   <div class="help-block">
