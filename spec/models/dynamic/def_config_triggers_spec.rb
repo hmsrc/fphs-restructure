@@ -129,4 +129,40 @@ RSpec.describe 'Dynamic Definition Generation', type: :model do
     embedded_item = al.embedded_item
     expect(embedded_item).to eq dm
   end
+
+  it 'add configurations using the app import format' do
+    rn = DynamicModel::SetupEmbedTestTest1Rec.resource_name
+    yaml = <<~END_YAML
+      test1:
+        config_trigger:
+          on_define:
+            create_defaults:
+              user_access_control:
+              embed:
+                fields:
+                  - status
+                  - notes
+              page_layout:
+            create_configs:
+              associated_general_selections:
+                - name: Not Started
+                  value: not started
+                  item_type: '{{default_embed_resource_name}}_status'
+                  position: 1600
+                - name: Pending
+                  value: pending
+                  item_type: #{rn}_status
+                  position: 1601
+                - name: In Progress
+                  value: in progress
+                  item_type: #{rn}_status
+                  position: 1602
+
+        embed: default_embed_resource
+    END_YAML
+
+    @al.update!(extra_log_types: yaml)
+    gs = Classification::GeneralSelection.where(item_type: "#{rn}_status")
+    expect(gs.length).to eq 3
+  end
 end

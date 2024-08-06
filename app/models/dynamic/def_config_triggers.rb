@@ -42,6 +42,8 @@ module Dynamic
         create_configs(option_config)
       end
     rescue StandardError => e
+      Rails.logger.warn e
+      Rails.logger.warn e.short_string_backtrace
       raise FphsException,
             "A failure occurred creating config for config trigger for: #{dynamic_def.model_association_name}.\n#{e}"
     end
@@ -54,8 +56,6 @@ module Dynamic
 
       config = config_trigger.dig(:on_define, :create_defaults)
       return unless config
-
-      raise FphsException, 'No app type set for create_defaults' unless app_type
 
       setup config
       create_role_for_admin_matching_user(config, option_config)
@@ -135,13 +135,13 @@ module Dynamic
         primary_key_name: :id,
         foreign_key_name: :master_id,
         category:,
-        field_list: emb_fields
+        field_list: emb_fields,
+        current_admin:
       )
 
-      exists.current_admin = current_admin
-
       if exists
-        exists.update!(emb_cond) unless attributes_equal(exists, emb_cond)
+        # Update if anything is specified in the embed config, otherwise skip
+        exists.update!(emb_cond) unless embed.empty? || attributes_equal(exists, emb_cond)
       else
         exists = DynamicModel.create!(emb_cond)
       end
@@ -189,23 +189,37 @@ module Dynamic
     end
 
     def create_configs(option_config)
-      # create_config = option_configs&.dig(:on_define, :create_config)
+      config_trigger = option_config&.config_trigger
+      return unless config_trigger
 
-      # create_config&.each do |k, v|
-      #   ctype = v.first.first
-      #   cdefs = v.first.last
-      #   cdefs.each do |cdef|
-      #     cdef_name = cdef.first.first
-      #     cdef_val = cdef.first.last
-      #     cmake = "#{k.ns_camelize}::#{cdef_name}".constantize
-      #     exists = cmake.active.find_by(cdef_val)
-      #     next if exists
+      config = config_trigger.dig(:on_define, :create_configs)
+      return nil unless config
 
-      #     cmake.create! cdef_val
-      #   end
-      # end
+      subdata = if dynamic_def_type == :activity_log
+                  dynamic_def.implementation_class.new(
+                    master: Settings.admin_master,
+                    extra_log_type: option_config.name
+                  )
+                else
+                  dynamic_def
+                end
 
-      #  create_embed = option_configs&.dig(:on_define, :create_embed)
+      config = config.transform_values do |cval|
+        cval.map do |item|
+          item.transform_values do |v|
+            if v.is_a?(String) && v.include?('{{')
+              Formatter::Substitution.substitute(v, data: subdata, tag_subs: nil)
+            else
+              v
+            end
+          end
+        end
+      end
+      config = config.merge(name: app_type_name)
+      at_config = { app_type: config }
+      Admin::AppTypeImport.import_config(at_config,
+                                         current_admin,
+                                         format: :raw)
     end
 
     def create_missing_user_access_control(uac_cond)
@@ -222,6 +236,7 @@ module Dynamic
 
     def attributes_equal(instance, match_attr)
       sk_match_attr = match_attr.stringify_keys.transform_values { |v| v.is_a?(Symbol) ? v.to_s : v }
+      sk_match_attr.delete('current_admin')
       instance.attributes.slice(*sk_match_attr.keys) == sk_match_attr
     end
   end

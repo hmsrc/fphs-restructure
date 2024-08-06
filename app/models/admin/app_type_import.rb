@@ -15,7 +15,7 @@ class Admin
     # @param [String] config_text - YAML or JSON text
     # @param [Admin] admin - admin profile performing import
     # @param [String] name - optionally override the name of the app type at import
-    # @param [Symbol] format - :json (default) or :yaml
+    # @param [Symbol] format - :json (default), :yaml, :raw (a hash)
     # @param [:force|:changed|nil] force_update - optionally force updated configuration items to current timestamp
     #                                  allowing previously failed imports to be overwritten
     #                                  or set to :changed to update changes, regardless of updated_at timestamp
@@ -184,6 +184,8 @@ class Admin
         config = JSON.parse(config_text)
       elsif format == :yaml
         config = YAML.safe_load(config_text)
+      elsif format == :raw
+        config = config_text.deep_stringify_keys
       else
         raise FphsException, 'specify app type import format as one of :json or :yaml'
       end
