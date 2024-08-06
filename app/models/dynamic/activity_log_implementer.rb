@@ -369,7 +369,7 @@ module Dynamic
       return @can_create unless @can_create.nil?
 
       unless extra_log_type_config
-        msg = "can_create? does not have an extra_log_type_config for #{self}"
+        msg = "can_create? does not have an extra_log_type_config for #{self} -- #{extra_log_type}"
         Rails.logger.warn msg
         Rails.logger.warn "extra_log_type: #{extra_log_type}"
         Rails.logger.warn "option_configs_names: #{self.class.definition.option_configs_names}"

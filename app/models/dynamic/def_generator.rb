@@ -10,9 +10,10 @@ module Dynamic
 
       after_save :add_master_association, if: -> { @regenerate }
       after_save :add_user_access_controls, if: -> { @regenerate }
+      after_save :reset_active_model_configurations!
+      after_save :handle_config_triggers
 
       # This double reset is intentional
-      after_save :reset_active_model_configurations!
       after_commit :reset_active_model_configurations!
 
       after_commit :update_tracker_events, if: -> { @regenerate }
@@ -387,13 +388,7 @@ module Dynamic
     # @param [Admin::AppType] app_type to add the user access control to
     # @return [Admin::UserAccessControl] the created or updated user access control
     def add_user_access_controls(force: false, app_type: nil)
-      changed_name = if respond_to? :table_name
-                       saved_change_to_table_name?
-                     elsif respond_to? :name
-                       saved_change_to_name?
-                     end
-
-      return unless !persisted? || saved_change_to_disabled? || changed_name || force
+      return unless !persisted? || saved_change_to_disabled? || changed_def_name? || force
 
       begin
         if ready_to_generate? || disabled? || force
@@ -407,6 +402,28 @@ module Dynamic
       rescue StandardError => e
         raise FphsException,
               "A failure occurred creating user access control for app with: #{model_association_name}.\n#{e}"
+      end
+    end
+
+    def handle_config_triggers
+      # doit = !persisted? || saved_change_to_disabled? || changed_def_name?
+      # return unless doit
+
+      Dynamic::DefConfigTriggers.process(self)
+    end
+
+    def foreign_key_field_name
+      "#{table_name.singularize}_id"
+    end
+
+    #
+    # Has the model had its name changed in the latest saved definition?
+    # @return [true|false]
+    def changed_def_name?
+      if respond_to? :table_name
+        saved_change_to_table_name?
+      elsif respond_to? :name
+        saved_change_to_name?
       end
     end
 
@@ -450,7 +467,7 @@ module Dynamic
       # For some reason the underlying table exists but the class doesn't. Inform the admin
       return if res
 
-      err = "The implementation of #{model_class_name} was not completed. " \
+      err = "The implementation of #{self.class.name}::#{model_class_name} was not completed. " \
             "The DB table #{table_name} has #{table_or_view_ready? ? '' : 'NOT '}been created"
       logger.warn err
       errors.add :name, err

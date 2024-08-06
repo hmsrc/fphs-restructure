@@ -17,7 +17,7 @@ module OptionConfigs
         name label config_obj caption_before show_if resource_name resource_item_name save_action view_options
         field_options dialog_before creatable_if editable_if showable_if add_reference_if valid_if
         filestore labels fields button_label orig_config db_configs save_trigger embed references
-        show_if_condition_strings batch_trigger
+        show_if_condition_strings batch_trigger config_trigger
       ]
     end
 
@@ -77,6 +77,7 @@ module OptionConfigs
       clean_references_def
       clean_save_triggers
       clean_batch_triggers
+      clean_config_triggers
     end
 
     # Defintion label
@@ -225,7 +226,13 @@ module OptionConfigs
     def clean_embed_def
       return unless embed
 
-      rn = embed[:resource_name]
+      if embed == 'default_embed_resource'
+        rn = config_obj.default_embed_resource_name(name)
+        self.embed = { resource_name: rn }
+      else
+        rn = embed[:resource_name]
+      end
+
       resource = Resources::Models.find_by(resource_name: rn)
       embed[:resource_model_def] = resource
 
@@ -383,6 +390,13 @@ module OptionConfigs
       self.batch_trigger[:on_record] ||= {}
     end
 
+    def clean_config_triggers
+      self.config_trigger ||= {}
+      self.config_trigger = self.config_trigger.symbolize_keys
+      self.config_trigger = self.config_trigger.symbolize_keys
+      self.config_trigger[:on_define] ||= {}
+    end
+
     # Check if any of the configs were bad
     # This should be extended to provide additional checks when options are saved
     # @todo - work out why the "raise" was disabled and whether it needs changing
@@ -452,7 +466,7 @@ module OptionConfigs
         # If defined, use the optional _default entry as the basis for all individual options,
         # allowing for a definable set of default values
 
-        value = opt_default.merge(value) if opt_default
+        value = opt_default.merge(value) if opt_default && !name.in?(%i[primary blank_log])
 
         i = new name, value, config_obj
         configs << i

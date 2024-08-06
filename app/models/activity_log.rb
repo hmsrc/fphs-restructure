@@ -737,6 +737,15 @@ class ActivityLog < ActiveRecord::Base
     full_item_type_name.ns_hyphenate
   end
 
+  def default_embed_table_name(extra_log_type)
+    sname = process_name || [item_type, rec_type].compact.join('_')
+    [category, sname, extra_log_type, 'recs'].compact.join('_')
+  end
+
+  def default_embed_resource_name(extra_log_type)
+    "dynamic_model__#{default_embed_table_name(extra_log_type)}"
+  end
+
   # Override to enable extra log types to also be added to Resouces::Models
   def add_model_to_list(m)
     # Clean up before re-adding

@@ -208,6 +208,8 @@ RSpec.configure do |config|
       # Seeds::ActivityLogPlayerContactPhone.setup
       put_now 'setup_al_player_contact_emails'
       SetupHelper.setup_al_player_contact_emails
+      put_now 'setup_al_player_contact_embed_tests'
+      SetupHelper.setup_al_player_contact_embed_tests
       put_now 'Setup ext_identifier'
       SetupHelper.setup_ext_identifier
       put_now 'setup_test_app'
