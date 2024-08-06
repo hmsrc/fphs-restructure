@@ -1,11 +1,32 @@
+
 <% if @config_notices.present? %>
+<p><a href="#admin-panel-components">jump to components</a></p>
 <div class="config-error-block">
-  <% @config_notices.each do |ce| %>
-      <div>
-        <h4><span class="activity-list-name"><%= ce[:name] %></span> - <%= ce[:type] %></h4>
-        <p><%= ce[:message] %></p>
-        <pre><%= ce[:config_def].to_yaml.sub("---\n",'') %></pre>
+  <div class="panel-group" id="accordion-notices" role="tablist" aria-multiselectable="true">
+  <% @config_notices.each do |ce| 
+    head_el_id = "app-type-config-notices-heading--#{ce[:name].id_hyphenate}-#{ce[:type].id_hyphenate}"
+    el_id = "app-type-config-notices-body--#{ce[:name].id_hyphenate}-#{ce[:type].id_hyphenate}"
+    title = "<span class=\"activity-list-name\">#{ce[:name]}</span> - #{ce[:type]}".html_safe
+  %>
+    <div class="panel panel-default">
+      <div class="panel-heading" role="tab" id="<%=head_el_id%>">
+        <h4 class="panel-title">
+           <%= link_to title, "\##{el_id}", 
+              role: "button", 
+              data: { toggle: "collapse", parent: "#accordion-notices" }, 
+              'aria-expanded' =>"true",
+              'aria-controls'=>"\##{el_id}",
+              class: 'app-type-config-notices-head-link' %> 
+          </h4>
       </div>
+      <div id="<%=el_id%>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="<%=head_el_id%>">   
+        <div class="panel-body">
+          <p><%= ce[:message] %></p>
+          <pre><%= ce[:config_def].to_yaml.sub("---\n",'') %></pre>
+        </div>
+      </div>
+    </div>
   <% end %>
+  </div>
 </div>
 <% end %>

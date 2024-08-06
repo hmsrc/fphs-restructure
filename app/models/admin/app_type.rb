@@ -110,7 +110,7 @@ class Admin
 
     # Select any tables that have some kind of access
     def associated_table_names
-      user_access_controls.valid_resources([:table]).where(resource_type: :table).select(&:access).map(&:resource_name).uniq
+      @associated_table_names ||= user_access_controls.valid_resources([:table]).where(resource_type: :table).select(&:access).map(&:resource_name).uniq
     end
 
     def valid_associated_activity_logs
@@ -217,21 +217,13 @@ class Admin
     end
 
     def associated_general_selections
-      gs = []
+      rset =
+        associated_table_names.map do |tn|
+          "#{tn.singularize}_|#{tn}_"
+        end
 
-      associated_table_names.each do |tn|
-        tnlike = "#{tn.singularize}_%"
-        tnplurallike = "#{tn}_%"
-        res = Classification::GeneralSelection
-              .active
-              .where('item_type LIKE ? or item_type LIKE ?',
-                     tnlike,
-                     tnplurallike)
-              .order(id: :asc)
-        gs += res
-      end
-
-      gs.sort { |a, b| a.id <=> b.id }
+      rall = "^(#{rset.join('|')})"
+      Classification::GeneralSelection.active.where("item_type ~ '#{rall}'").order(id: :asc)
     end
 
     def associated_protocols
@@ -262,16 +254,13 @@ class Admin
 
     def associated_message_templates
       ms = []
+      active_mts = Admin::MessageTemplate.active
       associated_activity_logs.all.each do |a|
         a.option_configs.each do |c|
           c.dialog_before.each do |_d, v|
-            res = Admin::MessageTemplate
-                  .active
-                  .find_by(
-                    name: v[:name],
-                    message_type: 'dialog',
-                    template_type: 'content'
-                  )
+            res = active_mts.find do |a|
+              a.name == v[:name] && a.message_type == 'dialog' && a.template_type == 'content'
+            end
             ms << res if res
           end
           c.save_trigger.each do |_d, sts|
@@ -289,9 +278,9 @@ class Admin
                   ct = v[:content_template]
                   mt = v[:type]
 
-                  res = Admin::MessageTemplate.active.find_by(name: lt, message_type: mt, template_type: 'layout')
+                  res = active_mts.find { |a| a.name == lt && a.message_type == mt && a.template_type == 'layout' }
                   ms << res if res
-                  res = Admin::MessageTemplate.active.find_by(name: ct, message_type: mt, template_type: 'content')
+                  res = active_mts.find { |a| a.name == ct && a.message_type == mt && a.template_type == 'content' }
                   ms << res if res
                 end
               end
@@ -302,28 +291,20 @@ class Admin
       associated_dynamic_models.all.each do |a|
         a.option_configs.each do |c|
           c.dialog_before.each do |_d, v|
-            res = Admin::MessageTemplate
-                  .active
-                  .find_by(
-                    name: v[:name],
-                    message_type: 'dialog',
-                    template_type: 'content'
-                  )
+            res = active_mts
+                  .find { |a| a.name == v[:name] && a.message_type == 'dialog' && a.template_type == 'content' }
             ms << res if res
           end
         end
       end
 
-      Admin::MessageTemplate
-        .active
-        .where(
-          name: ["ui page css - #{name}", "ui page js - #{name}"],
-          message_type: 'plain',
-          template_type: 'content'
-        )
-        .each do |res|
-        ms << res if res
-      end
+      ms +=
+        active_mts.select do |a|
+          a.name.in?(["ui page css - #{name}",
+                      "ui page js - #{name}"]) &&
+            a.message_type == 'plain' &&
+            a.template_type == 'content'
+        end.compact
 
       ms.compact!
       ms.sort { |a, b| a.id <=> b.id }.uniq

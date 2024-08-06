@@ -43,7 +43,7 @@ module Dynamic
             # It is expected that this is mostly when originally seeding the database
             dm.current_admin ||= dm.admin
 
-            dm.update_tracker_events
+            # dm.update_tracker_events
           end
         rescue Exception => e
           msg = "Failed to generate models. Hopefully this is only during a migration. \n***** #{e.inspect}"
