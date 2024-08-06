@@ -421,6 +421,21 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     expect(res.calc_action_if).to be false
   end
 
+  it 'uses definition_resource as an identifier for an association' do
+    m = @al.master
+    m.current_user = @user
+
+    conf = {
+      all: {
+        definition_resources: {
+          extra_log_type: @al.extra_log_type
+        }
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true
+  end
+
   it 'checks if nested conditions work' do
     m = @al.master
     m.current_user = @user

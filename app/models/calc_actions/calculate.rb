@@ -630,6 +630,7 @@ module CalcActions
       @sub_conditions = {}
 
       @condition_config.each do |c_table, t_conds|
+        c_table = @current_instance.class.definition.resource_name if c_table == :definition_resources
         join_table_name = c_table.to_sym
         table_name = ModelReference.record_type_to_table_name(c_table).to_sym
 

@@ -152,6 +152,14 @@ In addition to the attributes within the current record, the following are avail
   - data (data attribute)
   - class_name
   - save_trigger_results
+  - resource_name
+  - item_type_name
+  - table_name
+
+- Item definition details
+  - definition_resource_name
+  - definition_item_type_name
+  - default_embed_resource_name
 
 ### Server constants
 

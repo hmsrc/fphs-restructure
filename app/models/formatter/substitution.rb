@@ -18,6 +18,8 @@ module Formatter
     FunctionalDirectives = %w[shortlink].freeze
     FunctionalDirectiveRegEx = /\[\[[^\]]+\]\]/
 
+    NoAutoTitleizeTags = %w[resource_name item_type_name default_embed_resource_name
+                            definition_resource_name definition_item_type_name].freeze
     #
     # Perform substitutions on the text, using either a Hash of data or an object item.
     # Provide a tag substitution to be used to enclose the substituted items
@@ -238,6 +240,7 @@ module Formatter
         data = {}
       end
 
+      setup_resource_info(data)
       setup_common_constants_tags(data)
       setup_data_for_referenced_item(data, item)
       setup_data_created_by(data, item)
@@ -358,7 +361,12 @@ module Formatter
       return if res.nil? && tagp[1] != 'ignore_missing'
 
       # Automatically titleize names (only if the returned value is a string)
-      tagp << 'titleize' if res.is_a?(String) && tagp.length == 1 && (tag == 'name' || tag.end_with?('_name'))
+      if res.is_a?(String) &&
+         tagp.length == 1 &&
+         (tag == 'name' || tag.end_with?('_name')) &&
+         !tag.in?(NoAutoTitleizeTags)
+        tagp << 'titleize'
+      end
       tagp[1..].each do |op|
         res = TagFormatter.format_with(op, res, orig_val, current_user, tag, data)
       end
@@ -630,6 +638,25 @@ module Formatter
       data[:allow_admins_to_manage_admins] = Settings::AllowAdminsToManageAdmins
       data[:invitation_code] = Settings::InvitationCode
       data[:default_logo] = Settings::DefaultLogo
+    end
+
+    def self.setup_resource_info(data)
+      item = data[:original_item]
+      data[:resource_name] = item.resource_name if item.respond_to?(:resource_name)
+      data[:table_name] = item.class.table_name if item.class.respond_to?(:table_name)
+      data[:item_type_name] = item.full_item_type_name if item.respond_to?(:full_item_type_name)
+
+      idef = item.class.definition if item.class.respond_to? :definition
+      return unless idef.is_a?(ActivityLog)
+
+      data[:definition_resource_name] = idef.resource_name
+      data[:definition_item_type_name] = idef.item_type_name
+
+      if idef.respond_to?(:default_embed_resource_name)
+        data[:default_embed_resource_name] = idef.default_embed_resource_name(item.extra_log_type)
+      end
+
+      nil
     end
   end
 end
