@@ -33,6 +33,7 @@ module StandardAuthentication
     before_save :handle_password_change
     after_save :handle_password_reminder_setup, if: :set_reminder
     after_save :clear_plaintext_password
+    after_save :clean_memos
     after_create :notify_admin
     attr_accessor :new_two_factor_auth_code, :forced_password_reset, :new_password, :set_reminder
 
@@ -169,6 +170,14 @@ module StandardAuthentication
 
       words
     end
+
+    def emails_by_id
+      @emails_by_id_memo ||= all.pluck(:id, :email).to_h
+    end
+
+    def clean_memos
+      @emails_by_id_memo = nil
+    end
   end
 
   def expires_in
@@ -236,7 +245,7 @@ module StandardAuthentication
   def two_factor_auth_uri
     issuer = Settings::TwoFactorAuthIssuer
     label = "#{issuer} (#{self.class.name.downcase}) #{email}"
-    otp_provisioning_uri(label, issuer: issuer)
+    otp_provisioning_uri(label, issuer:)
   end
 
   #
@@ -494,5 +503,9 @@ module StandardAuthentication
 
     Users::NewUserAdded.notify(self) if is_a?(Admin) && notify.include?('admin')
     Users::NewUserAdded.notify(self) if is_a?(User) && notify.include?('user')
+  end
+
+  def clean_memos
+    self.class.clean_memos
   end
 end

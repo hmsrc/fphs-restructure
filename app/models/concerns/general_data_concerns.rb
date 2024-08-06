@@ -66,8 +66,7 @@ module GeneralDataConcerns
   def user_name
     return unless respond_to?(:user_id) && user_id
 
-    @user_names_memo ||= {}
-    @user_names_memo[user_id] ||= user&.email
+    User.emails_by_id[user_id]
   end
 
   def user_email
