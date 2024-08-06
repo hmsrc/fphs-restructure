@@ -1,5 +1,10 @@
 <div class="dynamic-details-section">
 <% if object_instance.persisted? %>
+  <% unless object_instance.implementation_class_defined?(::DynamicModel, fail_without_exception: true) %>
+    <label>implementation class not ready</label>
+    <p>Using this definition will fail</p>
+  <% end %>
+
   <label>item type name</label>
   <p class="dynamic-item-type">
   <%= object_instance.full_item_type_name %>
@@ -18,6 +23,9 @@
     <%= link_to link_label_open_in_new('search data'), "/reports/reference_data__table_data?schema_name=#{object_instance.schema_name}&search_attrs%5B_blank%5D=true&search_attrs%5Bno_run%5D=true&table_name=#{object_instance.table_name}", 
                 target: '_blank' %>
   </p>
+
+  <%= render partial: 'admin/dynamic_models/est_record_count' %>
+
   <% unless object_instance.table_or_view_ready?%>
   <div class="help-block">
   <p>Typically the database table or view associated with a dynamic model is created when the definition is first created (or prior to this if handled manually.)</p>

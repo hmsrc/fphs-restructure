@@ -1,0 +1,30 @@
+# Config Trigger options      
+      create_defaults:
+      # Specify one or more of the following options to automatically set them up during definition
+        user_access_control:
+        # Create default user controls (and role for this admin user) to allow this resource
+        # and any embed to be created
+        embed:
+        # Create a default embed dynamic model. No fields need to be specified.
+          fields:
+            - status
+            - notes
+        page_layout:
+        # Create a master page layout for this definition resource.
+      create_configs:
+      # Create configs for any type of additional definition. This follows the format of an app type export.
+        associated_general_selections:
+          - name: Not Started
+            value: not started
+            item_type: '{{default_embed_resource_name}}_status'
+            position: 1600
+          - name: Pending
+            value: pending
+            item_type: #{rn}_status
+            position: 1601
+          - name: In Progress
+            value: in progress
+            item_type: #{rn}_status
+            position: 1602
+
+        

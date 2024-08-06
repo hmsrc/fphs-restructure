@@ -120,6 +120,14 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
                         List of results
               - each:
                   value: '{{{select_who::split_csv}}}'
+                  if:
+                    not_any:
+                      this:
+                        save_trigger_results:
+                          element: iterator_value
+                          value:
+                            - ''
+                            - null
                   do:
                     - update_this:
                         one:
@@ -223,17 +231,17 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
 
     it 'runs a list of triggers for each value specified' do
       al = @player_contact.activity_log__player_contact_phones.create!(select_call_direction: 'from player',
-                                                                       select_who: 'a,b,c',
+                                                                       select_who: '"",a,b,,c,',
                                                                        extra_log_type: 'save_trigger_test_4')
-      expect(al.select_who).to eq 'a,b,c'
+      expect(al.select_who).to eq '"",a,b,,c,'
       al.skip_save_trigger = false
       al.update!(select_call_direction: 'to player')
       expect(al.select_who).to eq 'an iterator'
       expect(al.notes).to eq <<~END_TEXT
         List of results
-        - 0 => a
-        - 1 => b
-        - 2 => c
+        - 1 => a
+        - 2 => b
+        - 4 => c
       END_TEXT
         .strip
     end

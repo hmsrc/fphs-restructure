@@ -103,6 +103,8 @@ module OptionConfigs
           next unless configs
 
           iter_configs = configs[:each] || { do: configs }
+          # Assuming this is an each: definition, get an if: config
+          do_if = configs.dig(:each, :if)
 
           val_configs = iter_configs[:value]
           iter_values = if val_configs
@@ -111,9 +113,18 @@ module OptionConfigs
                           [nil]
                         end
 
+          raise FphsException, 'No iterator values were found for save trigger each' unless iter_values
+
           iter_values.each_with_index do |iter_value, iter_index|
             obj.save_trigger_results['iterator_index'] = iter_index
             obj.save_trigger_results['iterator_value'] = iter_value
+
+            # Provide the ability to skip all triggers for this iteration
+            if do_if
+              ca = ConditionalActions.new do_if, obj
+              next unless ca.calc_action_if
+            end
+
             all_iter_configs = iter_configs[:do]
             all_iter_configs = [all_iter_configs] unless all_iter_configs.is_a? Array
             all_iter_configs.each do |iter_config|

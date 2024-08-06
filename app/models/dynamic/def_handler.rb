@@ -533,5 +533,18 @@ module Dynamic
 
       :view
     end
+
+    #
+    # Get an estimated count of records in the table. Cached for 15 minutes
+    # @return [Integer]
+    def estimated_record_count
+      ckey = "estimated_record_count--#{self.class.name}-#{id}-#{created_at}-#{updated_at}"
+      Rails.cache.fetch(ckey, expires_in: 15.minutes) do
+        implementation_class.count
+      rescue StandardError => e
+        Rails.logger.warn "Failed to get estimated record count for #{name}"
+        nil
+      end
+    end
   end
 end

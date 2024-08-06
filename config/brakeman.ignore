@@ -132,7 +132,7 @@
       "check_name": "UnsafeReflection",
       "message": "Unsafe reflection method `constantize` called on model attribute",
       "file": "app/models/calc_actions/calculate.rb",
-      "line": 627,
+      "line": 702,
       "link": "https://brakemanscanner.org/docs/warning_types/remote_code_execution/",
       "code": "Resources::Models.find_by(:resource_name => @join_tables.first).class_name.constantize",
       "render_path": null,
@@ -188,6 +188,29 @@
         "method": "update_table_name"
       },
       "user_input": "calc_trigger_fn_name(table_name)",
+      "confidence": "Medium",
+      "cwe_id": [
+        89
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "SQL Injection",
+      "warning_code": 0,
+      "fingerprint": "400bb8ca8aa70318439abf6184505d97492cb3d1709f6acb834ee013df71dbee",
+      "check_name": "SQL",
+      "message": "Possible SQL injection",
+      "file": "app/models/admin/app_type.rb",
+      "line": 226,
+      "link": "https://brakemanscanner.org/docs/warning_types/sql_injection/",
+      "code": "Classification::GeneralSelection.active.where(\"item_type ~ '#{\"^(#{associated_table_names.map do\n \"#{tn.singularize}_|#{tn}_\"\n end.join(\"|\")})\"}'\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "AppType",
+        "method": "associated_general_selections"
+      },
+      "user_input": "associated_table_names.map do\n \"#{tn.singularize}_|#{tn}_\"\n end.join(\"|\")",
       "confidence": "Medium",
       "cwe_id": [
         89
@@ -270,7 +293,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/page_layouts/_show_row.html.erb",
-      "line": 114,
+      "line": 116,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "Formatter::Substitution.substitute(markdown_to_html((col[\"footer\"] or \"\")), :data => ((Master.find_with({ :id => params[:filters][:master_id], :type => (((active_layouts.find(params[:id]) or active_layouts.where(:panel_name => params[:id]).first).view_options.find_with or params[:filters][:master_type].hyphenate)) }, :access_by => current_user) or {})), :tag_subs => nil)",
       "render_path": [
@@ -298,7 +321,7 @@
         {
           "type": "template",
           "name": "page_layouts/_show_row",
-          "line": 97,
+          "line": 99,
           "file": "app/views/page_layouts/_show_row.html.erb",
           "rendered": {
             "name": "page_layouts/_show_row",
@@ -383,25 +406,6 @@
       "confidence": "High",
       "cwe_id": [
         89
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Unmaintained Dependency",
-      "warning_code": 123,
-      "fingerprint": "715ee6d743a8af33c7b930d728708ce19c765fb40e2ad9d2b974db04d92dc7d1",
-      "check_name": "EOLRuby",
-      "message": "Support for Ruby 3.0.6 ends on 2024-03-31",
-      "file": ".ruby-version",
-      "line": 1,
-      "link": "https://brakemanscanner.org/docs/warning_types/unmaintained_dependency/",
-      "code": null,
-      "render_path": null,
-      "location": null,
-      "user_input": null,
-      "confidence": "Weak",
-      "cwe_id": [
-        1104
       ],
       "note": ""
     },
@@ -866,7 +870,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/page_layouts/_show_row.html.erb",
-      "line": 105,
+      "line": 107,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "Formatter::Substitution.substitute(markdown_to_html((col[\"header\"] or \"\")), :data => ((Master.find_with({ :id => params[:filters][:master_id], :type => (((active_layouts.find(params[:id]) or active_layouts.where(:panel_name => params[:id]).first).view_options.find_with or params[:filters][:master_type].hyphenate)) }, :access_by => current_user) or {})), :tag_subs => nil)",
       "render_path": [
@@ -894,7 +898,7 @@
         {
           "type": "template",
           "name": "page_layouts/_show_row",
-          "line": 97,
+          "line": 99,
           "file": "app/views/page_layouts/_show_row.html.erb",
           "rendered": {
             "name": "page_layouts/_show_row",
@@ -914,6 +918,6 @@
       "note": ""
     }
   ],
-  "updated": "2024-02-13 12:56:34 +0000",
-  "brakeman_version": "6.1.1"
+  "updated": "2024-08-06 18:49:07 +0100",
+  "brakeman_version": "6.1.2"
 }

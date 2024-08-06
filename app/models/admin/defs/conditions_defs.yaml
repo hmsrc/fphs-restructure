@@ -1,7 +1,7 @@
 # Conditions Definitions
 
         all:
-          'model_table_name | this | this_references | parent_references | parent_or_this_references | referring_record (the record referring to this one)':
+          'model_table_name | this | embedded_item| this_references | parent_references | parent_or_this_references | referring_record (the record referring to this one)':
             field_name: 'all conditional values must be true in model_table_name (any matching record unless id or other filters specified separately) or this (this record)'
             field_name_2: 'literal value | null'
             field_name_3: 
@@ -23,8 +23,20 @@
         any:
           model_table_name:
             field_name: 'any conditional value must be true'
-            
-        
+          model_table_name2:
+            # Get an array of ids for a specified set of "from" items
+            # where the items reference a "target" item, based on a filter
+            # This is different from `this_references` since "from" is unrelated
+            # to the current instance
+            id:
+              ids_referencing:
+                target:
+                  external_items:
+                    rec_type: val
+                from:
+                  activity_log_items:
+                    extra_log_type: act1
+                    return: return_all_results
         not_any:
           model_table_name:
             field_name: 'all conditional values must be false'
@@ -33,7 +45,43 @@
         not_all:
           model_table_name:
             field_name: 'any conditional value must be false'
-          
+
+        # Only creatable if this extra log type hasn't already been performed
+        # `definition_resources` resolves to the definition activity log association for an activity log
+        # or the dynamic model / external identifier association otherwise
+        not_any_completed:
+          definition_resources:
+            extra_log_type: '{{extra_log_type}}''
+
+        any_return_an_embedded_item:
+          embedded_item:
+            return: return_result
+        
+        any_return_attribute_from_an_embedded_item:
+          embedded_item:
+            some_field: return_value
+
+        any_calculation:
+          this:
+            calculate:
+              # Returns value
+              (sum|min|max):
+                attributes:
+                  - attr1
+                  - attr2
+
+        any_comparison_using_a_calculation:
+          this:
+            field_name:
+              # Returns a result if it matches
+              calculate:
+                (sum|min|max):
+                  attributes:
+                    - attr1
+                    - attr2
+              
+                                    
+
         all - users not related to master:
           # if the first key is 'users' then the query will return against all users rather than current master record
           users:
@@ -88,7 +136,7 @@
               condition: |
                 "one of:"
                 - 'IS NOT NULL', 'IS NULL'
-                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*'
+                - '=', '<', '>', '<>', '<=', '>=', 'LIKE', 'ILIKE', '~', '~*', 'in?, 'include?'
                 - '= ANY' -  The value of this field (must be scalar) matches any value from the retrieved array field
                 - '= ANY REV' -  Reverse the operator order
                 - '<> ANY' -  The value of this field (must be scalar) must not match any value from the retrieved array field

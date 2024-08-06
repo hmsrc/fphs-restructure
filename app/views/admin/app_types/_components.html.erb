@@ -1,18 +1,36 @@
 <%
   unless defined? main_components
-    main_components = true
+    main_components = nil
   end
+  
+  exclude_components = %i[associated_sub_processes associated_protocol_events]
+
+  options = {main_components: , exclude_components: }
 
   unless defined? open_in_new
     open_in_new = false
   end
+
+  active_or_all = 'active'
+
+  alt_names = {
+    general_selections: ['item_type'],
+    user_access_controls: ['resource_type', 'role_name'],
+    user_roles: ['role_name'],
+    app_configurations: ['name'],
+    sub_processes: ['protocol_name'],
+    protocol_events: ['protocol_name']
+  }
+
+  alt_links = alt_names.dup
 %>
-<div class="admin-panel-components">
+<div class="admin-panel-components" id="admin-panel-components">
   <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
     <% 
-    @app_type.as_json(main_components: main_components).first.last.each do |k, v_hash|        
+    @app_type.as_json(options).first.last.each do |k, v_hash|        
       v_class = nil
       if v_hash.respond_to?(:each) 
+        kclean = k.gsub(/^valid_|associated_/i, '').to_sym
         title = k.humanize.gsub(/^valid |associated /i, '').titleize
         title_hyph = title.id_hyphenate
         init_link_class = 'collapsed'
@@ -47,27 +65,45 @@
       <div id="<%="app-type-components-#{title_hyph}"%>" class="panel-collapse collapse <%=init_panel_class%>" role="tabpanel" aria-labelledby="<%="app-type-component-heading-#{title_hyph}"%>">
         <div class="panel-body">
           <ul>
-          <% all_vs = v_hash.map do |k2_hash| %>
-            <%
-              k2 = k2_hash['_class_name'].constantize.find(k2_hash['id'])
+          <%
+            constants = {}
+            results = {}
+            all_vs = v_hash.map do |k2_hash| %>
+            <%              
+              k2_cn = k2_hash['_class_name']
+              k2_const = constants[k2_cn] ||= k2_cn.constantize
+              k2_all = results["#{k2_cn}--all"] ||= k2_const.send(active_or_all)
+              k2_id = k2_hash['id']
+              next unless k2_id
+
+              k2 = k2_all.find { |r| r && r['id'] == k2_id }
+              next unless k2
+
               rn = k2.respond_to?(:alt_resource_name) && k2.alt_resource_name
               rn ||= k2.respond_to?(:resource_name) && k2.resource_name
-              path = send("#{base_path}_path", filter: {id: k2.id})
-              name = if k2.respond_to?(:name)
-                      k2.respond_to?(:category) ? "#{k2.category.present? ? k2.category : '(no category)'} / #{k2.name}" : k2.name
+              path = if alt_links[kclean]
+                       fs = alt_links[kclean].map {|l| [l, k2[l]]}.to_h
+                       send("#{base_path}_path", filter: fs)
+                     else
+                       send("#{base_path}_path", filter: {id: k2.id})
+                     end
+              name = if alt_names[kclean]
+                       alt_names[kclean].map {|ka| k2[ka] || k2.send(ka) }.join(" / ")
+                     elsif k2.respond_to?(:name)
+                       k2.respond_to?(:category) ? "#{k2.category.present? ? k2.category : '(no category)'} / #{k2.name}" : k2.name
                      else
                        rn
-                     end
+                     end              
 
-              { rn: rn, path: path, name: name }
+              { rn: kclean, path: path, name: name, disabled: k2.disabled }
             %>
           <% end %>
-          <% all_vs.sort {|vi, vk| vi[:name] <=> vk[:name] }.each do |vs| %>
+          <% all_vs.compact.uniq.sort {|vi, vk| vi[:name] <=> vk[:name] }.each do |vs| %>
             <li>
               <% if open_in_new %>              
-              <%= link_to link_label_open_in_new(vs[:name]), vs[:path], target: "adminres-#{vs[:rn]}" %>
+              <%= link_to link_label_open_in_new(vs[:name]), vs[:path], target: "adminres-#{vs[:rn]}", class: "link-#{vs[:disabled] ? 'disabled' : 'active'}" %>
               <% else %>
-              <%= link_to vs[:name], vs[:path] %>
+              <%= link_to vs[:name], vs[:path], class: "link-#{vs[:disabled] ? 'disabled' : 'active'}" %>
               <% end %>
             </li>
           <% end %>

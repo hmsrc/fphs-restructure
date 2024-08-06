@@ -24,7 +24,7 @@ RSpec.describe Classification::SelectionOptionsHandler, type: :model do
     config0 = Classification::SelectionOptionsHandler.selector_with_config_overrides
 
     ::ActivityLog.define_models
-    @activity_log = al = ActivityLog.enabled.first
+    @activity_log = al = ActivityLog.active.first
 
     cleanup_matching_activity_logs(al.item_type, al.rec_type, al.process_name, excluding_id: al.id)
 

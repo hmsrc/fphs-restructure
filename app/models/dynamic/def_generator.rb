@@ -10,9 +10,10 @@ module Dynamic
 
       after_save :add_master_association, if: -> { @regenerate }
       after_save :add_user_access_controls, if: -> { @regenerate }
+      after_save :reset_active_model_configurations!
+      after_save :handle_config_triggers
 
       # This double reset is intentional
-      after_save :reset_active_model_configurations!
       after_commit :reset_active_model_configurations!
 
       after_commit :update_tracker_events, if: -> { @regenerate }
@@ -42,7 +43,7 @@ module Dynamic
             # It is expected that this is mostly when originally seeding the database
             dm.current_admin ||= dm.admin
 
-            dm.update_tracker_events
+            # dm.update_tracker_events
           end
         rescue Exception => e
           msg = "Failed to generate models. Hopefully this is only during a migration. \n***** #{e.inspect}"
@@ -199,10 +200,11 @@ module Dynamic
 
         # Check if it can be instantiated correctly - if it can't, allow it to raise an exception
         # since this is seriously unexpected
-        klass.new
+        klass.new(skip_presets: true)
       rescue Exception => e
         err = "Failed to instantiate the class #{icn} in parent #{parent_class}: #{e}"
         logger.warn err
+        logger.warn e.short_string_backtrace
         raise FphsException, err unless opt[:fail_without_exception]
 
         # By default, return false if an error occurred attempting the initialization.
@@ -386,13 +388,7 @@ module Dynamic
     # @param [Admin::AppType] app_type to add the user access control to
     # @return [Admin::UserAccessControl] the created or updated user access control
     def add_user_access_controls(force: false, app_type: nil)
-      changed_name = if respond_to? :table_name
-                       saved_change_to_table_name?
-                     elsif respond_to? :name
-                       saved_change_to_name?
-                     end
-
-      return unless !persisted? || saved_change_to_disabled? || changed_name || force
+      return unless !persisted? || saved_change_to_disabled? || changed_def_name? || force
 
       begin
         if ready_to_generate? || disabled? || force
@@ -406,6 +402,28 @@ module Dynamic
       rescue StandardError => e
         raise FphsException,
               "A failure occurred creating user access control for app with: #{model_association_name}.\n#{e}"
+      end
+    end
+
+    def handle_config_triggers
+      # doit = !persisted? || saved_change_to_disabled? || changed_def_name?
+      # return unless doit
+
+      Dynamic::DefConfigTriggers.process(self)
+    end
+
+    def foreign_key_field_name
+      "#{table_name.singularize}_id"
+    end
+
+    #
+    # Has the model had its name changed in the latest saved definition?
+    # @return [true|false]
+    def changed_def_name?
+      if respond_to? :table_name
+        saved_change_to_table_name?
+      elsif respond_to? :name
+        saved_change_to_name?
       end
     end
 
@@ -440,6 +458,7 @@ module Dynamic
       rescue StandardError => e
         err = "Failed to instantiate the class #{full_implementation_class_name}: #{e}"
         logger.warn err
+        logger.warn e.short_string_backtrace
         errors.add :name, err
         # Force exit of callbacks
         raise FphsException, err
@@ -448,7 +467,7 @@ module Dynamic
       # For some reason the underlying table exists but the class doesn't. Inform the admin
       return if res
 
-      err = "The implementation of #{model_class_name} was not completed. " \
+      err = "The implementation of #{self.class.name}::#{model_class_name} was not completed. " \
             "The DB table #{table_name} has #{table_or_view_ready? ? '' : 'NOT '}been created"
       logger.warn err
       errors.add :name, err
@@ -468,6 +487,13 @@ module Dynamic
     def clean_schema
       # AppControl.restart_server # if Rails.env.production?
       ActiveRecord::Base.connection.schema_cache.clear!
+    end
+
+    # Get a complete set of all tables to be accessed by embed configurations
+    def all_direct_embed_tables
+      option_configs.map(&:embed).compact.map do |oc|
+        oc.dup
+      end
     end
 
     # Get a complete set of all tables to be accessed by model reference configurations,

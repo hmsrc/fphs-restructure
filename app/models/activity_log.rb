@@ -390,7 +390,7 @@ class ActivityLog < ActiveRecord::Base
   def self.routes_load
     mn = nil
     begin
-      m = enabled
+      m = active
       return if m.empty?
 
       Rails.application.routes.draw do
@@ -735,6 +735,15 @@ class ActivityLog < ActiveRecord::Base
   # Hyphenated name, typically used in HTML markup for referencing target blocks and panels
   def hyphenated_name
     full_item_type_name.ns_hyphenate
+  end
+
+  def default_embed_table_name(extra_log_type)
+    sname = process_name || [item_type, rec_type].compact.join('_')
+    [category, sname, extra_log_type, 'recs'].compact.join('_')
+  end
+
+  def default_embed_resource_name(extra_log_type)
+    "dynamic_model__#{default_embed_table_name(extra_log_type)}"
   end
 
   # Override to enable extra log types to also be added to Resouces::Models

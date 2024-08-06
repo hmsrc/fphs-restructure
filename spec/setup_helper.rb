@@ -192,6 +192,19 @@ module SetupHelper
     Rails.cache.clear
   end
 
+  def self.setup_al_player_contact_embed_tests
+    Rails.logger.info 'Setting up al player contact embed tests'
+    ActiveRecord::Base.connection.schema_cache.clear!
+
+    return if ActivityLog.connection.table_exists? 'activity_log_player_contact_embed_tests'
+
+    TableGenerators.activity_logs_table('activity_log_player_contact_embed_tests', 'player_contacts', true,
+                                        'data', 'select_email_direction', 'select_who',
+                                        'emailed_when', 'select_result', 'select_next_step', 'follow_up_when',
+                                        'protocol_id', 'notes', 'set_related_player_contact_rank')
+    Rails.cache.clear
+  end
+
   # Setup Activity Log Player Contact Phones
   def self.setup_al_player_contact_phones
     Rails.logger.info 'Setting up al player contact phones'

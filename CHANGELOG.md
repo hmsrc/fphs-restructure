@@ -12,7 +12,37 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Changed] loading of associated model definitions, improving performance and presentation
+- [Added] definition_resources as an alias resource name for consistent substitutions and conditions
+- [Added] config_trigger.create_configs option to create related configurations using app import format
+- [Added] config_trigger option to make building activity log processes easier
+- [Added] calculated condition to calculate using a function such as sum, min, max - closes #308
+- [Added] estimated record count to dynamic definitions - closes #265
+- [Added] with_result to create/update... save triggers
+- [Added] embedded_item option to conditional calculations
+- [Added] ids_referencing condition and ability to get return_all_results from a condition
+- [Fixed] condition negate and add include? condition
+- [Fixed] incorrect handling of save trigger on_save option as an array when on_create is a hash (or vice versa)
+- [Added] ability for extra_log_type to be used in creatable_if condition
+- [Added] handling of invalid_error_message at top of an all/any/not... block to prevent invididual errors being recorded, allowing them all to roll up to a single result
+- [Fixed] tag element array index retrieval
+- [Fixed] handling of implementation class setup to avoid preset value definitions breaking the implementation
+- [Added] view_with_formats to field_options, allowing a series of tag formatters to be applied when viewing the field
+- [Fixed] embedded items not setting preset_value
+- [Fixed] address view handler with no country field
+- [Added] save trigger results for created and updated results
+- [Fixed] use of view_options.header caption configuration in external id definitions
+- [Added] embed definitions into the activity log details panel - fixes #19
+- [Added] "in?" to the simple conditions that can be tested in non-query conditions
+- [Added] non-query condition elements to specify last as well as first in the traversal of the dot separated list
+- [Added] "if:" option to save trigger "each:" to avoid having to check the same "if" for every trigger
+- [Added] ability to define external id configurations for uniqueness_fields, can_change_master and fix saving from a add item report
+- [Changed] calling #enabled to #active for consistency
+- [Fixed] curly substitutions to allow .last to appear on the end of a requested element
+
+## [8.6.17] - 2024-07-24
 
 - [Fixed] bad memoization of associated items in app type
 

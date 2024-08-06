@@ -14,6 +14,7 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
 
     @item.save_trigger_results['created_references'] ||= []
     @item.save_trigger_results['created_items'] ||= []
+    @item.save_trigger_results['created_results'] ||= []
 
     @model_defs.each do |model_def|
       model_def.each do |model_name, config|
@@ -24,15 +25,21 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
         create_in = config[:in]
         create_if = config[:if]
         create_with = config[:with]
+        with_result = config[:with_result]
 
         # We calculate the conditional if inside each item, rather than relying
         # on the outer processing in ActivityLogOptions#calc_save_trigger_if
         if create_if
           ca = ConditionalActions.new create_if, @item
-          next unless ca.calc_action_if
+          unless ca.calc_action_if
+            @item.save_trigger_results['created_results'] << false
+            next
+          end
         end
 
         in_master = @master
+
+        handle_with_result with_result, vals
 
         create_with&.each do |fn, def_val|
           res = FieldDefaults.calculate_default @item, def_val
@@ -50,8 +57,7 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
             to_record_id = to_existing_record[:record_id]
             raise FphsException, 'record_id must be set in to_existing_record' unless to_record_id
 
-            ca = ConditionalActions.new to_record_id, @item
-            to_existing_record_id = ca.get_this_val
+            to_existing_record_id = FieldDefaults.calculate_default @item, to_record_id
             new_item = new_type.find(to_existing_record_id)
           else
             new_item = new_type.new vals
@@ -62,8 +68,6 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
             end
             new_item.save!
           end
-
-          @item.save_trigger_results['created_items'] << new_item
 
           res =
             case create_in
@@ -85,15 +89,17 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
 
               # A specific instance is the target for the reference from_record
               # Include return: return_result to return the actual instance
-              ca = ConditionalActions.new create_in[:specific_record], @item
-              ci = ca.get_this_val
-              puts ci
+              # or use {{{triple curly substitution}}}
+              ci = FieldDefaults.calculate_default @item, create_in[:specific_record]
               raise FphsException, "Result for 'in' hash is not an instance" unless ci.is_a? UserBase
 
               ModelReference.create_with ci, new_item, force_create:
             end
 
           @item.save_trigger_results['created_references'] << res
+          @item.save_trigger_results['created_items'] << new_item
+          @item.save_trigger_results['created_results'] << true
+
           res
         end
       end

@@ -161,7 +161,7 @@ class Settings
 
   # Initial configurations for the bulk messaging app
   def self.bulk_msg_app
-    Admin::AppType.active_app_types.where(name: 'bulk-msg').first
+    Admin::AppType.active_app_types.find_by(name: 'bulk-msg')
   end
 
   def self.bulk_msg_master
@@ -170,6 +170,7 @@ class Settings
 
   # Master record to use for admin features that need an underlying master, such as file store
   def self.admin_master
+    @admin_master = nil if Rails.env.development?
     @admin_master ||= Master.find(-2)
   end
 

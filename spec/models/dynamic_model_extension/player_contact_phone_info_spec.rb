@@ -112,9 +112,9 @@ RSpec.describe 'DynamicModelExtension::PlayerContactPhoneInfo', type: :model do
     res = DynamicModel::PlayerContactPhoneInfo.update_opt_outs 1
     expect(res).to be > 0
 
-    study = Classification::Protocol.active.where(name: 'Study').first
+    study = Classification::Protocol.active.where(name: 'Study').reload.first
 
-    tracker = TrackerHistory.where(protocol_id: study.id).reorder('').last
+    tracker = TrackerHistory.where(protocol_id: study.id).reorder('').reload.last
 
     expect(old_tracker&.id || 0).to be < tracker.id
 

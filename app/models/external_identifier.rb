@@ -313,9 +313,9 @@ class ExternalIdentifier < ActiveRecord::Base
   end
 
   def config_uniqueness
-    res = self.class.active.where(name: name.downcase).where.not(id: id)
+    res = self.class.active.where(name: name.downcase).where.not(id:)
     errors.add :name, 'must be unique' if !disabled && !res.empty?
-    res = self.class.active.where(external_id_attribute: external_id_attribute.downcase).where.not(id: id)
+    res = self.class.active.where(external_id_attribute: external_id_attribute.downcase).where.not(id:)
     errors.add :external_id_attribute, 'must be unique' if !disabled && !res.empty?
   end
 
@@ -335,7 +335,7 @@ class ExternalIdentifier < ActiveRecord::Base
                      searchable: false,
                      current_admin: admin,
                      position: 100,
-                     sql: sql
+                     sql:
     end
 
     r = usage_report('Search', ReportItemSearchType)
@@ -359,7 +359,7 @@ class ExternalIdentifier < ActiveRecord::Base
                      searchable: true,
                      current_admin: admin,
                      position: 100,
-                     sql: sql,
+                     sql:,
                      search_attrs: sa
     end
 
@@ -379,6 +379,6 @@ class ExternalIdentifier < ActiveRecord::Base
                    searchable: false,
                    current_admin: admin,
                    position: 100,
-                   sql: sql
+                   sql:
   end
 end

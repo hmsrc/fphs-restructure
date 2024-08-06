@@ -38,5 +38,26 @@ class SaveTriggers::SaveTriggersBase
     ca.calc_action_if
   end
 
+  def handle_with_result(with_result, vals)
+    return unless with_result
+
+    ca = ConditionalActions.new with_result[:from], @item
+    source = ca.get_this_val
+
+    unless source
+      raise FphsException, 'with_result.from returns no result - check return: return_result has been specified'
+    end
+
+    with_result[:attributes].each do |to, from|
+      sval = if from.include? '{{'
+               FieldDefaults.calculate_default(source, from)
+             else
+               source.attributes[from.to_s]
+             end
+
+      vals[to] = sval
+    end
+  end
+
   def self.config_def(if_extras: nil); end
 end

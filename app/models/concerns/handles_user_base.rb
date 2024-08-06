@@ -847,6 +847,7 @@ module HandlesUserBase
 
     @return_failures.each do |cond_type, c_vals|
       c_vals.each do |table, cond|
+        cond = { table => cond } unless cond.is_a? Hash
         cond.each do |k, v|
           v = v.present? ? v : '(blank)'
           if v.is_a? Hash

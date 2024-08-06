@@ -139,6 +139,8 @@
 
       no_downcase: true - to prevent downcasing of the attribute when stored to the database
       view_original_case: true - to prevent the UI capitalizing downcased fields
+      view_with_formats: |
+        list of formatters to apply to a string field when being viewed
       format: plain | markdown - for free text editor fields such as notes and description
       config:
         _comment: additional configurations for editor fields
@@ -210,7 +212,11 @@
         
       on_create:                  
       on_update:
-  embed:
+
+  # embed can be defined in one of two styles:
+  embed: default_embed_resource # simply embeds the dynamic model matching the default_embed_resource_name for this activity
+
+  embed(form 2):
     resource_name: resource name for the item to embed
     resource_id: |
       (optional) literal integer or a named attribute on the resource to use as an id of the embedded item
@@ -321,6 +327,7 @@
           do:
             - <trigger 1> # a trigger configuration such as update_this:
             - <trigger 2>
+          if: # optionally specify a condition to skip a whole iteration. Individual trigger ifs are still available.
           # The iterator index and value can be accessed inside the triggers with:
           # - {{save_trigger_results.iterator_index}}
           # - {{save_trigger_results.iterator_value}}
@@ -347,4 +354,7 @@
       <<: *trigger_tasks
 
 
- 
+  config_trigger:
+    on_define:
+      # Add default configurations and extra detailed configurations when a dynamic definition configuration is saved or updated
+#!defs(config_trigger_options_defs.yaml)
