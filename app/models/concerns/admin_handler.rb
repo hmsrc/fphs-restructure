@@ -112,7 +112,11 @@ module AdminHandler
   def admin_name
     return unless admin_id
 
-    Admin.emails_by_id[user_id]
+    Admin.emails_by_id[admin_id]
+  end
+
+  def admin_email
+    admin_name
   end
 
   def admin=(_new_admin)

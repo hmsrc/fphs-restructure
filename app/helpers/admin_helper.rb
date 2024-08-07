@@ -138,7 +138,7 @@ module AdminHelper
 
     res = <<~END_HTML
       <span class="hidden">#{list_item.updated_at}</span>
-      <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip"  title="last updated by: #{list_item.admin&.email} at #{list_item.updated_at}"></span>
+      <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip"  title="last updated by: #{list_item.admin_email} at #{list_item.updated_at}"></span>
     END_HTML
 
     res.html_safe
