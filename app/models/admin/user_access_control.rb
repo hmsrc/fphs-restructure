@@ -197,7 +197,7 @@ class Admin::UserAccessControl < Admin::AdminBase
   end
 
   def self.cache_key_for_access_for(*args)
-    "access-for--#{args.join('-')}-#{latest_update}-#{Settings::OnlyLoadAppTypes.join(',')}"
+    "access-for--#{args.join('-')}-#{latest_update}-#{Settings::OnlyLoadAppTypes}"
   end
 
   #
