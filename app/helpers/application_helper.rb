@@ -217,8 +217,8 @@ module ApplicationHelper
 
   #
   # Cache key for pregenerated partials
-  def partial_cache_key(partial)
-    u = current_user || current_admin
+  def partial_cache_key(partial, force_user_or_admin: nil)
+    u = force_user_or_admin || current_user || current_admin
     auth_type = u.class.name
     if u.is_a? User
       apptype = u.app_type_id

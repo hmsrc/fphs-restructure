@@ -28,8 +28,8 @@
   <div class="panel-body">
     <div class="row">
       <div class="col-sm-6">
-        <% begin %>
-        <%= render partial: 'admin/app_types/components' %>
+        <% begin %>        
+        <%= Rails.cache.fetch(partial_cache_key('index_admin_components', force_user_or_admin: current_admin)) { render partial: 'admin/app_types/components' } %>
         <% rescue StandardError => e
             logger.warn 'Failed to load admin components panel'
             logger.warn e
