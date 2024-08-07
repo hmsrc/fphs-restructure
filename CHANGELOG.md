@@ -12,7 +12,18 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Added] ability to only show listed tabs using `<uri>?only_tabs[<resource_name>]=true&...` or `?only_tabs[categories]=true&...`
+- [Added] master panel options to page layouts to allow filtering of resource items by configured filter, or by page URL query params
+- [Added] master panel options to "show for single master only" and "show for multi master only" so different panels can be shown for different UI states
+- [Fixed] caching of apps available to users
+- [Fixed] masters index history being pushed if the aim is to not prevent a reload
+- [Fixed] available app type lookup for a user - role names where only being checked in the current app, not for the app being tested
+- [Added] cache to admin index page to speed things up
+- [Fixed] admin email lookup in admin info icons
+
+## [8.6.18] - 2024-08-07
 
 - [Changed] loading of associated model definitions, improving performance and presentation
 - [Added] definition_resources as an alias resource name for consistent substitutions and conditions
