@@ -35,6 +35,13 @@ view_options:
   hide_sublist_controls:              # hide the sublist controls (filter, sort) in dynamic item panel
   hide_activity_logs_header:          # hide the activity logs header including + buttons
   close_others:                       # when clicked to expand this tab, others will be closed
+  show_for_single_master_only:        # Only show panel if a single master result is presented
+  show_for_multi_master_only:         # Only show panel if a multiple master results are presented
+  filter_items:                       # set to 'using params' to use URL params passed to the page within
+                                      # filter[<resource_name>][<param_name>]=<param_value>&...
+                                      # or set a series of hashes (keyed by resource name) representing params
+                                      # For example:
+                                      # { <resource_name>: { <param_name>: <param_value>, ...}, ... }
 
 list_options:
   hide_in_list: false (default) | true

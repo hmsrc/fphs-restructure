@@ -276,6 +276,9 @@ _fpa.postprocessors = {
 
   // On load of the full list of master records
   search_results_template: function (block, data) {
+
+    _fpa.postprocessors.setup_masters_state(data);
+
     // Ensure we format the viewed item on expanding it
     _fpa.masters.switch_id_on_click(block);
     if (data.masters && data.masters.length < 5) {
@@ -289,22 +292,6 @@ _fpa.postprocessors = {
       _fpa.postprocessors.tracker_events_handler(block, data);
       _fpa.postprocessors.extras_panel_handler(block);
       _fpa.postprocessors.configure_master_tabs(block);
-    }
-
-    // Capture the master data into state for later use around the application
-    // The layout of data is modelled partially on that provided by MessageTemplate.setup_data
-    // allowing caption-before to function in 'show' mode
-    if (data.masters && data.masters.length > 0) {
-      _fpa.state.masters = {};
-      data.masters.forEach(function (master) {
-        if (master && master.id) {
-          _fpa.state.masters[master.id] = Object.assign({}, master);
-          if (_fpa.state.masters[master.id].player_infos) {
-            _fpa.state.masters[master.id].player_info = _fpa.state.masters[master.id].player_infos[0];
-            _fpa.state.masters[master.id].item = _fpa.state.masters[master.id].embedded_item;
-          }
-        }
-      });
     }
 
     $('a.master-expander')
@@ -350,26 +337,31 @@ _fpa.postprocessors = {
     var master_id_list = $('#master_id_list').html();
 
     if ($('.no-search-in-master-record').length == 0) {
+      const prevent = _fpa.state.app_configs.prevent_reload_master_list;
       if (master_id_list && master_id_list.replace(/ /g, '').length > 1) {
         document.title = _fpa.env_name + ' results';
-        window.history.pushState(
-          { html: '/masters/search?utf8=✓&nav_q_id=' + master_id_list, pageTitle: document.title },
-          '',
-          '/masters/search?utf8=✓&nav_q_id=' + master_id_list
-        );
+
+        if (prevent)
+          window.history.pushState(
+            { html: '/masters/search?utf8=✓&nav_q_id=' + master_id_list, pageTitle: document.title },
+            '',
+            '/masters/search?utf8=✓&nav_q_id=' + master_id_list
+          );
       } else if (ext_id_field && ext_id_list && ext_id_list.length > 1) {
         document.title = _fpa.env_name + ' results';
-        window.history.pushState(
-          {
-            html: '/masters/search?utf8=✓&external_id[' + ext_id_field + ']=' + ext_id_list,
-            pageTitle: document.title,
-          },
-          '',
-          '/masters/search?utf8=✓&external_id[' + ext_id_field + ']=' + ext_id_list
-        );
+        if (prevent)
+          window.history.pushState(
+            {
+              html: '/masters/search?utf8=✓&external_id[' + ext_id_field + ']=' + ext_id_list,
+              pageTitle: document.title,
+            },
+            '',
+            '/masters/search?utf8=✓&external_id[' + ext_id_field + ']=' + ext_id_list
+          );
       } else {
         document.title = _fpa.env_name + ' results';
-        window.history.pushState({ html: '/masters/search', pageTitle: document.title }, '', '/masters/search');
+        if (prevent)
+          window.history.pushState({ html: '/masters/search', pageTitle: document.title }, '', '/masters/search');
       }
     }
   },
@@ -454,6 +446,25 @@ _fpa.postprocessors = {
   //   _fpa.form_utils.format_block(block);
 
   // },
+
+  // Capture the master data into state for later use around the application
+  // The layout of data is modelled partially on that provided by MessageTemplate.setup_data
+  // allowing caption-before to function in 'show' mode
+  setup_masters_state: function (data) {
+    if (!data.masters || data.masters.length <= 0) return;
+
+    _fpa.state.masters = {};
+    data.masters.forEach(function (master) {
+      if (master && master.id) {
+        _fpa.state.masters[master.id] = Object.assign({}, master);
+        if (_fpa.state.masters[master.id].player_infos) {
+          _fpa.state.masters[master.id].player_info = _fpa.state.masters[master.id].player_infos[0];
+          _fpa.state.masters[master.id].item = _fpa.state.masters[master.id].embedded_item;
+        }
+      }
+    });
+  },
+
 
   flash_template: function (block, data) {
     _fpa.timed_flash_fadeout();

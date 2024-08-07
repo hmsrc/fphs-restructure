@@ -72,7 +72,11 @@ class Admin
 
       atavail = []
       olat = Settings::OnlyLoadAppTypes
-      active.each do |a|
+
+      use_ats = active
+      use_ats = use_ats.where(id: olat) if olat.present?
+
+      use_ats.each do |a|
         hat = user.has_access_to?(:access, :general, :app_type, alt_app_type_id: a.id)
         atavail << hat.app_type if hat && (!olat || hat.app_type_id.in?(olat))
       end
