@@ -203,14 +203,24 @@ class User < ActiveRecord::Base
     Admin::AppType.all_available_to(self)
   end
 
+  #
+  # Get the role names for the user in the current app type, or if
+  # conditions specifies :app_type_id, use that instead
+  # @param [<Type>] conditions <description>
+  # @option conditions [<Type>] :<key> <description>
+  # @option conditions [<Type>] :<key> <description>
+  # @option conditions [<Type>] :<key> <description>
+  # @return [<Type>] <description>
   def app_type_role_names(conditions = {})
     @app_type_role_names = {} if user_roles_updated? || user_access_controls_updated?
     @app_type_role_names ||= {}
 
+    alt_app_type_id = conditions[:app_type_id] || app_type_id
+
     got = @app_type_role_names[conditions]
     return got if got
 
-    @app_type_role_names[conditions] = Admin::UserRole.active_app_roles(self, app_type: [app_type_id, nil])
+    @app_type_role_names[conditions] = Admin::UserRole.active_app_roles(self, app_type: [alt_app_type_id, nil])
                                                       .select('app_type_id, role_name').distinct.order(app_type_id: :asc)
                                                       .pluck(:app_type_id, :role_name)
   end

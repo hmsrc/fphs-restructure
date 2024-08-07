@@ -49,7 +49,7 @@ module UserAccessHandler
       force_reset = true
     end
 
-    ckey = "has_access_to--#{perform}-#{resource_type}-#{named}-#{with_options}-#{alt_app_type_id || app_type_id}"
+    ckey = "has_access_to--#{perform}-#{resource_type}-#{named}-#{with_options}-#{alt_app_type_id || app_type_id}-#{Settings::OnlyLoadAppTypes}"
     return @has_access_to[ckey] if @has_access_to.key?(ckey) && !force_reset
 
     @has_access_to[ckey] =

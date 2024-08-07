@@ -53,7 +53,7 @@ module UserAndRoles
         rn = [rn] unless rn.is_a? Array
         app_type_role_names = rn.map { |v| [app_type_id, v] }
       elsif user
-        app_type_role_names = user.app_type_role_names
+        app_type_role_names = user.app_type_role_names(app_type_id: app_type)
       end
 
       if app_type_role_names&.present?
