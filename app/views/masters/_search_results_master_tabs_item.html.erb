@@ -6,9 +6,17 @@
   resources = panel.contains&.resources
   initial_show = panel.view_options&.initial_show
   close_others = panel.view_options&.close_others
+  show_for_single_master_only = panel.view_options&.show_for_single_master_only
+  show_for_multi_master_only = panel.view_options&.show_for_multi_master_only
+  filter_items = panel.view_options&.filter_items
   limit = panel.view_options&.limit
   default_panels = app_config_items(:open_panels)
   %>
+  <% if show_for_single_master_only %> 
+  {{#is (or num_masters (length (fpa_state_item 'masters'))) '===' 1 }}
+  <% elsif show_for_multi_master_only %>
+  {{#is (or num_masters (length (fpa_state_item 'masters'))) '>' 1}}
+  <% end %>
   <% if categories && categories.include?('trackers')
 
     if default_panels.length > 0
@@ -41,12 +49,28 @@
       end
 
       path = resource.gsub('__', '/').pluralize
+      extra_params = ''
+      using_params = ''
+      if filter_items
+        rparams = filter_items[resource.pluralize]
+        if rparams.is_a? Hash
+          rparams = rparams.to_unsafe_h if rparams.respond_to? :to_unsafe_h
+          extra_params = "&#{rparams.to_query}"
+          using_params = 'page-layout'
+        elsif rparams == 'using params'
+          using_params = 'page'
+        end
+      end
+
       extra_classes = "#{close_others ? 'tabs-close-others' : ''} #{initial_show ? 'on-open-click' : ''}"
   %>
-  <li role="presentation" class="<%= extra_classes %>">
-    <a id="tab-activity-log-<%= panel_name %>" href="/masters/{{id}}/<%= path %>?limit=<%=limit%>"  data-panel-tab="<%=resource%>" data-remote="true" data-prevent-on-collapse="true" data-toggle="collapse" data-target="#<%= resource.hyphenate %>-{{id}}" aria-expanded="false" class="scroll-to-expanded  collapsed"  data-result-target="#<%= resource.hyphenate %>-{{id}}" data-template="<%= resource.hyphenate %><%= template_postfix %>"><%= panel_label %></a>
+  <li role="presentation" class="<%= extra_classes %> initial_show_value-<%=initial_show%>-<%=default_panels.length%>">
+    <a id="tab-activity-log-<%= panel_name %>" href="/masters/{{id}}/<%= path %>?limit=<%=limit%><%extra_params%>&{{params_to_query 'filter' '<%=resource.pluralize%>'}}" data-using-params="<%= using_params %>" data-panel-tab="<%=resource%>" data-remote="true" data-prevent-on-collapse="true" data-toggle="collapse" data-target="#<%= resource.hyphenate %>-{{id}}" aria-expanded="false" class="scroll-to-expanded  collapsed"  data-result-target="#<%= resource.hyphenate %>-{{id}}" data-template="<%= resource.hyphenate %><%= template_postfix %>"><%= panel_label %></a>
   </li>
   <%
     end
   end
-%>
+  %>
+  <% if show_for_single_master_only || show_for_multi_master_only %> 
+  {{/is}}
+  <% end %>

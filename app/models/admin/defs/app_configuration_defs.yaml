@@ -77,7 +77,7 @@ notes field caption: |
 notes field format: |
   Default notes field format for this app. Defaults to plain text. Set value "markdown" for rich text editor
 no search in master record: |
-  Do not show search tabs or a search panel when linked followed to a single master record
+  Do not show search tabs or a search panel when link followed to a single master record
 open panels: |
   List of panels to open automatically when the master record is displayed. 
   Comma separated list of default panel names or resource names for 

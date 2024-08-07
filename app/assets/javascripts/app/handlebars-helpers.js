@@ -639,6 +639,39 @@
     return res;
   });
 
+  Handlebars.registerHelper('length', function (val) {
+    if (!val) return;
+
+    return Object.keys(val).length;
+  });
+
+  Handlebars.registerHelper('params_to_query', function (key1, key2) {
+    const params = new URLSearchParams(window.location.search);
+    var data = {};
+
+    var r;
+    var get_match_i;
+    if (key1 && !key2) {
+      r = new RegExp(`^${key1}\\[(.+)\\]`)
+      get_match_i = 2;
+    }
+    else if (key1 && key2) {
+      r = new RegExp(`^${key1}\\[${key2}\\]\\[(.+)\\]`)
+      get_match_i = 3;
+    }
+    for (const pair of params) {
+      const key = pair[0];
+      const val = pair[1];
+
+      res = key.match(r);
+      if (!res) continue;
+      data[key] = val;
+    }
+
+    return $.param(data);
+  });
+
+
   Handlebars.registerHelper('in', function (context, key, items, options) {
 
     var ins = items.split(',');

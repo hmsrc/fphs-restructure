@@ -145,7 +145,7 @@ module MasterHandler
   # Retrieve the index action JSON from master objects and extended data
   # @return [String] JSON
   def retrieve_index
-    s = { objects_name => filter_records.as_json(current_user: current_user), multiple_results: objects_name }
+    s = { objects_name => filter_records.as_json(current_user:), multiple_results: objects_name }
 
     set_objects_instance(@master_objects) # re add_trackers collection
     s.merge!(extend_result)
@@ -559,11 +559,14 @@ module MasterHandler
 
     requested_filtered_ids = pfilter[:resource_id]
     secondary_key_filtered_ids = pfilter[:secondary_key]
+    attr_filter = pfilter[@master_objects.klass.resource_name.to_sym]
     if requested_filtered_ids.present?
       requested_filtered_ids = requested_filtered_ids.split(',').map { |i| i.strip.to_i }
       @master_objects = @master_objects.where(id: requested_filtered_ids)
     elsif secondary_key_filtered_ids.present?
       @master_objects = @master_objects.find_all_by_secondary_key(secondary_key_filtered_ids)
+    elsif attr_filter.present?
+      @master_objects = @master_objects.where(@master_objects.klass.table_name => attr_filter.to_unsafe_h)
     else
       @master_objects
     end

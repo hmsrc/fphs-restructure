@@ -68,7 +68,8 @@ class Admin::PageLayout < Admin::AdminBase
   #   find_with: the alternative id (crosswalk or external id) to search for the master record with for standalone pages
   configure :view_options,
             with: %i[initial_show orientation add_item_label limit find_with hide_sublist_controls
-                     hide_activity_logs_header close_others]
+                     hide_activity_logs_header close_others
+                     show_for_single_master_only show_for_multi_master_only filter_items]
 
   # List options for dashboards list
   configure :list_options, with: %i[hide_in_list]
@@ -178,14 +179,14 @@ class Admin::PageLayout < Admin::AdminBase
   # Active standalone layouts for the specified app type
   # @return [ActiveRecord::Relation] standalone page layouts
   def self.app_standalone_layouts(app_type_id)
-    Admin::PageLayout.active.standalone.where(app_type_id: app_type_id)
+    Admin::PageLayout.active.standalone.where(app_type_id:)
   end
 
   #
   # Active view or standalone layouts for the specified app type
   # @return [ActiveRecord::Relation] all active layout types for app
   def self.app_show_layouts(app_type_id)
-    Admin::PageLayout.active.showable.where(app_type_id: app_type_id)
+    Admin::PageLayout.active.showable.where(app_type_id:)
   end
 
   def self.position_attribute
@@ -193,7 +194,7 @@ class Admin::PageLayout < Admin::AdminBase
   end
 
   def position_group
-    { app_type_id: app_type_id, layout_name: layout_name }
+    { app_type_id:, layout_name: }
   end
 
   def standalone?
