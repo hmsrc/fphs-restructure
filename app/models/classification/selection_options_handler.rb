@@ -216,8 +216,8 @@ class Classification::SelectionOptionsHandler
         value_attr = if alt_fn.index(/^(tag_)?select_record_id_/)
                        :id
                      elsif alt_fn.index(/^(tag_)?select_user_with_role_/)
-                       label_attr = :email
-                       :email
+                       label_attr = edit_as[:label_attr] || :email
+                       edit_as[:value_attr] || :email
                      else
                        edit_as[:value_attr] || :data
                      end

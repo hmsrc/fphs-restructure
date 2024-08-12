@@ -71,6 +71,7 @@ used in the following forms / pages:
 - `ui user login` - user login form
 - `ui admin login` - administrator login form
 - `ui new user registration` - user self-registration form
+- `ui new user registration recaptcha error` - error block for user self-registration failure due to reCAPTCHA
 - `ui resend confirmation code` - form to request a registration confirmation code to be resent
 - `ui user change password` - password change form
 - `ui user forgot password` - forgot password form

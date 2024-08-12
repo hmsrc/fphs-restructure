@@ -30,12 +30,16 @@ module MasterHandler
   # so simply add a parameter like :cache_version => current timestamp to force new data
   def index
     index_res = if params[:cache_result].present?
-                  Rails.cache.fetch(index_cache_key) do
-                    retrieve_index
-                  end
-                else
-                  retrieve_index
-                end
+      response.headers['Cache-Control'] = 'max-age=30'
+      response.headers.delete 'Expires'
+      return unless stale?(etag: index_cache_key)
+
+      Rails.cache.fetch(index_cache_key) do
+        retrieve_index.as_json
+      end
+    else
+      retrieve_index.as_json
+    end
 
     render json: index_res
   end
@@ -195,9 +199,9 @@ module MasterHandler
     end
     upd_ver = Digest::SHA256.hexdigest upd_all.join('>')
 
-    @index_cache_key = params.permit!.to_h
-    @index_cache_key[:_upd_ver] = upd_ver
-    @index_cache_key
+    res = params.permit!.to_h
+    res[:_upd_ver] = upd_ver
+    @index_cache_key = Digest::SHA256.hexdigest(res.to_json)
   end
 
   # Before update and before insert triggers can lead update and create actions to return incorrect

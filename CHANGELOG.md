@@ -12,7 +12,17 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.6.10] - 2024-05-23
+## Unreleased
+
+- [Build] FPHS version
+
+## [8.8.1] - 2024-08-12
+
+### From FPHS - PR 363
+
+- [Added] new options and date reporting to script
+
+### From FPHS - PR 362
 
 - [Added] ability to only show listed tabs using `<uri>?only_tabs[<resource_name>]=true&...` or `?only_tabs[categories]=true&...`
 - [Added] master panel options to page layouts to allow filtering of resource items by configured filter, or by page URL query params
@@ -23,7 +33,7 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 - [Added] cache to admin index page to speed things up
 - [Fixed] admin email lookup in admin info icons
 
-## [8.6.18] - 2024-08-07
+### From FPHS - PR 361
 
 - [Changed] loading of associated model definitions, improving performance and presentation
 - [Added] definition_resources as an alias resource name for consistent substitutions and conditions
@@ -53,51 +63,38 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 - [Changed] calling #enabled to #active for consistency
 - [Fixed] curly substitutions to allow .last to appear on the end of a requested element
 
-## [8.6.17] - 2024-07-24
-
-- [Fixed] bad memoization of associated items in app type
-
-## [8.6.16] - 2024-07-23
-
-- [Added] eager loading of various models to improve performance and reduce database hits
-- [Removed] unnecessary TrackerHandler
-- [Fixed] caching of user access controls to avoid storing an ActiveRecord instance
-- [Added] preloading to reduce n+1 lookups
-- [Changed] cache keys
-- [Fixed] broken scope for lookups by name
-- [Changed] handling and reporting of adding tracker update protocol events
-- [Fixed] specs to avoid common issues
-- [Added] times to output for analysis
-- [Fixed] seed to handle disabled items
-- [Fixed] parsing of date times for user preferences
-- [Fixed] issue importing new app type
-
-## [8.6.15] - 2024-07-18
-
-- [Added] significant cache and user access lookup changes to improve performance
-
-## [8.6.14] - 2024-07-16
+### From FPHS - PR 360
 
 - [Added] iteration through save triggers based on an array of values - closes #348
 - [Added] save triggers definition as a list of triggers instead of a hash - closes #347
 - [Added] updated_items element to save_trigger_results for update_reference trigger - fixes #345
 - [Added] save trigger create_reference in a specific record - fixes #346
 
-## [8.6.13] - 2024-06-24
+### From FPHS - PR 359
+
+- [Added] significant cache and user access lookup changes to improve performance
+- [Added] preloading to reduce n+1 lookups
+- [Added] eager loading of various models to improve performance and reduce database hits
+- [Changed] cache keys
+- [Changed] handling and reporting of adding tracker update protocol events
+- [Fixed] broken scope for lookups by name
+- [Fixed] specs to avoid common issues
+- [Fixed] seed to handle disabled items
+- [Fixed] parsing of date times for user preferences
+- [Fixed] issue importing new app type
+- [Fixed] bad memoization of associated items in app type
+- [Fixed] caching of user access controls to avoid storing an ActiveRecord instance
+- [Removed] unnecessary TrackerHandler
+
+### From FPHS - PR 358
 
 - [Fixed] password self-reset fails with exception if user is disabled - fixes #342
 - [Added] field option for blank_preset_value and allow substitutions in preset_value - fixes #220
-
-## [8.6.12] - 2024-06-24
-
 - [Fixed] issue in selector cache, where callers were sensitive to attributes with symbol or string keys
 - [Changed] parallel tests to ask for sudo early in the process if needed
 - [Added] spec for getting master id using MSID in conditions
 - [Fixed] dashboard error not being to load report resources
 - [Added] definition for multiple save buttons, with show_if control
-
-## [8.6.11] - 2024-06-11
-
 - [Changed] settings to ensure proper nil results for empty environment variables
 - [Added] edit_as options to select_user_with fields
 - [Fixed] issue where table comments with apostrophes break the migration with a syntax error. Fixes #331 and #332
@@ -106,74 +103,53 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 - [Changed] cache invalidation to avoid unnecessary requests to clear the cache
 - [Fixed] spec to clear cache between requests
 
-## [8.6.10] - 2024-05-23
+### From FPHS - PR 357
 
 - [Added] the http content response to a Redcap job error to aid debugging issues
-- [Updated] gems - recent CVEs
 
-## [8.6.9] - 2024-05-07
+## [8.7.1] - 2023-09-05
 
-**NOTE:** database migration is required when upgrading to this version
+### From Viva - PR 356
 
-- [Added] [DB-Migration] index to tracker_history to improve performance on item type / id lookups
-- [Added] exception information to failure mailer
-- [Updated] gems
-- [Fixed] specs
-- [Changed] logging of dynamic definition setup
-- [Changed] handling of info and help pages to show a not found for missing library or not authorized access
-- [Changed] handling of item flags for new selector caching
-- [Changed] handling of selector cache handling and application version to log when changes will affect performance
+- [Added] report handler for sidebar_hash_content_links to ensure these hashed links work correctly
+- [Added] protection against multiple report auto runs
+- [Added] caption before close button on embedded report modal when list item changed
+- [Changed] handling of email address lookups from settings to ensure lower case matching is used
+- [Added] configuration checks for admin and user email addresses set by environment variables
+- [Changed] the message to users on expiration of an account to avoid confusion if a user can reset their own password
+- [Changed] matching of email address for batch user to allow mixed case definition to match the lower case user email address
+- [Added] comment clarifying failure to set the OTP, MFA fields
 
-## [8.6.8] - 2024-04-17
+### From Viva - PR 355
 
-- [Added] set_item_flag options to add_flags and remove_flags
-- [Fixed] failure to show Redcap project if it is in the process of being
-- [Changed] job error message to be clearer
+- [Added] report results count attribute to markup to allow better styling for no results
+- [Fixed] "loading..." message for empty report tree resultsets
+- [Changed] style of loading tree report
+- [Fixed] auto submission of reports on criteria changed by clarifying use of configuration
 
-## [8.6.7] - 2024-04-15
+### From Viva - PR 354
 
-- [Added] set_item_flags save trigger to allow flags to be set against an item
-- [Added]  return of created masters, items and references from save triggers, so they can be used later
-- [Added] logging to show more information when failing to generate real show_if from Redcap definition
-- [Changed] external identifiers to allow update from save trigger if currently unassigned
-- [Fixed] job failure notifications
-- [Fixed] reporting of changes for app imports
-- [Changed] handling of user access control configurations to force blank fields to null
-- [Changed] app import error backtrace to include only essentials
-- [Fixed] reporting of error in app import
-- [Changed] reporting of updated configs in app type import when only updated_at timestamp changed
+- [Added] edit_as options to select_user_with fields - allows displayed label and value to be different from email
 
-## [8.6.6] - 2024-03-18
+### From Viva - PR 353
 
-- [Fixed] report not able to show tags in results correctly
+- [Added] reCAPTCHA as an option to protect registration pages
+- [Fixed] an unhelpful error message when registering if an empty password was provided
 
-## [8.6.5] - 2024-03-18
+### From Viva - PR 352
 
-- [Changed] styles for e-sign and general forms
-- [Added] auto creation of signature document when activity created through create_reference save trigger
-- [Changed] e-signatures to allow a plain document to be created for signature - fixes #299
-- [Fixed] bug trying to singularize configuration keys in e_sign setup
-- [Added] auto creation of signature document when activity created through create_reference save trigger
-- [Changed] styles for e-sign and general forms
-- [Added] automatically select user date/time preferences based on user browser locale at registration - from pull request #284, issue #135
+- [Changed] display of tree report loading
+- [Fixed] tree embedded report when there is a report in the underlying page (embedded in a placeholder for example)
+- [Added] report results handler to force all \<pre> elements to be fully expanded
+- [Fixed] mailto links breaking in sidebar when content is a portal page
+- [Fixed] editor html cleanup losing images and horizonal rule
+- [Fixed] tree expander implementations
+- [Fixed] report criteria drop down selector filters not loading when default criteria passed through URL
 
-## [8.6.4] - 2024-03-07
+### From Viva - PR 351
 
-- [Changed] e-signatures to allow a plain document to be created for signature - fixes #299
-- [Fixed] bug trying to singularize configuration keys in e_sign setup
-
-## [8.6.3] - 2024-03-07
-
-- [Build] locally
-- [Fixed] incorrect matching dynamic models on name. Use table_name instead.
-
-## [8.6.2] - 2024-03-06
-
-- [Fixed] parallel tests and specs
-- [Fixed] various rspec issues
-- [Changed] the naming of Redcap project dynamic models to be more human - fixes #276
-- [Fixed] to raise an exception if a nfs store container directory already exists
-- [Fixed] Redcap pull updating all records if there are empty `<vars>_chosen_array` fields - fixes #289
+- [Fixed] use of Etag headers for caching
+- [Changed] browser caching for common scenarios
 
 ## [8.6.1] - 2024-03-04
 

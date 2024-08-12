@@ -107,7 +107,10 @@ class Settings
   DefaultUserTemplateEmail = ENV['DEFAULT_USER_TEMPLATE_EMAIL'].presence || 'registration@template'
   # Require an invitation code to be used to register
   InvitationCode = ENV['INVITATION_CODE'].presence
-
+  # Add a reCAPTCHA v3 to the registration form - if not added, no reCAPTCHA will be used
+  ReCaptchaSiteKey = ENV['RECAPTCHA_SITE_KEY'].presence
+  ReCaptchaSecret = ENV['RECAPTCHA_SECRET'].presence
+  ReCaptchaMinScore = ENV['RECAPTCHA_MIN_SCORE'].presence&.to_f
   # Admins may be able to create other admins.
   AllowAdminsToManageAdmins = (ENV['ALLOW_ADMINS_TO_MANAGE_ADMINS'].to_s.downcase == 'true')
 
@@ -282,7 +285,7 @@ class Settings
     ScriptedJobDirectory
     DisableVDef AllowDynamicMigrations
     AllowUsersToRegister DefaultUserTemplateEmail RegistrationAdminEmail AllowAdminsToManageAdmins NotifyOnRegistration
-    InvitationCode
+    InvitationCode ReCaptchaSiteKey ReCaptchaMinScore
     CountryCodesForTimezones DefaultUserTimezone
     DefaultDateFormat DefaultTimeFormat DefaultDateTimeFormat
     DefaultCountrySelect GdprCountryCodes

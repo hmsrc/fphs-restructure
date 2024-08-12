@@ -284,6 +284,8 @@
         # always allow the references to be disabled, even if the containing record is not editable
       prevent_reload_on_save: true | false (default)
         # prevent the parent from reloading on save - use in combination with {save_action: expand_reference}
+      action_position: top|bottom
+        # position this action at the top or bottom of the reference results (default: bottom)
   
 
   save_trigger:

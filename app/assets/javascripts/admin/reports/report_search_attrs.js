@@ -212,6 +212,16 @@ class ReportSearchAttr {
     return this.def_block.conditions;
   }
 
+  set options(val) {
+    if (!val) return;
+
+    this.def_block.options = val;
+  }
+
+  get options() {
+    return this.def_block.options;
+  }
+
   set default(val) {
     if (!val) return;
 

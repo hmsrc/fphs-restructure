@@ -44,7 +44,7 @@ def auto_admin
   # in order to potentially setup or change an admin, it is necessary to set this environment variable
   # since this is only available from command line scripts, not within the server process
   ENV['FPHS_ADMIN_SETUP'] = 'yes'
-  @admin ||= Admin.find_or_create_by email: Settings::AdminEmail
+  @admin ||= Admin.find_or_create_by email: Settings::AdminEmail.downcase
   @admin.update(disabled: false) if @admin.disabled
   # puts "Admin: #{@admin.inspect}"
   @admin

@@ -578,6 +578,9 @@ _fpa.form_utils = {
           sel.chosen({ width: '100%', placeholder_text_multiple: no_sel_text, hide_results_on_select: false, display_disabled_options: false });
 
           sel.on('chosen:showing_dropdown', function (evt, params) {
+
+            window.setTimeout(_fpa.cancel_remote, 50);
+
             // Access the element
             var $el = params.chosen.container;
             var el = $el[0];

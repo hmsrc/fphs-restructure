@@ -31,7 +31,7 @@ _fpa.postprocessors_reports = {
 
   embedded_report: function (block, data) {
     _fpa.report_criteria.reports_form(block, data);
-    block.find('[type="submit"].auto-run').click();
+    block.find('[type="submit"].auto-run').not('.was-auto-run-clicked').addClass('was-auto-run-clicked').click();
     // Change the id, so that embedded report links inside the embedded report will function
     $('#modal_results_block').prop('id', 'modal_results_block_1')
   },
@@ -64,8 +64,8 @@ _fpa.postprocessors_reports = {
     block.removeClass('use-secure-view-on-links-setup');
     if (data) {
       // Update the search form results count bar manually
-      var c = $('.result-count').html();
-      var table_count = $('.count-only td[data-col-type="result_count"]').not('.report-el-was-from-new');
+      var c = block.find('.result-count').html();
+      var table_count = block.find('.count-only td[data-col-type="result_count"]').not('.report-el-was-from-new');
       var h;
       if (table_count.length === 1) {
         c = table_count.html();
@@ -75,7 +75,7 @@ _fpa.postprocessors_reports = {
 
       if (_fpa.templates['search-count-template']) {
         var h = _fpa.templates['search-count-template'](data);
-        $('.search_count_reports').html(h);
+        block.find('.search_count_reports').html(h);
       }
     }
 
@@ -96,23 +96,23 @@ _fpa.postprocessors_reports = {
         if (!by_auto_search) return;
       }
 
-      $('td a.edit-entity').click(function () {
-        $('.item-selected').removeClass('item-selected');
-        $(this).parents('tr').first().addClass('item-selected');
+      block.find('td a.edit-entity').click(function () {
+        block.find('.item-selected').removeClass('item-selected');
+        block.find(this).parents('tr').first().addClass('item-selected');
       });
-      $('td[data-col-type="master_id"]').on('click', function () {
+      block.find('td[data-col-type="master_id"]').on('click', function () {
         window.open('/masters/' + $(this).html().trim(), "_blank");
-        $('.item-selected').removeClass('item-selected');
+        block.find('.item-selected').removeClass('item-selected');
         $(this).addClass('item-selected');
       }).addClass('hover-link');
 
       for (var i in _fpa.state.alternative_id_fields) {
         var field = _fpa.state.alternative_id_fields[i];
 
-        $('td[data-col-type="' + field + '"]').on('click', function () {
+        block.find('td[data-col-type="' + field + '"]').on('click', function () {
           window.open('/masters/' + $(this).html().trim() + '?type=' + $(this).attr('data-col-type'), "_blank");
-          $('.item-selected').removeClass('item-selected');
-          $(this).addClass('item-selected');
+          block.find('.item-selected').removeClass('item-selected');
+          block.find(this).addClass('item-selected');
         }).addClass('hover-link');
       }
 
@@ -120,7 +120,7 @@ _fpa.postprocessors_reports = {
         if (table_cell_types.hasOwnProperty(t)) {
           var table = table_cell_types[t];
 
-          if ($('td[data-col-table="' + t + '"]').length > 0) {
+          if (block.find('td[data-col-table="' + t + '"]').length > 0) {
             for (var i in table) {
 
               if (table.hasOwnProperty(i)) {
@@ -129,7 +129,7 @@ _fpa.postprocessors_reports = {
                 var idname = col_types[i];
                 _fpa.cache.get_definition(i, function () {
                   var pe = _fpa.cache.fetch(i);
-                  var cells = $('td[data-col-table="' + t + '"][data-col-type="' + idname + '"]');
+                  var cells = block.find('td[data-col-table="' + t + '"][data-col-type="' + idname + '"]');
                   cells.each(function () {
                     var cell = $(this);
                     var d = cell.html();

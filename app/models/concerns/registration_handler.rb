@@ -34,7 +34,7 @@ module RegistrationHandler
   # The registration admin is assigned to newly created user through the user registration feature.
   # @return Admin
   def self.registration_admin
-    Admin.find_by(email: Settings::RegistrationAdminEmail)
+    Admin.find_by(email: Settings::RegistrationAdminEmail&.downcase)
   end
 
   # The registration user is the template (cookie-cutter) for creating new users.
@@ -42,7 +42,7 @@ module RegistrationHandler
   # The DEFAULT_USER_TEMPLATE_EMAIL must be set as an environment variable.
   # @return User
   def self.registration_template_user
-    User.find_by(email: Settings::DefaultUserTemplateEmail)
+    User.find_by(email: Settings::DefaultUserTemplateEmail&.downcase)
   end
 
   private

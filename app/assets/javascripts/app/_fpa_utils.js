@@ -432,6 +432,9 @@ _fpa.utils.isoDateTimeStringToLocale = function (stre) {
   else if (stre.match(/^\d\d\d\d-\d\d-\d\d.*/)) {
     startTime = _fpa.utils.DateTime.fromSQL(stre, { zone: UserPreferences.timezone() });
   }
+  if (!startTime) {
+    return
+  }
 
   return startTime.toFormat(format);
 };
@@ -680,8 +683,17 @@ _fpa.utils.html_to_markdown = function (obj) {
     $(this).find('p, h1, h2, h3, h4').contents().unwrap().append('<br/>');
   });
 
-  $html.find('p, h1, h2, h3, h4, span').has(':empty').remove();
-  $html.find('p, h1, h2, h3, h4, span').has(':empty').remove();
+  for (let i = 0; i < 2; i++) {
+    $html.find('p, h1, h2, h3, h4, span').has(':empty').each(
+      function () {
+        if ($(this).find('img, hr').length == 0) {
+          $(this).addClass('cleanup-remove');
+        }
+      }
+    );
+  }
+
+  $html.find('.cleanup-remove').remove();
 
   obj.html = $html.html();
 

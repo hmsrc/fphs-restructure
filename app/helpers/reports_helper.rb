@@ -82,8 +82,8 @@ module ReportsHelper
       options_for_select(classification_class.all_name_value_enable_flagged(type_filter), value)
     elsif config.type == 'defined_selector'
       item_type, field_name = config.defined_selector.split('/')
-      opts = Classification::GeneralSelection.selector_with_config_overrides item_type: item_type,
-                                                                             field_name: field_name
+      opts = Classification::GeneralSelection.selector_with_config_overrides(item_type:,
+                                                                             field_name:)
       opts = opts.map { |r| [r[:name], r[:value]] }
       options_for_select(opts || [], value)
     elsif config.type == 'config_selector'
@@ -92,13 +92,13 @@ module ReportsHelper
       # Get the model by the configured resource name
       def_value = value
       resource_name = config.resource_name
-      res = Resources::Models.find_by(resource_name: resource_name) if resource_name
+      res = Resources::Models.find_by(resource_name:) if resource_name
       raise FphsException, "No resource matches resource_name: #{resource_name}" unless res
 
       # Use the configuration of selections to define which fields to pull as the options
       # The selections configuration is "<label field>: <value field>"
       # For example, for a data dictionary variable, this might be "study: study"
-      fields = (config.selections || { id: :id })
+      fields = config.selections || { id: :id }
       model = res[:model]
 
       label = fields.keys.first
@@ -111,17 +111,20 @@ module ReportsHelper
               "Invalid attribute requested #{label}: #{value}"
       end
 
-      selections = model
+      selections = model.distinct.reorder('')
       selections = selections.active if selections.attribute_names.include? 'disabled'
+      selections = selections.where(config.conditions) if config.conditions
+
+      apply_order = config.options&.dig('order')
+      selections = selections.order(apply_order) if apply_order
 
       selections = if label.to_s == 'data' || value.to_s == 'data'
                      # Map rather than pluck so we can get the data attribute successfully
-                     selections.distinct.reorder('')
-                               .map do |r|
+                     selections.map do |r|
                        [r.send(label), r.send(value)]
                      end
                    else
-                     selections.distinct.reorder('').pluck(label, value)
+                     selections.pluck(label, value)
                    end
 
       # NOTE: #uniq is called twice below on purpose, first to hugely limit large tables,
@@ -134,7 +137,7 @@ module ReportsHelper
       selections = selections.map { |a| [a, a] } unless selections.first.is_a?(Array)
       selections = selections.map { |a| [a.first.to_s, a.last.to_s] }
                              .uniq
-                             .sort { |x, y| x.first <=> y.first }
+      selections = selections.sort { |x, y| x.first <=> y.first } unless apply_order
 
       got_bar = selections.find { |s| s.first.include?('|') }
       return grouped_options_for_select(record_results_grouping(selections, '|'), def_value) if got_bar

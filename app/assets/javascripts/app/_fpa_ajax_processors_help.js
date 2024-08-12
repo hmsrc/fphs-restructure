@@ -113,12 +113,17 @@ _fpa.postprocessors_help = {
         const orig_subpath = orig_subparts.join('/');
         var href = $link.attr('href');
 
+        if (href.indexOf('#') === 0 && href.indexOf('#open-in-sidebar') < 0) {
+          // Don't break simple hash hrefs
+          return;
+        }
+
         if (href.indexOf('/content/') == 0 || href.indexOf('/help/') == 0) {
           href = `${href}#open-in-sidebar`;
           var changed = true;
         }
 
-        if (href.indexOf('./') == 0 || href.indexOf('../') == 0 || href.indexOf('/') < 0) {
+        if ((href.indexOf('./') == 0 || href.indexOf('../') == 0 || href.indexOf('/') < 0) && href.indexOf('mailto:') != 0) {
           href = href.replace(/^\.\//, '');
           href = `${orig_subpath}/${href}#open-in-sidebar`;
           var changed = true;

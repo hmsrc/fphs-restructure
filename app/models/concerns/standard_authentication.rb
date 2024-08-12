@@ -24,8 +24,8 @@ module StandardAuthentication
                 maximum: 100
               }
 
-    validate :new_password_changed?, if: :password
-    validate :no_matching_prev_passwords, if: :password
+    validate :new_password_changed?, if: :password_present?
+    validate :no_matching_prev_passwords, if: :password_present?
     validates :password, password_strength: password_config, if: :password_changed?
     validate :password_like_email, if: :password_changed?
     validate :check_strength, if: :password_changed?
@@ -350,6 +350,10 @@ module StandardAuthentication
     errors.add :password, 'must be changed' unless password_changed?
   end
 
+  def password_present?
+    password.present?
+  end
+
   #
   # A direct comparison of encrypted_password against what is saved in the DB is not possible, since
   # bcrypt generates a new salt every time.
@@ -362,7 +366,7 @@ module StandardAuthentication
   # true if the password has actually changed
   def password_changed?(prev_password_hash: nil)
     prev_password_hash ||= encrypted_password_was
-    return false unless password
+    return false unless password.present?
     return true if prev_password_hash.blank? && password.present?
 
     # Get salt from saved encrypted_password
@@ -382,6 +386,15 @@ module StandardAuthentication
 
     # initially we say that otp is not required for login, so that on the first login we can show the QR code to users
     self.otp_required_for_login = false
+    #
+    # NOTE: if this fails, it is usually because the otp_enc_key has changed compared to the value stored in this record.
+    # This may have been set by FPHS_RAILS_DEVISE_SECRET_KEY or FPHS_RAILS_SECRET_KEY_BASE as a fallback.
+    # If you absolutely must change the value in this field, in the database set:
+    # encrypted_otp_secret = null, encrypted_otp_secret_iv = null, encrypted_otp_secret_salt = null
+    #
+    # We might consider doing `self.class.where(id: id).update_all(encrypted_otp_secret: nil, encrypted_otp_secret_iv: nil, encrypted_otp_secret_salt: nil)`
+    # but since this error represent a big change to the security settings somewhere, keeping this as a DBA controlled change seems reasonable.
+    #
     self.otp_secret = self.class.generate_otp_secret
     self.new_two_factor_auth_code = true
   end

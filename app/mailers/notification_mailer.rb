@@ -22,7 +22,7 @@ class NotificationMailer < ActionMailer::Base
 
       if res
         # Lookup the user email
-        user = User.find_by(email: email)
+        user = User.find_by(email: email&.downcase)
 
         # We can email if the email address is not a user, or
         # the user is not disabled and is not flagged "do not email"

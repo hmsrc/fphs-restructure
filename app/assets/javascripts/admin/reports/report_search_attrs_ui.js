@@ -26,6 +26,11 @@ class ReportSearchAttrsUi {
     return $sac && $sac.CodeMirror;
   }
 
+  get ra_options() {
+    var $sac = $('#search_attrs_options')[0];
+    return $sac && $sac.CodeMirror;
+  }
+
   // Load the current YAML configuration into a usable representation
   load_items() {
     var $attel = $('#report_search_attrs');
@@ -82,12 +87,24 @@ class ReportSearchAttrsUi {
           'protocol_event',
           'item_flag_name',
           'user',
+          'select_from_model'
         ].indexOf(search_attr_type) >= 0
       ) {
         $('.report-attr-conditions').collapse('show');
       } else {
         $('.report-attr-conditions').collapse('hide');
         if (_this.ra_conditions) _this.ra_conditions.setValue('');
+      }
+
+      if (
+        [
+          'select_from_model'
+        ].indexOf(search_attr_type) >= 0
+      ) {
+        $('.report-attr-options').collapse('show');
+      } else {
+        $('.report-attr-options').collapse('hide');
+        if (_this.ra_options) _this.ra_options.setValue('');
       }
 
       var not_gs = search_attr_type !== 'general_selection' ? 'hide' : 'show';
@@ -169,6 +186,7 @@ class ReportSearchAttrsUi {
       var resource_name = $('#search_attrs_resource_name').val();
       var selections_yaml = _this.ra_config_selections && _this.ra_config_selections.getValue();
       var conditions_yaml = _this.ra_conditions && _this.ra_conditions.getValue();
+      var options_yaml = _this.ra_options && _this.ra_options.getValue();
       var filter_selector = $('#search_filter_selector').val();
 
       $('#search_attr_instruction').removeClass('hidden');
@@ -183,6 +201,7 @@ class ReportSearchAttrsUi {
       rsa.resource_name = resource_name;
       rsa.selections = rsa.load_value_hash(selections_yaml);
       rsa.conditions = rsa.load_value_hash(conditions_yaml);
+      rsa.options = rsa.load_value_hash(options_yaml);
       rsa.filter = filter;
       rsa.defined_selector = defined_selector;
       if (multi.indexOf('multiple') >= 0) {
@@ -206,6 +225,8 @@ class ReportSearchAttrsUi {
 
       _this.setup_search_attr_list(_this.block);
       $("a[href='#report-admin-search-attr-add-block']").click();
+
+      _fpa.utils.scrollTo('#search_attr_definer', 100, -60);
     });
   }
 

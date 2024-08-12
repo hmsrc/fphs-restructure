@@ -60,7 +60,7 @@ _fpa.report_criteria = class {
       return false;
     }).addClass('attached-click-listener');
 
-    if (!show_fob) block.find('[type="submit"].auto-run').click();
+    if (!show_fob) block.find('[type="submit"].auto-run').not('.was-auto-run-clicked').addClass('was-auto-run-clicked').click();
 
   };
 
@@ -134,6 +134,9 @@ _fpa.report_criteria = class {
 
       var $dfs = f.find('[data-filter-selector]');
       $dfs.on('change', function () {
+        var fts = $(this).attr('data-filter-selector')
+        _fpa.form_utils.select_filtering_changed($(this).val(), `[name="search_attrs[${fts}]"]`)
+      }).each(function () {
         var fts = $(this).attr('data-filter-selector')
         _fpa.form_utils.select_filtering_changed($(this).val(), `[name="search_attrs[${fts}]"]`)
       });

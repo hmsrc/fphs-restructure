@@ -3610,7 +3610,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     end
 
     it 'finds the user' do
-      expect(User.find_by(email: @alt_user.email)).to be_a User
+      expect(User.find_by(email: @alt_user.email&.downcase)).to be_a User
 
       conf = {
         all: {

@@ -53,8 +53,9 @@ view_options:
   search_button_label: <string>
   # Label to show on the search button
 
-  report_auto_submit_on_change: false (default) | true
-  # Auto submit a search on change of a criteria field
+  report_auto_submit_on_change: nil (default) | false  | true
+  # Auto submit a search on change of a criteria field.
+  # By default, other options can affect this. Setting `false` prevents this completely.
 
   no_results_scroll: false (default) | true
   # Prevent scrolling of the page directly to search results

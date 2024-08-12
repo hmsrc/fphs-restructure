@@ -1,4 +1,4 @@
-
+ 
 <script id="model-references-<%=name%>-result-template"  type="text/x-handlebars-template" class="hidden handlebars-template">
 {{#with model_reference}}
   {{>activity_log_common_template_references_list_item name='<%=name%>' view_as=to_record_options_config.view_as.show to_elt=to_record_options_config.add_with.extra_log_type}}
@@ -10,7 +10,9 @@
   unless defined? embed
     embed = nil
   end
-  
+%>
+<%= render partial: 'common_templates/references_creatables', locals: { position: :top, name:, full_name:, references:,  embed:, item_list:,  implementation_class_name:,  caption_before:,  external_id_attr:,  caption_before_keys_without_keep_label:,  caption_before_keys:,  item_flags_readonly:,  hide_tracker_panel:,  hide_rank_badge:,  edit_button_href:,  show_item_type_flags_after:,  item_flags_after:,  def_record:, resource_name:, class_resource_name: } %>
+<%  
   first_ref_def = references&.first&.last&.first&.last&.dig(:to_model_name_us) || embed
   if first_ref_def 
     # There is at least one reference definition
@@ -46,78 +48,7 @@
     {{/is}}
   {{/each}}
   <% end %>
-
-<%  
-  if class_resource_name
-    # Iterate all the references, setting up the creatable items' actions
-    references&.each do |ref_key, refitem|
-      next unless ref_key && refitem
-      
-      refitem.each do |ref_type, ref_config| 
-        next unless ref_type && ref_config
-      
-        # Handle activity_selector type references
-        rct = ref_config[:type_config]
-        if rct&.keys&.first == :activity_selector
-          rct.first.last.each do |elt, label|
-            al_refkey = "#{ref_type}_#{elt}"
-            al_reftype = ref_key
-            elt_ref_config = ref_config.merge({
-              label: label,
-              to_record_label: label,
-              add_with: {
-                extra_log_type: elt.to_s
-              },
-              filter_by: {
-                extra_log_type: '__return_nothing__'
-              }
-            })
-%>
-      {{#if creatable_model_references.<%= al_refkey %> }}
-        {{#if creatable_model_references.<%= al_refkey %>.<%= al_reftype %> }}
-          {{#if creatable_model_references.<%= al_refkey %>.<%= al_reftype %>.ref_type }}
-      <%= render partial: 'common_templates/reference_actions',  locals: {
-            name: class_resource_name&.ns_pathify&.singularize, 
-            ref_type: ref_type, 
-            caption: label, 
-            block_id: "#{name.hyphenate}-#{ref_type}", 
-            ref_config: elt_ref_config, 
-            caption_before: caption_before,
-            extra_log_type: elt} %>
-          {{/if}}
-        {{/if}}
-      {{/if}}
-<%
-          end
-          # Done handling activity_selector type references
-        else 
-          # Now handle the regular creatable model references
-%>
-
-      {{#if creatable_model_references.<%= ref_key %> }}
-        {{#if creatable_model_references.<%= ref_key %>.<%= ref_type %> }}
-          {{#if creatable_model_references.<%= ref_key %>.<%= ref_type %>.ref_type }}
-
-      <%= render partial: 'common_templates/reference_actions',  locals: {
-            name: class_resource_name&.ns_pathify&.singularize, 
-            ref_type: ref_type, 
-            caption: ref_config[:to_record_label], 
-            block_id: "#{name.hyphenate}-#{ref_type}", 
-            ref_config: ref_config, 
-            caption_before: caption_before
-          } %>
-          {{/if}}
-        {{/if}}
-      {{/if}}
-    <%  end
-    %>
-
-<%    end
-    end 
-    # Done iterating references
-  end
-%>
-
+  <%= render partial: 'common_templates/references_creatables', locals: { position: :bottom, name:, full_name:, references:,  embed:, item_list:,  implementation_class_name:,  caption_before:,  external_id_attr:,  caption_before_keys_without_keep_label:,  caption_before_keys:,  item_flags_readonly:,  hide_tracker_panel:,  hide_rank_badge:,  edit_button_href:,  show_item_type_flags_after:,  item_flags_after:,  def_record:, resource_name:, class_resource_name: } %>
   {{#if model_references}}
     {{#each model_references}}
 

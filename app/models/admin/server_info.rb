@@ -132,6 +132,8 @@ class Admin::ServerInfo
       @configuration_failed_reason += NfsStore::Manage::Filesystem.configuration_failed_reason
     end
 
+    @configuration_failed_reason += Settings.configuration_failed_reason unless Settings.configuration_successful?
+
     @configuration_failed_reason
   end
 

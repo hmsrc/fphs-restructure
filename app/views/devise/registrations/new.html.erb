@@ -9,7 +9,7 @@
     <% if Settings::InvitationCode.blank? %>
     <% elsif params[:invitation_code].blank? %>
       <div class="form-group-non">
-        <%= f.label :invitation_code %><br/>
+        <%= label_tag :invitation_code %><br/>
         <%= text_field_tag :invitation_code, '', class: "form-control", autofocus: true, required: true %>
         <% af = false %>
       </div>
@@ -77,9 +77,26 @@
     <%=  f.hidden_field :client_localized %>
 
     <div class="actions">
+      <% if Settings::ReCaptchaSiteKey %>
+      <%= f.submit "Sign up", class: "btn btn-primary g-recaptcha", data: { 
+        sitekey: Settings::ReCaptchaSiteKey,
+        callback: 'onSubmit',
+        action: 'registration' 
+        }
+      %>
+      <% else %>
       <%= f.submit "Sign up", class: "btn btn-primary" %>
+      <% end %>
     </div>
     <%= render "devise/shared/links" %>
   <% end %>
 </div>
 
+<% if Settings::ReCaptchaSiteKey %>
+<script src="https://www.google.com/recaptcha/api.js"></script>
+<script>
+  function onSubmit(token) {
+    document.getElementById("new_user").submit();
+  }
+</script>
+<% end %>
