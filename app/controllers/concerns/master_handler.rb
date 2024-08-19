@@ -30,16 +30,16 @@ module MasterHandler
   # so simply add a parameter like :cache_version => current timestamp to force new data
   def index
     index_res = if params[:cache_result].present?
-      response.headers['Cache-Control'] = 'max-age=30'
-      response.headers.delete 'Expires'
-      return unless stale?(etag: index_cache_key)
+                  response.headers['Cache-Control'] = 'max-age=30'
+                  response.headers.delete 'Expires'
+                  return unless stale?(etag: index_cache_key)
 
-      Rails.cache.fetch(index_cache_key) do
-        retrieve_index.as_json
-      end
-    else
-      retrieve_index.as_json
-    end
+                  Rails.cache.fetch(index_cache_key) do
+                    retrieve_index.as_json
+                  end
+                else
+                  retrieve_index.as_json
+                end
 
     render json: index_res
   end
@@ -432,6 +432,13 @@ module MasterHandler
 
     set_item if defined? set_item
     build_with = nil
+
+    if defined?(setup_default_build_params)
+      # We may need to set default parameters before the build
+      # to ensure we have associations back the the master record set up correctly,
+      # or to set other attributes required for validation.
+      setup_default_build_params
+    end
 
     begin
       build_with = secure_params

@@ -34,9 +34,7 @@ class DynamicModel::DynamicModelsController < UserBaseController
   def secure_params
     return @secure_params if @secure_params
 
-    @implementation_class = implementation_class
-    resname = @implementation_class.name.ns_underscore.gsub('__', '_').singularize.to_sym
-    @secure_params = params.require(resname).permit(*permitted_params)
+    @secure_params = params.require(param_set_name).permit(*permitted_params)
   end
 
   #
@@ -80,5 +78,25 @@ class DynamicModel::DynamicModelsController < UserBaseController
                           end
 
     @option_type_attr_name = :option_type
+  end
+
+  def param_set_name
+    @param_set_name ||= implementation_class.name.ns_underscore.gsub('__', '_').singularize.to_sym
+  end
+
+  #
+  # Set the default build parameters to use the external id
+  # for the new dynamic model by getting it from the foreign_key_through_external_id
+  def setup_default_build_params
+    eid_assoc = implementation_class.foreign_key_through_external_id
+    return unless eid_assoc
+
+    ext_item = @master.send(eid_assoc).first
+    external_id = ext_item&.external_id
+
+    @implementation_class ||= implementation_class
+    resname = param_set_name
+    params[resname] ||= {}
+    params[resname].merge! @implementation_class.foreign_key_name => external_id
   end
 end

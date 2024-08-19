@@ -7,7 +7,7 @@ module Dynamic
     included do
       after_save :force_option_config_parse
       after_save :handle_batch_schedule
-      attr_accessor :configurations, :data_dictionary, :options_constants
+      attr_accessor :configurations, :data_dictionary, :options_constants, :foreign_key_through_external_id
     end
 
     class_methods do
@@ -468,6 +468,11 @@ module Dynamic
     # The name of the association within the Master class
     def model_association_name
       full_implementation_class_name.pluralize.ns_underscore.to_sym
+    end
+
+    # Association name where for a parent has one of this type
+    def one_of_this_association_name
+      model_association_name.to_s.singularize.to_sym
     end
 
     # Full namespaced item type name, underscored with double underscores
