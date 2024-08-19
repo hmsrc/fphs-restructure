@@ -54,6 +54,27 @@ _configurations:
     # NOTE: searches through the UI against the external ID (using the default capabilities)
     # may now return multiple results, since there is currently no way to specify the other fields that make up a unique search.
   can_change_master: allow assigned external identifiers to be moved to a different master record
+  foreign_key_through_external_id: external identifier resource name to join to master through when the *foreign key name* is defined
+    # Allows a dynamic model to be have a master association without a master_id (or other crosswalk attribute) column configured on the
+    # table. Instead, the column name specified in the *foreign key name* definition name the field this model, the value
+    # of which is then used to look up the external identifier record of type defined in this configuration. This then makes the connection
+    # back to the master record.
+    # The inverse of this is that the master record can create one of these dynamic models if an external identifier of this type has been created.
+    # If multiple external ids are associated with this master record, the most recent one will be used.
+    #
+    # For example, a dynamic model definition could look like this:
+    #   *Foreign key name*
+    #     alt_id
+    #   *Field list*
+    #     notes alt_id
+    #   *Options*
+    #     _configurations:
+    #       foreign_key_through_external_id: ipa_assignments
+    # This would then use the value of alt_id in the dynamic model record to find its associated master through a
+    # ipa_assignments external identifier associated with the master record.
+    #
+    # Another common use case might be to have the *Foreign key name* set to "redcap_survey_identifier" and the
+    # *foreign_key_through_external_id:* configuration would specify the external identifier type to use to lookup the associated master.
 
 # To add a table or view to the data dictionary, add the _data_dictionary: with
 # the essential keys, study: and domain:, plus any others that are required.

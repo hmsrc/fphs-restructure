@@ -48,16 +48,9 @@ module Dynamic
         true
       end
 
+      # TODO: check if this is always overridden by UserHandler
       def assoc_inverse
         @assoc_inverse = definition.model_association_name
-      end
-
-      def foreign_key_name
-        @foreign_key_name = definition.foreign_key_name.blank? ? nil : definition.foreign_key_name.to_sym
-      end
-
-      def primary_key_name
-        @primary_key_name = definition.primary_key_name.to_sym
       end
 
       # Override the primary_key definition for a model, to ensure
