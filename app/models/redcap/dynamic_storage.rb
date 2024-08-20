@@ -316,6 +316,24 @@ module Redcap
     end
 
     #
+    # Specifies the external identifier resource name from associate_master_through_external_identifer
+    def associate_master_through_external_id_resource_name
+      res = project_admin.data_options.associate_master_through_external_identifer
+      return unless res.present?
+
+      res.split(' ')[0]
+    end
+
+    #
+    # Specifies the foreign key name from associate_master_through_external_identifer
+    def associate_master_through_external_id_fkey_name
+      res = project_admin.data_options.associate_master_through_external_identifer
+      return unless res.present?
+
+      res.split(' ')[1] || project_admin.survey_identifier_field
+    end
+
+    #
     # Add default user access control for the current admin
     # matching user
     def add_user_access_control

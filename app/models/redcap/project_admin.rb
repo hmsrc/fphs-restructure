@@ -49,8 +49,8 @@ module Redcap
     }.freeze
 
     JobQueue = 'redcap'
-
-    ValidHandleDeletedRecordsValues = [nil, false, 'disable', 'ignore']
+    RedcapSurveyIdentifierField = 'redcap_survey_identifier'
+    ValidHandleDeletedRecordsValues = [nil, false, 'disable', 'ignore'].freeze
 
     has_one :redcap_data_dictionary,
             class_name: 'Redcap::DataDictionary',
@@ -212,9 +212,15 @@ module Redcap
     #                      config library to be prefixed to the dynamic
     #                      model definition whenever it is updated.
     #                      For example: "redcap test_library"
+    # associate_master_through_external_identifer: <external identifier> (optional: foreign key name)
+    #                      Specify an external identifier resource name to use to look up the master record each
+    #                      stored record is associated with. By default, "redcap_survey_identifier" is used as the
+    #                      foreign key field used to look up the the external id. Optionally specify an alternative field name.
+
     configure :data_options, with: %i[add_multi_choice_summary_fields
                                       handle_deleted_records
-                                      prefix_dynamic_model_config_library]
+                                      prefix_dynamic_model_config_library
+                                      associate_master_through_external_identifer]
 
     validate :data_options, lambda {
       return if data_options.handle_deleted_records.in?(ValidHandleDeletedRecordsValues)
@@ -324,6 +330,13 @@ module Redcap
 
     def data_dictionary_ready?
       redcap_data_dictionary&.all_retrievable_fields&.present?
+    end
+
+    #
+    # The name of the field representing a survey identifier.
+    # Although this is most common, there may be future reasons to change it.
+    def survey_identifier_field
+      RedcapSurveyIdentifierField
     end
 
     #
@@ -459,6 +472,10 @@ module Redcap
     # @return [true|false]
     def dynamic_model_config_library_valid?
       data_options.prefix_dynamic_model_config_library.blank? || dynamic_storage&.dynamic_model_config_library_added?
+    end
+
+    def associate_master_through_external_id_valid?
+      data_options.associate_master_through_external_identifer.blank? || dynamic_storage.dynamic_model_master_external_id_added?
     end
 
     def invalidate_cache
