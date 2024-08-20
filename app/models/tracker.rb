@@ -228,7 +228,13 @@ class Tracker < UserBase
   # Generate the protocol / sub process  / protocol event entries that will be
   # used by implementations when updating and creating records, and subsequently tracking
   # those changes in the tracker history.
-  def self.add_record_update_entries(name, admin, update_type = 'record')
+  # @param [String] name - to be humanized and downcased for tracker name
+  # @param [Admin] admin - current admin
+  # @param [String] update_type - type of update tracker to add: 'record' or 'flag'
+  # @param [nil|true] no_create - default: nil - set to true to avoid creating new entries
+  #                               and just check if entries already existed or were created
+  # @return [Array{true|false, ...}] a true|false array for created.., updated... entries already existing
+  def self.add_record_update_entries(name, admin, update_type = 'record', no_create: nil)
     begin
       protocol = Classification::Protocol.updates.reload.first
       sp = protocol.sub_processes.active.reload.find_by_name("#{update_type} updates").reload
@@ -243,13 +249,15 @@ class Tracker < UserBase
     values << { name: "created #{name.downcase}", sub_process_id: sp.id }
     values << { name: "updated #{name.downcase}", sub_process_id: sp.id }
 
-    values.each do |v|
+    values.map do |v|
       res = sp.protocol_events.active.find_or_initialize_by(v)
       if res.admin_id
         # logger.info "Did not add protocol event #{v} in #{protocol.id} / #{sp.id}"
+        true
       else
-        res.update!(current_admin: admin)
+        res.update!(current_admin: admin) unless no_create
         logger.info "Added protocol event #{v} in #{protocol.id} / #{sp.id}"
+        false
       end
     end
   end
@@ -280,11 +288,15 @@ class Tracker < UserBase
           'check double spacing is correct in the definition for namespaced classes.'
   end
 
+  def self.sub_process_for(type)
+    Classification::Protocol.record_updates_protocol.sub_processes.find_by_name("#{type} updates")
+  end
+
   #
   # The sub_process attribute is set from the cache where possible to avoid unnecessary lookups
   # to find the Updates / flag or Updates / record subprocess to be assigned to a new tracker entry
   def set_record_updates_sub_process(type)
-    self.sub_process = Classification::Protocol.record_updates_protocol.sub_processes.find_by_name("#{type} updates")
+    self.sub_process = self.class.sub_process_for(type)
 
     raise "Bad sub_process for tracker (#{type})" unless sub_process
   end
