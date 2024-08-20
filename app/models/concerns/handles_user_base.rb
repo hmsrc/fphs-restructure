@@ -682,7 +682,7 @@ module HandlesUserBase
     mu = master_user
     unless mu.is_a?(User) && mu.persisted?
       master = '[not defined]' unless respond_to? :master
-      raise "bad user (for master #{master}) being pulled from master_user " \
+      raise "bad user (for master id: #{master&.id || 'nil'}) being pulled from master_user " \
       "(#{mu.class.name} #{mu.is_a?(User) ? '' : 'not a user'}#{mu && mu.persisted? ? '' : ' not persisted'})"
     end
 
