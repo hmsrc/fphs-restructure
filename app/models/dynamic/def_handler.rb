@@ -302,6 +302,12 @@ module Dynamic
       @secondary_key = configurations && configurations[:secondary_key]
     end
 
+    #
+    # name for generating the basic activity log create / update records
+    def tracker_name
+      table_name.singularize
+    end
+
     def use_current_version
       return @use_current_version if @use_current_version_set
 

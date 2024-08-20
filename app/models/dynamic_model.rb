@@ -201,7 +201,7 @@ class DynamicModel < ActiveRecord::Base
   def update_tracker_events
     return unless name && !disabled
 
-    Tracker.add_record_update_entries table_name.singularize, current_admin, 'record'
+    Tracker.add_record_update_entries tracker_name, current_admin, 'record'
     Classification::Protocol.reset_memos
   end
 
