@@ -97,6 +97,13 @@ class DynamicModel::DynamicModelsController < UserBaseController
     @implementation_class ||= implementation_class
     resname = param_set_name
     params[resname] ||= {}
+
+    if current_admin_sample
+      @master.current_user = current_user
+      params[resname].merge!(master_id: @master&.id)
+      return
+    end
+
     params[resname].merge! @implementation_class.foreign_key_name => external_id
   end
 end

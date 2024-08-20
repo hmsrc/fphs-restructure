@@ -375,6 +375,12 @@ class DynamicModel < ActiveRecord::Base
             get "#{pg_name}/:id/template_config", to: "#{pg_name}#template_config"
           end
 
+          if dm.foreign_key_through_external_id
+            namespace :dynamic_model do
+              resources short_pg_name, only: %i[show new index]
+            end
+          end
+
         else
 
           resources short_pg_name, except: [:destroy], controller: pg_name
