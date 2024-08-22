@@ -107,8 +107,11 @@ RSpec.describe Redcap::ProjectAdmin, type: :model do
     rc.dynamic_model_table = 'test.test_file_field_sf_recs'
     rc.server_url = server_url('file_field')
     rc.records_request_options.exportSurveyFields = true
+    rc.data_options.run_jobs_as_user = @user.email
     puts "Project Name: #{rc.name}"
     rc.save
+    expect(rc.job_user).to eq @user
+    expect(rc.job_app_type).to eq @user.app_type
 
     rc.dump_archive
 

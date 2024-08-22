@@ -110,14 +110,33 @@ module Redcap
       return unless captured_metadata.present?
 
       summary_fields &&= redcap_project_admin.data_options.add_multi_choice_summary_fields
-      all_rf = Redcap::DataDictionaries::Form.all_retrievable_fields(self, summary_fields: summary_fields)
+      all_rf = Redcap::DataDictionaries::Form.all_retrievable_fields(self, summary_fields:)
 
       records_request_options = redcap_project_admin.records_request_options
-      f = Redcap::DataDictionaries::SpecialFields
-      f.add_survey_identifier_field(all_rf, self) if records_request_options&.exportSurveyFields
-      f.add_repeat_instrument_fields(all_rf, self) if redcap_project_admin.repeating_instruments?
+      special_fields = Redcap::DataDictionaries::SpecialFields
+      if records_request_options&.exportSurveyFields
+        special_fields.add_survey_identifier_field(all_rf, self)
+        handle_integer_survey_field(all_rf, special_fields)
+      end
+      special_fields.add_repeat_instrument_fields(all_rf, self) if redcap_project_admin.repeating_instruments?
 
       all_rf
+    end
+
+    #
+    # If we are going to join on the default redcap_survey_identifier, we need it to be an integer.
+    # Add a separate integer version of this field to be stored alongside the original string field.
+    def handle_integer_survey_field(all_retrievable_fields, special_fields)
+      fk_eid = redcap_project_admin.data_options.associate_master_through_external_identifer
+      return unless fk_eid
+
+      # Check the configuration is set to another name. If not set, it defaults to the integer survey id field name
+      fname = redcap_project_admin.integer_survey_identifier_field
+      add_fk_id = redcap_project_admin.associate_master_through_external_id_fkey_name
+      return unless add_fk_id == fname
+
+      # We are using the integer survey id field. Add it.
+      special_fields.add_integer_survey_identifier_field(all_retrievable_fields, self)
     end
 
     #

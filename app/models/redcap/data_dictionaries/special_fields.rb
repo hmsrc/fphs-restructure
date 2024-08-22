@@ -42,6 +42,14 @@ module Redcap
       end
 
       #
+      # Add an integer survey identifier field to the hash of fields in this form
+      # @param [Hash] fields <description>
+      # @param [Redcap::DataDictionary] in_form
+      def self.add_integer_survey_identifier_field(fields, data_dictionary)
+        fields[integer_survey_identifier_field_name] = integer_survey_identifier_field(data_dictionary)
+      end
+
+      #
       # Add summary fields for multiple choice checkbox field definition
       # @param [Hash] fields
       # @param [Redcap::DataDictionaries::Form] form
@@ -59,6 +67,13 @@ module Redcap
         :redcap_survey_identifier
       end
 
+      # The full record may have a redcap_survey_identifier field if project admin
+      # attribute #records_request_options has exportSurveyFields: true
+      # @return [Symbol]
+      def self.integer_survey_identifier_field_name
+        :redcap_survey_identifier_id
+      end
+
       #
       # A redcap_survey_identifier field representation to support the
       # identifer field if survey fields are requested
@@ -70,7 +85,21 @@ module Redcap
           field_type: 'survey_identifier',
           text_validation_type_or_show_slider_number: 'string'
         }
-        Field.new(nil, field_metadata, data_dictionary: data_dictionary)
+        Field.new(nil, field_metadata, data_dictionary:)
+      end
+
+      #
+      # A redcap_survey_identifier_id field representation to support the
+      # identifer field if survey fields are requested
+      # @param [Redcap::DataDictionary] data_dictionary
+      # @return [Redcap::DataDictionaries::Field]
+      def self.integer_survey_identifier_field(data_dictionary)
+        field_metadata = {
+          field_name: integer_survey_identifier_field_name,
+          field_type: 'integer_survey_identifier',
+          text_validation_type_or_show_slider_number: 'integer'
+        }
+        Field.new(nil, field_metadata, data_dictionary:)
       end
 
       # Each form may have a <form name>_timestamp field if project admin
@@ -130,7 +159,7 @@ module Redcap
           field_name: :redcap_repeat_instrument,
           field_type: 'repeat'
         }
-        Field.new(nil, field_metadata, data_dictionary: data_dictionary)
+        Field.new(nil, field_metadata, data_dictionary:)
       end
 
       #
@@ -143,7 +172,7 @@ module Redcap
           field_name: :redcap_repeat_instance,
           field_type: 'repeat'
         }
-        Field.new(nil, field_metadata, data_dictionary: data_dictionary)
+        Field.new(nil, field_metadata, data_dictionary:)
       end
 
       #

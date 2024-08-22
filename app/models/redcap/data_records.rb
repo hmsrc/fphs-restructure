@@ -55,6 +55,7 @@ module Redcap
       update_job_request(create: true)
       retrieve
       summarize_fields
+      handle_survey_identifier
       validate
       store
     end
@@ -107,6 +108,26 @@ module Redcap
     end
 
     #
+    # The redcap_survey_identifier string field will be returned if the project option exportSurveyFields is true.
+    # Other options require it to be processed for storage in other forms.
+    def handle_survey_identifier
+      records_request_options = project_admin.records_request_options
+      return unless records_request_options.exportSurveyFields
+
+      am = project_admin.data_options.associate_master_through_external_identifer
+      return unless am
+
+      si_name = project_admin.survey_identifier_field.to_sym
+      integer_si_name = project_admin.integer_survey_identifier_field.to_sym
+
+      return unless records.first.has_key?(si_name)
+
+      records.each do |rec|
+        rec[integer_si_name] = rec[si_name]&.to_i
+      end
+    end
+
+    #
     # Immediately retrieve file from a REDCap file field for a
     # specific record. The most recent request is stored to the
     # retrieved_files Hash.
@@ -138,7 +159,7 @@ module Redcap
       overlapping_fields = records.first.keys & model.attribute_names.map(&:to_sym)
       unless overlapping_fields.length == records.first.keys.length
         missing_fields = records.first.keys - model.attribute_names.map(&:to_sym)
-        raise FphsException, "Redcap::DataRecords retrieved record fields are not present in the model:\n" \
+        raise FphsException, "Redcap::DataRecords::ModelMissingFields retrieved record fields are not present in the model:\n" \
                              "#{missing_fields.join(' ')}"
       end
 
@@ -153,7 +174,7 @@ module Redcap
         next if actual_fields_minus_timestamps.sort == expected_minus_form_timestamps.sort
 
         raise FphsException,
-              "Redcap::DataRecords retrieved record fields don't match the data dictionary:\n" \
+              "Redcap::DataRecords::MismatchFields retrieved record fields don't match the data dictionary:\n" \
               "missing: #{(expected_minus_form_timestamps - actual_fields_minus_timestamps).sort.join(' ')}\n" \
               "additional: #{(actual_fields_minus_timestamps - expected_minus_form_timestamps).sort.join(' ')}"
       end
@@ -366,6 +387,7 @@ module Redcap
       rec_ids = record_identifiers(record)
       existing_record = model.where(rec_ids).first
       if existing_record
+        existing_record.no_track = true if existing_record.respond_to? :no_track
         existing_record.current_user = current_user if existing_record.respond_to? :current_user=
 
         # Check if there is an exact match for the record. If so, we are done
@@ -386,6 +408,7 @@ module Redcap
         end
       else
         new_record = model.new(record)
+        new_record.no_track = true if new_record.respond_to? :no_track
         new_record.current_user = current_user if new_record.respond_to? :current_user=
         new_record.force_save!
         if new_record.save
@@ -432,14 +455,15 @@ module Redcap
                                              filename,
                                              temp_file.path,
                                              current_user,
-                                             path: path,
+                                             path:,
                                              replace: true)
           imported_files << res if res
         rescue Exception => e # rubocop:disable Lint/RescueException
           # We rescue Exception rather than StandardError, since file errors inherit from Exception
-          msg = "Failed to retrieve or import REDCap file #{record_id} #{field_name}. #{e}"
+          msg = "Failed to retrieve or import REDCap file for record: #{record_id} - field name: #{field_name} - with user: #{current_user.email}.\n#{e}"
           Rails.logger.warn msg
           errors << { id: record_id, errors: { capture_files: msg }, action: :capture_files }
+          raise
         ensure
           temp_file&.close
           temp_file&.unlink
@@ -492,7 +516,7 @@ module Redcap
     # @param [true | nil] create - optional - create a new record for this request
     def update_job_request(create: nil)
       result = {
-        storage_stage: storage_stage,
+        storage_stage:,
         count_retrieved: records&.length,
         count_created_ids: created_ids&.length,
         count_updated_ids: updated_ids&.length,
@@ -500,15 +524,15 @@ module Redcap
         count_disabled_ids: disabled_ids&.length,
         count_processed: done,
         table: project_admin.dynamic_model_table,
-        errors: errors,
+        errors:,
         imported_files_count: imported_files&.length,
         job: job&.id
       }
 
       if create
-        project_admin.record_job_request('store records', result: result)
+        project_admin.record_job_request('store records', result:)
       else
-        project_admin.update_job_request('store records', result: result)
+        project_admin.update_job_request('store records', result:)
       end
     end
   end

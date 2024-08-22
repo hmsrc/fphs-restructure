@@ -107,7 +107,7 @@ module Redcap
     after_save :capture_current_project_info, if: lambda {
                                                     return false if disabled
 
-                                                    force_refresh ||
+                                                    force_refresh || request_latest_config ||
                                                       (
                                                         !saved_change_to_captured_project_info? &&
                                                         api_key.present? &&
@@ -130,7 +130,8 @@ module Redcap
                                                     saved_change_to_api_key? ||
                                                     saved_change_to_name? ||
                                                     !data_dictionary_ready? ||
-                                                    force_refresh
+                                                    force_refresh ||
+                                                    request_latest_config
                                                   )
                                              }
 
@@ -142,7 +143,8 @@ module Redcap
                                                  saved_change_to_server_url? ||
                                                  saved_change_to_api_key? ||
                                                  saved_change_to_name? ||
-                                                 force_refresh
+                                                 force_refresh ||
+                                                 request_latest_config
                                                )
                                            }
 
@@ -154,7 +156,8 @@ module Redcap
                                                                saved_change_to_server_url? ||
                                                                saved_change_to_api_key? ||
                                                                saved_change_to_name? ||
-                                                               force_refresh
+                                                               force_refresh ||
+                                                               request_latest_config
                                                              )
                                                          }
 
@@ -178,9 +181,9 @@ module Redcap
                                         force_refresh
                                     }
 
-    after_save :reset_force_refresh
+    after_save :reset_refresh_flags
 
-    attr_accessor :force_refresh, :use_hash_config
+    attr_accessor :force_refresh, :request_latest_config, :use_hash_config, :in_background_job
 
     #
     # Override Redcap records request with additional options, by default
@@ -214,13 +217,15 @@ module Redcap
     #                      For example: "redcap test_library"
     # associate_master_through_external_identifer: <external identifier> (optional: foreign key name)
     #                      Specify an external identifier resource name to use to look up the master record each
-    #                      stored record is associated with. By default, "redcap_survey_identifier" is used as the
+    #                      stored record is associated with. By default, "redcap_survey_identifier_id" is used as the
     #                      foreign key field used to look up the the external id. Optionally specify an alternative field name.
 
     configure :data_options, with: %i[add_multi_choice_summary_fields
                                       handle_deleted_records
                                       prefix_dynamic_model_config_library
-                                      associate_master_through_external_identifer]
+                                      associate_master_through_external_identifer
+                                      run_jobs_as_user
+                                      run_jobs_in_app_type]
 
     validate :data_options, lambda {
       return if data_options.handle_deleted_records.in?(ValidHandleDeletedRecordsValues)
@@ -238,8 +243,21 @@ module Redcap
       attrs[:use_hash_config] ||= {}
       attrs[:use_hash_config][:records_request_options] ||= Settings::RedcapRecordsRequestOptions
       attrs[:use_hash_config][:metadata_request_options] ||= Settings::RedcapMetadataRequestOptions
+      attrs[:use_hash_config][:data_options] ||= Settings::RedcapDataOptions
 
       super(attrs)
+    end
+
+    #
+    # Overrides method in NfsStore::ForAdminResources, ensuring the specified
+    # job user is used if the file store has been created, or the current admin user if it
+    # is in the process of being created
+    def file_store_user
+      if in_background_job
+        job_user
+      else
+        current_admin&.matching_user
+      end
     end
 
     #
@@ -302,7 +320,7 @@ module Redcap
       jobs = self.class.existing_jobs(jobclass, self)
       return if jobs.count > 0
 
-      jobclass.perform_later(self, current_admin)
+      jobclass.perform_later(self)
       record_job_request('setup job: project_xml')
     end
 
@@ -337,6 +355,13 @@ module Redcap
     # Although this is most common, there may be future reasons to change it.
     def survey_identifier_field
       RedcapSurveyIdentifierField
+    end
+
+    #
+    # The name of the field representing an integer version of the survey identifier.
+    # Although this is most common, there may be future reasons to change it.
+    def integer_survey_identifier_field
+      "#{RedcapSurveyIdentifierField}_id"
     end
 
     #
@@ -478,6 +503,50 @@ module Redcap
       data_options.associate_master_through_external_identifer.blank? || dynamic_storage.dynamic_model_master_external_id_added?
     end
 
+    #
+    # Specifies the external identifier resource name from associate_master_through_external_identifer
+    def associate_master_through_external_id_resource_name
+      res = data_options.associate_master_through_external_identifer
+      return unless res.present?
+
+      res.split(' ')[0]
+    end
+
+    #
+    # Specifies the foreign key name from associate_master_through_external_identifer
+    def associate_master_through_external_id_fkey_name
+      res = data_options.associate_master_through_external_identifer
+      return unless res.present?
+
+      res.split(' ')[1] || integer_survey_identifier_field
+    end
+
+    def job_user
+      return @job_user if @job_user
+
+      ju = data_options.run_jobs_as_user
+      res = User.find_active_by_email_or_id(ju)
+      res ||= job_admin&.matching_user
+      res.app_type = job_app_type if job_app_type
+      @job_user = res
+    end
+
+    def job_admin
+      return @job_admin if @job_admin
+
+      ju = data_options.run_jobs_as_user
+      res = Admin.find_active_by_email_or_id(ju)
+      @job_admin = res || current_admin || admin
+    end
+
+    def job_app_type
+      return @job_app_type if @job_app_type
+
+      ja = data_options.run_jobs_in_app_type
+      res = Admin::AppType.find_active_by_name_or_id(ja)
+      @job_app_type = res || current_user.app_type
+    end
+
     def invalidate_cache
       logger.debug "Not invalidating cache (#{self.class.name})"
     end
@@ -517,8 +586,9 @@ module Redcap
       res
     end
 
-    def reset_force_refresh
+    def reset_refresh_flags
       self.force_refresh = nil
+      self.request_latest_config = nil
     end
 
     def ready_to_setup_dynamic_model?

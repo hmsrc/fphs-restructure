@@ -269,12 +269,12 @@ module UserHandler
   #
   # After a record has been saved, make a tracker entry for it
   # This only happens if the record was created or updated,
-  # is not marked `no_track` and it has a master association.
+  # is not marked `no_track` and it has a master association (with a master record set).
   # @return [Boolean | nil] representing success or failure
   def track_record_update
     # Don't do this if we have the configuration set to avoid tracking, or
     # if the record was not created or updated
-    return if no_track || !(@was_updated || @was_created) || self.class.no_master_association
+    return if no_track || !(@was_updated || @was_created) || self.class.no_master_association || !master
 
     @update_action = true
     Tracker.track_record_update self
