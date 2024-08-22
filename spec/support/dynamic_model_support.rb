@@ -20,13 +20,15 @@ module DynamicModelSupport
     @master = Master.create! current_user: @user
     @master.current_user = @user
 
-    DynamicModel.active.where(table_name: 'test_created_by_recs').each { |dm| dm.disable!(@admin) }
+    DynamicModel.active.where(table_name: 'test_created_by_recs').reload.each { |dm| dm.disable!(@admin) }
 
     dm = DynamicModel.create! current_admin: @admin, name: 'test created by', table_name: 'test_created_by_recs', primary_key_name: :id, foreign_key_name: :master_id, category: :test
     dm.current_admin = @admin
     dm.update_tracker_events
 
     expect(dm).to be_a ::DynamicModel
+    active_count = DynamicModel.active.where(table_name: 'test_created_by_recs').reload.count
+    expect(active_count).to eq 1
 
     setup_access :dynamic_model__test_created_by_recs, user: @user
     setup_access :dynamic_model__test_created_by_recs, user: @user0

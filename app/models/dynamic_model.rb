@@ -201,7 +201,7 @@ class DynamicModel < ActiveRecord::Base
   def update_tracker_events
     return unless name && !disabled
 
-    Tracker.add_record_update_entries table_name.singularize, current_admin, 'record'
+    Tracker.add_record_update_entries tracker_name, current_admin, 'record'
     Classification::Protocol.reset_memos
   end
 
@@ -373,6 +373,12 @@ class DynamicModel < ActiveRecord::Base
               resources short_pg_name, except: [:destroy]
             end
             get "#{pg_name}/:id/template_config", to: "#{pg_name}#template_config"
+          end
+
+          if dm.foreign_key_through_external_id
+            namespace :dynamic_model do
+              resources short_pg_name, only: %i[show new index]
+            end
           end
 
         else

@@ -55,6 +55,8 @@ class Settings
   AdminEmail = ENV['FPHS_ADMIN_EMAIL'].presence || DefaultSettings::AdminEmail.presence
   # Email address that identifies the batch user profile. Defaults to the user that matches the AdminEmail
   BatchUserEmail = ENV['FPHS_BATCH_USER_EMAIL'].presence || AdminEmail.presence
+  # Email address that identifies the Redcap job user profile. Defaults to the BatchUserEmail
+  RedcapJobUserEmail = ENV['FPHS_RC_JOB_USER_EMAIL'].presence || BatchUserEmail.presence
   # Provide an email address for a technical admin to receive failure notifications
   FailureNotificationsToEmail = ENV['FAIL_TO_EMAIL'].presence || ENV['FAIL_FROM_EMAIL'].presence || DefaultSettings::FailureNotificationsToEmail.presence || Settings::AdminEmail.presence
 
@@ -224,6 +226,10 @@ class Settings
   # }
   RedcapRecordsRequestOptions = Rails.env.test? ? nil : { exportSurveyFields: true }
   RedcapMetadataRequestOptions = nil
+  RedcapDataOptions = {
+    run_jobs_as_user: RedcapJobUserEmail,
+    run_jobs_in_app_type: 'ref-data'
+  }
 
   # Alternative to blindly using inflector acronyms.
   # This array of acronyms will be enforced for titleize only, avoiding

@@ -11,7 +11,8 @@ module Dynamic
     included do
       # :field_types is a Hash of field_name => field_type values, where the field_name
       # is a symbol and field_type is a valid DB migration data type (also a symbol)
-      attr_accessor :field_types, :array_fields, :prefix_config_library
+      attr_accessor :field_types, :array_fields, :prefix_config_library,
+                    :associate_master_through_external_id_resource_name, :associate_master_through_external_id_fkey_name
       attr_accessor :parent, :qualified_table_name, :category
     end
 
@@ -47,7 +48,17 @@ module Dynamic
       schema_name, table_name = schema_and_table_name
       category = self.category || self.class.default_category
 
+      if associate_master_through_external_id_fkey_name.present?
+        foreign_key_name = associate_master_through_external_id_fkey_name
+      end
+
+      def_configs = {}
+      if associate_master_through_external_id_resource_name.present?
+        def_configs[:foreign_key_through_external_id] = associate_master_through_external_id_resource_name
+      end
+
       default_options = {
+        _configurations: def_configs,
         _comments: {
           table: table_comment_config,
           fields: comments
@@ -72,7 +83,10 @@ module Dynamic
       end
 
       fla = field_list.split
-      if fla.include?('master_id')
+
+      # Remove master_id from the list and make it the foreign key name, only if
+      # the foreign_key_name was not already set or was set to master_id already
+      if fla.include?('master_id') && (foreign_key_name.blank? || foreign_key_name == 'master_id')
         foreign_key_name = 'master_id'
         @field_list = fla.select { |f| f != 'master_id' }.join(' ')
       end
@@ -119,7 +133,7 @@ module Dynamic
 
       schema_name = [nil, ''] if schema_name.blank?
 
-      attrs = { table_name:, category:, schema_name: }
+      attrs = { table_name:, schema_name: }
       dms = DynamicModel.active.where(attrs)
 
       if dms.length > 1
@@ -179,6 +193,20 @@ module Dynamic
     # @return [true|false]
     def dynamic_model_config_library_added?
       !!dynamic_model&.options&.index(/^#{prefix_config_library_string}\w*\r?$/)
+    end
+
+    #
+    # String to form the _configurations.foreign_key_through_external_id option
+    # @return [String]
+    def associate_master_through_external_id_string
+      "  foreign_key_through_external_id: #{associate_master_through_external_id_resource_name}"
+    end
+
+    #
+    # Check if the _configurations.foreign_key_through_external_id setting has been added to the options
+    # @return [true|false]
+    def dynamic_model_master_external_id_added?
+      !!dynamic_model&.options&.index(/^#{associate_master_through_external_id_string}\w*\r?$/)
     end
 
     #

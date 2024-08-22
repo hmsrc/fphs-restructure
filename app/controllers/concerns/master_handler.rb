@@ -303,7 +303,7 @@ module MasterHandler
 
   def check_creatable?
     handle_option_type_config if action_name == 'new' && respond_to?(:handle_option_type_config, true)
-    return if object_instance.allows_current_user_access_to?(:create) || current_admin_sample
+    return if current_admin_sample || object_instance.allows_current_user_access_to?(:create)
 
     not_creatable
     nil
@@ -341,7 +341,7 @@ module MasterHandler
   # is not used repetitively (potentially breaking the current_user functionality and poor performance)
   def set_me_and_master
     if UseMasterParam.include?(action_name)
-      @master = Master.find(params[:master_id]) unless primary_model.no_master_association
+      @master = Master.find(params[:master_id]) unless primary_model.no_master_association && !params[:master_id]
     else
       object = primary_model.find(params[:id])
       set_object_instance object
@@ -438,6 +438,7 @@ module MasterHandler
       # to ensure we have associations back the the master record set up correctly,
       # or to set other attributes required for validation.
       setup_default_build_params
+      set_master_on_build = !!params[:master_id]
     end
 
     begin
@@ -446,6 +447,11 @@ module MasterHandler
       logger.warn("set_instance_from_build: #{e}")
     end
     set_object_instance @master_objects.build(build_with)
+
+    if set_master_on_build
+      object_instance.master = @master
+      object_instance.current_user = current_user
+    end
 
     object_instance.item_id = @item_id if @item && object_instance.respond_to?(:item_id) && !object_instance.item_id
   end

@@ -178,6 +178,16 @@ module StandardAuthentication
     def clean_memos
       @emails_by_id_memo = nil
     end
+
+    def find_active_by_email_or_id(email_or_id)
+      return if email_or_id.to_s.blank?
+
+      if email_or_id.is_a?(Integer) || email_or_id.to_i.to_s == email_or_id
+        active.find_by_id(email_or_id)
+      else
+        active.find_by_email(email_or_id)
+      end
+    end
   end
 
   def expires_in

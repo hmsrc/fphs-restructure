@@ -198,7 +198,8 @@ module ActiveRecord
 
         unless table_exists
           create_table "#{schema}.#{table_name}", comment: table_comment do |t|
-            unless no_master_association
+            unless no_master_association || fields.include?(:master_id)
+
               t.belongs_to :master, index: {
                 name: "dmbt_#{rand_id}_id_idx"
               }, foreign_key: true
@@ -211,7 +212,7 @@ module ActiveRecord
         end
         unless history_table_exists || model_is_view
           create_table "#{schema}.#{history_table_name}" do |t|
-            unless no_master_association
+            unless no_master_association || fields.include?(:master_id)
               t.belongs_to :master, index: { name: "#{rand_id}_history_master_id" }, foreign_key: true
             end
             create_fields t, true
@@ -402,7 +403,7 @@ module ActiveRecord
           current_type = cols.find { |c| c.name == k.to_s }&.type
           next unless v[:type] && current_type
 
-          expected_type = (v[:type]&.to_sym || :string)
+          expected_type = v[:type]&.to_sym || :string
           current_type = :timestamp if current_type == :datetime
           expected_type = :timestamp if expected_type == :datetime
           puts "Type change (#{k}): #{current_type} != #{expected_type}" if current_type != expected_type
@@ -422,7 +423,7 @@ module ActiveRecord
             current_type = history_cols.find { |c| c.name == k.to_s }&.type
             next unless v[:type] && current_type
 
-            expected_type = (v[:type]&.to_sym || :string)
+            expected_type = v[:type]&.to_sym || :string
             current_type = :timestamp if current_type == :datetime
             expected_type = :timestamp if expected_type == :datetime
             puts "Type change (#{k}): #{current_type} != #{expected_type}" if current_type != expected_type
@@ -827,9 +828,9 @@ module ActiveRecord
         field_defs.each do |attr_name, f|
           fopts = field_opts[attr_name]
           curr_field = {
-            attr_name: attr_name,
+            attr_name:,
             config: f,
-            fopts: fopts
+            fopts:
           }
           if fopts && fopts[:index]
             fopts[:index][:name] += '_hist' if history
@@ -991,6 +992,8 @@ module ActiveRecord
       end
 
       def dynamic_model_trigger_sql
+        no_master_id_as_fkey = no_master_association || fields.map(&:to_sym).include?(:master_id)
+
         <<~DO_TEXT
 
           CREATE OR REPLACE FUNCTION #{trigger_fn_name} ()
@@ -999,14 +1002,14 @@ module ActiveRecord
             AS $$
           BEGIN
             INSERT INTO #{history_table_name} (
-              #{no_master_association ? '' : 'master_id,'}
+              #{no_master_id_as_fkey ? '' : 'master_id,'}
               #{"#{fields.join(', ')}," if fields.present?}
               user_id,
               created_at,
               updated_at,
               #{history_table_id_attr})
             SELECT
-              #{no_master_association ? '' : 'NEW.master_id,'}
+              #{no_master_id_as_fkey ? '' : 'NEW.master_id,'}
               #{"#{new_fields.join(', ')}," if fields.present?}
               NEW.user_id,
               NEW.created_at,

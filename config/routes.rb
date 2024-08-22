@@ -107,6 +107,7 @@ Rails.application.routes.draw do
   namespace :redcap do
     resources :project_admins, except: %i[show destroy] do
       member do
+        post :request_latest_rc_configs
         post :request_records
         post :request_archive
         post :request_users

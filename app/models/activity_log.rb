@@ -467,9 +467,7 @@ class ActivityLog < ActiveRecord::Base
     end
 
     # generate the basic activity log create / update records
-    track_name = full_item_type_name.singularize.humanize.downcase
-
-    Tracker.add_record_update_entries track_name, admin, 'record'
+    Tracker.add_record_update_entries tracker_name, admin, 'record'
 
     Classification::Protocol.enabled.each do |p|
       # logger.info "For protocol: #{p.id} #{p.name}"
@@ -494,6 +492,12 @@ class ActivityLog < ActiveRecord::Base
     Classification::Protocol.reset_memos
 
     true
+  end
+
+  #
+  # name for generating the basic activity log create / update records
+  def tracker_name
+    full_item_type_name.singularize.humanize.downcase
   end
 
   def check_item_type_and_rec_type
