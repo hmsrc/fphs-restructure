@@ -341,7 +341,7 @@ module MasterHandler
   # is not used repetitively (potentially breaking the current_user functionality and poor performance)
   def set_me_and_master
     if UseMasterParam.include?(action_name)
-      @master = Master.find(params[:master_id]) unless primary_model.no_master_association
+      @master = Master.find(params[:master_id]) unless primary_model.no_master_association && !params[:master_id]
     else
       object = primary_model.find(params[:id])
       set_object_instance object
