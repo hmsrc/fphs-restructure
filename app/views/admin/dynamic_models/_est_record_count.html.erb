@@ -1,7 +1,7 @@
   <% if object_instance.persisted? && object_instance.enabled? && object_instance.table_or_view_ready? %>
   <label>estimated record count</label>
-  <p class="dynamic-record-count">
+  <span class="dynamic-record-count">
   <%= object_instance.estimated_record_count || '(not found)' %>
-  </p>
+  </span>
   <% end %>
   

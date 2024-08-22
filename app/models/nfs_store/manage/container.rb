@@ -74,7 +74,7 @@ module NfsStore
         app_type = user.app_type
         raise FsException::NoAccess, "User has no access to this container's app-type" unless user.app_type_valid?
 
-        where app_type: app_type
+        where app_type:
       end
 
       # Create a container record in the current app. After creation, #create_in_nfs_store is called by a callback
@@ -89,7 +89,7 @@ module NfsStore
           FsException::Action.new "Cannot create a container with app_type: #{app_type_id}, user: #{user&.id}, name: #{name}"
         end
 
-        create! extra_params.merge(app_type_id: app_type_id, name: name, current_user: user)
+        create! extra_params.merge(app_type_id:, name:, current_user: user)
       end
 
       #
@@ -175,7 +175,7 @@ module NfsStore
         res = nil
         Group.role_names_for(user).each do |role_name|
           if Filesystem.test_dir role_name, self, :read
-            res = File.stat(path_for(role_name: role_name)).gid
+            res = File.stat(path_for(role_name:)).gid
             break if res
           end
         end
@@ -196,7 +196,7 @@ module NfsStore
       # parent_sub_dir has not been overridden
       # @return [String]
       def path_to_parent_dir_for(role_name: nil)
-        parts = path_for(role_name: role_name).split('/')
+        parts = path_for(role_name:).split('/')
         parts.pop if parent_sub_dir.present?
         File.join parts
       end
@@ -322,7 +322,7 @@ module NfsStore
         current_user_role_names.each do |role_name|
           next unless Filesystem.test_dir role_name, self, :read
 
-          p = path_for role_name: role_name
+          p = path_for(role_name:)
           # Don't use Regex - it breaks if there are special characters
           paths = Dir.glob("#{p}/**/*").reject do |f|
             Pathname.new(f).directory?
@@ -376,7 +376,8 @@ module NfsStore
 
         raise FsException::NoAccess,
               'User does not have access to this container ' \
-              "(master #{master&.id} - parent #{cp.class} id: #{cp&.id} master: #{cpm})"
+              "(user #{current_user&.email} - master #{master&.id} - class #{self.class} " \
+              "- parent #{cp.class} id: #{cp&.id} master: #{cpm})"
       end
 
       def raise_if_action_not_authorized!(for_action)

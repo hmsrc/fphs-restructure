@@ -185,6 +185,14 @@ class Master < ActiveRecord::Base
   # The main set of has_many associations that represents the primary data objects that can belong to a master record
   PrimaryAssociations = get_all_associations
 
+  # ExternalIdentifier associations take the form:
+  #    master.scantrons
+  # i.e. the underscored pluralized name
+  # This is placed here, since there is a dependency on MasterSearchHandler
+  # It also precedes the DynamicModel activation, since "has may through" associations made later
+  # may rely on the ExternalIdentifier associations.
+  ExternalIdentifier.enable_active_configurations
+
   # DynamicModel associations take the form:
   #     master.player_contact_histories
   # i.e. the pluralized table name
@@ -198,12 +206,6 @@ class Master < ActiveRecord::Base
   #   master.activity_log__player_contact_phones
   # Notice the double underscore which represents the Module::Class delimiter
   ActivityLog.enable_active_configurations
-
-  # ExternalIdentifier associations take the form:
-  #    master.scantrons
-  # i.e. the underscored pluralized name
-  # This is placed here, since there is a dependency on MasterSearchHandler
-  ExternalIdentifier.enable_active_configurations
 
   if attribute_names.include? 'created_by_user_id'
     # NOTE: a belongs_to association can't include a scope definition and be used in a join

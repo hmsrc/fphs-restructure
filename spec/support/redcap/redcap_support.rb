@@ -20,27 +20,54 @@ module Redcap
           stub_request_instruments p[:server_url], p[:api_key]
         end
 
-        Redcap::ProjectAdmin.create! current_admin: @admin,
-                                     study: 'Q2',
-                                     name: p[:name],
-                                     api_key: p[:api_key],
-                                     server_url: p[:server_url]
+        pa = Redcap::ProjectAdmin.create! current_admin: @admin,
+                                          study: 'Q2',
+                                          name: p[:name],
+                                          api_key: p[:api_key],
+                                          server_url: p[:server_url]
+
+        pa.data_options.run_jobs_as_user = @user.email
+        pa.save!
+        container = pa.file_store
+        app_type_id = container.app_type_id
+        expect(app_type_id).to eq @app_type.id
+        cpath = "#{NfsStore::Manage::Filesystem.nfs_store_directory}/gid601/app-type-#{app_type_id}/containers"
+        expect(Dir.exist?(cpath)).to be true
+        cpath = "#{NfsStore::Manage::Filesystem.nfs_store_directory}/gid601/app-type-#{app_type_id}/containers/#{container.id} -- #{p[:name]}"
+        expect(Dir.exist?(cpath)).to be true
+        setup_file_store pa.job_admin
+        setup_file_store @admin
       end
 
       expect(Redcap::ProjectAdmin.active.count).to eq 2
       projects
     end
 
-    def setup_file_store
+    def setup_file_store(admin = nil)
       # Create a matching user for the admin
       @app_type = Admin::AppType.active.find_by(name: 'ref-data')
-      @user, = create_user nil, '', email: @admin.email, app_type: @app_type
+
+      admin ||= @admin
+      user = User.active.find_by_email(admin.email)
+      if user
+        @user = user
+        @user.app_type = @app_type
+      else
+        @user, = create_user nil, '', email: admin.email, app_type: @app_type
+      end
+      setup_access :app_type, resource_type: :general, access: :read, user: @user
+      @user.save!
+      expect(@user.can?(:app_type)).to be_truthy
+      expect(@user.app_type.id).to eq @app_type.id
+
       setup_access 'trackers', user: @user
       setup_access 'nfs_store__manage__containers', user: @user
       setup_access 'nfs_store__manage__stored_files', user: @user
       setup_access 'nfs_store__manage__archived_files', user: @user
       add_user_to_role Settings.admin_nfs_role, for_user: @user
       add_user_to_role 'admin', for_user: @user
+
+      @user.clear_role_names!
     end
 
     def reset_mocks

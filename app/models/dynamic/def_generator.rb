@@ -48,7 +48,7 @@ module Dynamic
         rescue Exception => e
           msg = "Failed to generate models. Hopefully this is only during a migration. \n***** #{e.inspect}"
           puts msg
-          puts e.backtrace.join("\n")
+          puts e.short_string_backtrace
           Rails.logger.warn msg
         end
       end

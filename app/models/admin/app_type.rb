@@ -103,6 +103,16 @@ class Admin
       user
     end
 
+    def self.find_active_by_name_or_id(name_or_id)
+      return if name_or_id.to_s.blank?
+
+      if name_or_id.is_a?(Integer) || name_or_id.to_i.to_s == name_or_id
+        Admin::AppType.active.find(name_or_id)
+      else
+        Admin::AppType.active.find_by_name(name_or_id)
+      end
+    end
+
     def active_on_server?
       self.class.active_app_types.include?(self) &&
         Admin::MigrationGenerator.current_search_paths.include?(default_schema_name)

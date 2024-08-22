@@ -24,11 +24,26 @@ module UserHandler
 
     after_initialize :init_vars_user_handler
 
+    #
     # Ensure dynamic models without master as the foreign key and filestore files don't break associations
+    # We will attempt to add a "belongs_to :master" association for the default subject models, and for most
+    # dynamic definitions. We will only exclude a :master association if the dynamic model definition
+    # has the `foreign_key` attribute *not* set.
+    # For dynamic models that have the `foreign_key` set, a direct association is made to master if the value
+    # is "master_id". If it is set to another column name in the table, we will attempt to use that instead,
+    # following specific rules for how to match to the master record.
     unless defined?(no_master_association) && no_master_association
       # Standard associations
       Rails.logger.debug "Associating master as inverse of #{assoc_inverse}"
-      belongs_to :master, **assoc_rules
+
+      # Define the belongs to master association unless there is not a direct
+      # master record association. Skip this if the association is indirectly
+      # handled through an external identifier, since the relevant associations are
+      # set up within the dynamic model definition.
+      unless defined?(foreign_key_through_external_id) && foreign_key_through_external_id
+        belongs_to :master, **assoc_rules
+      end
+
       if self != Tracker && self != TrackerHistory
         has_many :trackers, as: :item, inverse_of: :item
 
@@ -61,14 +76,25 @@ module UserHandler
       Classification::ItemFlagName.enabled_for? name.ns_underscore, user
     end
 
-    def foreign_key_name
-      @foreign_key_name = :master_id
+    # Don't override method if it is already defined (in a dynamic model definition)
+    unless defined? foreign_key_name
+      def foreign_key_name
+        @foreign_key_name = :master_id
+      end
     end
 
-    def primary_key_name
-      @primary_key_name = :id
+    # Don't override method if it is already defined (in a dynamic model definition)
+    unless defined? primary_key_name
+      def primary_key_name
+        @primary_key_name = :id
+      end
     end
 
+    #
+    # The configurations for a :master association. Relies on attributes or methods set in
+    # either the default subject classes, or in dynamic definitions. Dynamic models are
+    # most likely to set these to non-default values, by setting :primary_key, :foreign_key fields
+    # in the definition record.
     def assoc_rules
       r = { inverse_of: assoc_inverse }
       r[:foreign_key] = foreign_key_name if foreign_key_name && foreign_key_name != :master_id
@@ -78,8 +104,10 @@ module UserHandler
       r
     end
 
+    #
+    # When specifying options like :foreign_key on an association, the default :inverse is not automatically
+    # assumed. The value should always be the plural model name, so we force this.
     def assoc_inverse
-      # The plural model name
       to_s.ns_underscore.pluralize.to_sym
     end
 
@@ -241,12 +269,12 @@ module UserHandler
   #
   # After a record has been saved, make a tracker entry for it
   # This only happens if the record was created or updated,
-  # is not marked `no_track` and it has a master association.
+  # is not marked `no_track` and it has a master association (with a master record set).
   # @return [Boolean | nil] representing success or failure
   def track_record_update
     # Don't do this if we have the configuration set to avoid tracking, or
     # if the record was not created or updated
-    return if no_track || !(@was_updated || @was_created) || self.class.no_master_association
+    return if no_track || !(@was_updated || @was_created) || self.class.no_master_association || !master
 
     @update_action = true
     Tracker.track_record_update self

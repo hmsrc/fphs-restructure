@@ -9,6 +9,18 @@ class Redcap::ProjectAdminsController < AdminController
 
   helper_method :transfer_mode_options, :notes_editor, :hide_edit_fields
 
+  def request_latest_rc_configs
+    set_instance_from_id
+
+    @redcap__project_admin.current_admin ||= current_admin
+    @redcap__project_admin.request_latest_config = true
+    @redcap__project_admin.updated_at = Time.now
+    @redcap__project_admin.save!
+
+    msg = "Latest configurations requested at #{DateTime.now}"
+    render json: { message: msg }, status: 200
+  end
+
   def request_records
     set_instance_from_id
     if @redcap__project_admin.dynamic_model_table.blank?
@@ -60,7 +72,7 @@ class Redcap::ProjectAdminsController < AdminController
     @redcap__project_admin.data_dictionary_version = nil
     @redcap__project_admin.update!(captured_project_info: nil, transfer_mode: 'none')
 
-    msg = "Reconfiguration requested at #{DateTime.now}"
+    msg = "Reconfiguration requested at #{DateTime.now} - wait a few seconds then click the *refresh* button to review the changes"
     render json: { message: msg }, status: 200
   end
 
@@ -69,7 +81,7 @@ class Redcap::ProjectAdminsController < AdminController
     @redcap__project_admin.current_admin ||= current_admin
     @redcap__project_admin.update_dynamic_model
 
-    msg = "Reconfiguration requested at #{DateTime.now}"
+    msg = "Reconfiguration requested at #{DateTime.now} - wait a few seconds then click the *refresh* button to review the changes"
     render json: { message: msg }, status: 200
   end
 

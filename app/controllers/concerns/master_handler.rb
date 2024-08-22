@@ -30,16 +30,16 @@ module MasterHandler
   # so simply add a parameter like :cache_version => current timestamp to force new data
   def index
     index_res = if params[:cache_result].present?
-      response.headers['Cache-Control'] = 'max-age=30'
-      response.headers.delete 'Expires'
-      return unless stale?(etag: index_cache_key)
+                  response.headers['Cache-Control'] = 'max-age=30'
+                  response.headers.delete 'Expires'
+                  return unless stale?(etag: index_cache_key)
 
-      Rails.cache.fetch(index_cache_key) do
-        retrieve_index.as_json
-      end
-    else
-      retrieve_index.as_json
-    end
+                  Rails.cache.fetch(index_cache_key) do
+                    retrieve_index.as_json
+                  end
+                else
+                  retrieve_index.as_json
+                end
 
     render json: index_res
   end
@@ -303,7 +303,7 @@ module MasterHandler
 
   def check_creatable?
     handle_option_type_config if action_name == 'new' && respond_to?(:handle_option_type_config, true)
-    return if object_instance.allows_current_user_access_to?(:create) || current_admin_sample
+    return if current_admin_sample || object_instance.allows_current_user_access_to?(:create)
 
     not_creatable
     nil
@@ -341,7 +341,7 @@ module MasterHandler
   # is not used repetitively (potentially breaking the current_user functionality and poor performance)
   def set_me_and_master
     if UseMasterParam.include?(action_name)
-      @master = Master.find(params[:master_id]) unless primary_model.no_master_association
+      @master = Master.find(params[:master_id]) unless primary_model.no_master_association && !params[:master_id]
     else
       object = primary_model.find(params[:id])
       set_object_instance object
@@ -433,12 +433,25 @@ module MasterHandler
     set_item if defined? set_item
     build_with = nil
 
+    if defined?(setup_default_build_params)
+      # We may need to set default parameters before the build
+      # to ensure we have associations back the the master record set up correctly,
+      # or to set other attributes required for validation.
+      setup_default_build_params
+      set_master_on_build = !!params[:master_id]
+    end
+
     begin
       build_with = secure_params
     rescue StandardError => e
       logger.warn("set_instance_from_build: #{e}")
     end
     set_object_instance @master_objects.build(build_with)
+
+    if set_master_on_build
+      object_instance.master = @master
+      object_instance.current_user = current_user
+    end
 
     object_instance.item_id = @item_id if @item && object_instance.respond_to?(:item_id) && !object_instance.item_id
   end

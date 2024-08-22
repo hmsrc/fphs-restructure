@@ -201,7 +201,7 @@ module NfsStore
         res = false
         new_file_name ||= file_name
         current_user_role_names.each do |role_name|
-          curr_path = file_path_for role_name: role_name
+          curr_path = file_path_for(role_name:)
           next unless File.exist?(curr_path)
 
           self.path = new_path if new_path
@@ -270,7 +270,15 @@ module NfsStore
       # @return [Boolean] true if the file was moved successfully
       def move_from(from_path)
         res = false
-        current_user_role_names.each do |role_name|
+
+        curns = current_user_role_names
+
+        if curns.empty?
+          raise FsException::NoAccess,
+                "User #{current_user&.email} does not have permission to store file in app type #{current_user&.app_type&.name} - no group role names exist"
+        end
+
+        curns.each do |role_name|
           # Cycle until we find a role that makes this directory writeable
           next unless Filesystem.test_dir role_name, container, :write
 
@@ -300,7 +308,11 @@ module NfsStore
         end
 
         unless res
-          raise FsException::NoAccess, 'User does not have permission to store file with any of the current groups'
+          cpath = NfsStore::Manage::Filesystem.nfs_store_path(curns.last, container, container_path(no_filename: true),
+                                                              strip_final_slash: true)
+          raise FsException::NoAccess,
+                "User #{current_user&.email} does not have permission to store file with any of the current groups in app type #{current_user&.app_type&.name} - " \
+                "directory '#{cpath}' #{Dir.exist?(cpath) ? 'exists' : 'is missing'}"
         end
 
         true
@@ -384,7 +396,7 @@ module NfsStore
       # @return [Array(String, String) | nil] returns an array [filesystem_path, role_name]
       def file_path_and_role_name
         current_user_role_names.each do |role_name|
-          fs_path = file_path_for role_name: role_name
+          fs_path = file_path_for(role_name:)
           return [fs_path, role_name] if File.exist?(fs_path)
         end
         nil

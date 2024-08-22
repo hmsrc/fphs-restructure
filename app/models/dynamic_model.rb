@@ -59,7 +59,7 @@ class DynamicModel < ActiveRecord::Base
   def all_implementation_fields(ignore_errors: true, only_real: false)
     fl = field_list_array
 
-    res = (fl || [])
+    res = fl || []
     res.uniq
 
     if res.empty? && model_class
@@ -98,21 +98,81 @@ class DynamicModel < ActiveRecord::Base
   def add_master_association
     return if disabled || foreign_key_name.blank?
 
-    man = model_association_name
-
     remove_assoc_class('Master', nil, '')
 
-    Master.has_many man, inverse_of: :master,
-                         class_name: "DynamicModel::#{model_class_name}",
-                         foreign_key: foreign_key_name,
-                         primary_key: primary_key_name
-
+    if foreign_key_through_external_id
+      add_master_association_through_external_id
+    else
+      Master.has_many model_association_name, inverse_of: :master,
+                                              class_name: "DynamicModel::#{model_class_name}",
+                                              foreign_key: foreign_key_name,
+                                              primary_key: primary_key_name
+    end
     # Add a filtered scope method, which allows master associations to remove non-accessible items automatically
     # This is not the default scope, since it calls #calc_if(:showable_if,...) under the covers, and that may
     # reference the associations itself, causing a cascade of calls
-    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{man}" do
-      send(man).filter_results
+    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{model_association_name}" do
+      send(model_association_name).filter_results
     end
+  end
+
+  #
+  # Handle the special case where we want to join with the master through an external identifier
+  # and this is defined in the configuration
+  # This defines associations on this dynamic model, the intermediate external identifier model
+  # and the master.
+  # When this is used, a direct `belongs_to :master` association is not defined in the UserHandler.
+  def add_master_association_through_external_id
+    external_id_model = Resources::Models.find_by(resource_name: foreign_key_through_external_id)&.model
+    unless external_id_model
+      raise FphsException,
+            "_configurations.external_identifier is not a valid resource: #{foreign_key_through_external_id}"
+    end
+
+    external_id_attribute = external_id_model.external_id_attribute
+    through_ext_id_assoc = foreign_key_through_external_id.to_s.singularize.to_sym
+
+    # We associate this dynamic model with the external identifier
+    # and use the latest external identifier to represent the id to match on
+    implementation_class.belongs_to through_ext_id_assoc,
+                                    class_name: external_id_model.name,
+                                    foreign_key: foreign_key_name,
+                                    primary_key: external_id_attribute
+
+    # The master can then be matched through the external identifier association
+    implementation_class.has_one :master, through: through_ext_id_assoc
+
+    # A master_id attribute doesn't exist, so we define one, since master association code
+    # assumes one exists
+    implementation_class.define_method :master_id do
+      @master_id ||= master&.id
+    end
+
+    # To get back from the master to this dynamic model, we will go back through the
+    # the external identifier. The external identifier needs to have an association on it
+    # pointing to one of this dynamic model type, matching on the appropriate fields
+    external_id_model.has_one one_of_this_association_name,
+                              class_name: implementation_class.name,
+                              inverse_of: external_id_model.assoc_inverse,
+                              foreign_key: foreign_key_name,
+                              primary_key: external_id_attribute
+
+    # The master can find all of this type of dynamic model by finding them through
+    # the all the external identifier records associated with the master.
+    Master.has_many model_association_name,
+                    inverse_of: :master,
+                    class_name: "DynamicModel::#{model_class_name}",
+                    through: external_id_model.definition.model_association_name
+  end
+
+  #
+  # Get the :foreign_key_through_external_id value from the configurations
+  def foreign_key_through_external_id
+    @memo_foreign_key_through_external_id ||= {}
+    return @memo_foreign_key_through_external_id[:config] if @memo_foreign_key_through_external_id.has_key?(:config)
+
+    option_configs
+    @memo_foreign_key_through_external_id[:config] = configurations&.dig(:foreign_key_through_external_id)&.to_sym
   end
 
   #
@@ -141,7 +201,7 @@ class DynamicModel < ActiveRecord::Base
   def update_tracker_events
     return unless name && !disabled
 
-    Tracker.add_record_update_entries table_name.singularize, current_admin, 'record'
+    Tracker.add_record_update_entries tracker_name, current_admin, 'record'
     Classification::Protocol.reset_memos
   end
 
@@ -180,9 +240,25 @@ class DynamicModel < ActiveRecord::Base
               DynamicModel.definition_cache[definition_id]
             end
 
-            # Add definition here, since UserHandler relies on it during include
+            # Add method definitions here, since UserHandler relies on it during include
             def no_master_association
               definition.foreign_key_name.blank?
+            end
+
+            def foreign_key_name
+              @foreign_key_name ||= definition.foreign_key_name.blank? ? nil : definition.foreign_key_name.to_sym
+            end
+
+            def primary_key_name
+              @primary_key_name ||= definition.primary_key_name.to_sym
+            end
+
+            def foreign_key_through_external_id
+              @foreign_key_through_external_id ||= definition.foreign_key_through_external_id
+            end
+
+            def external_identifer_assoc
+              @external_identifer_assoc ||= definition.external_identifer_assoc
             end
           end
 
@@ -297,6 +373,12 @@ class DynamicModel < ActiveRecord::Base
               resources short_pg_name, except: [:destroy]
             end
             get "#{pg_name}/:id/template_config", to: "#{pg_name}#template_config"
+          end
+
+          if dm.foreign_key_through_external_id
+            namespace :dynamic_model do
+              resources short_pg_name, only: %i[show new index]
+            end
           end
 
         else
