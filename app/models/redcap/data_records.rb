@@ -11,7 +11,8 @@ module Redcap
     attr_accessor :project_admin, :records, :class_name, :errors,
                   :created_ids, :updated_ids, :unchanged_ids, :disabled_ids, :storage_stage,
                   :current_admin, :retrieved_files, :upserted_records, :imported_files,
-                  :step_count, :job, :done
+                  :step_count, :job, :done,
+                  :integer_survey_identifier_field_name, :survey_identifier_field_name, :set_master_id_using_association
 
     def initialize(project_admin, class_name)
       super()
@@ -29,6 +30,9 @@ module Redcap
       self.upserted_records = []
       self.imported_files = []
       self.step_count = UpdateJobRequestEvery
+      self.survey_identifier_field_name = project_admin.survey_identifier_field.to_sym
+      self.integer_survey_identifier_field_name = project_admin.integer_survey_identifier_field.to_sym
+      self.set_master_id_using_association = project_admin.data_options.set_master_id_using_association
     end
 
     #
@@ -117,14 +121,16 @@ module Redcap
       am = project_admin.data_options.associate_master_through_external_identifer
       return unless am
 
-      si_name = project_admin.survey_identifier_field.to_sym
-      integer_si_name = project_admin.integer_survey_identifier_field.to_sym
+      si_name = survey_identifier_field_name
+      integer_si_name = integer_survey_identifier_field_name
 
       return unless records.first.has_key?(si_name)
 
       records.each do |rec|
         rec[integer_si_name] = rec[si_name]&.to_i
       end
+
+      @has_integer_survey_identifier = true
     end
 
     #
@@ -372,6 +378,30 @@ module Redcap
     end
 
     #
+    # Should we handle setting the master_id on a record?
+    def do_handle_setting_master_id
+      return @do_handle_setting_master_id unless @do_handle_setting_master_id.nil?
+
+      @do_handle_setting_master_id = !!(@has_integer_survey_identifier && set_master_id_using_association)
+    end
+
+    #
+    # If the project has the option set_master_id_using_association, update
+    # the new/update record master_id value with the master_id returned from the
+    # external id association.
+    def handle_setting_master_id(update_record, retrieved_record)
+      return unless do_handle_setting_master_id
+
+      # Start by setting the integer survey identifier field, so the association can get the master with the new value
+      update_record[integer_survey_identifier_field_name] = retrieved_record[integer_survey_identifier_field_name]
+
+      # Retrieve the master_id from the record (which goes through the association), then set the value returned
+      # on the actual underlying attribute. Although this looks like it is assigning the same value, this is not
+      # actually what is happening.
+      update_record.master_id = update_record.master_id
+    end
+
+    #
     # Handle creation of new record if the record does not already exist based on its
     # record_id_field matching, update if it does exist and has new information, or
     # do nothing if it exists and is unchanged.
@@ -383,21 +413,23 @@ module Redcap
     # @param [Hash] record
     # @param [true | false] keep_results - save each existing or new record to @upserted_records
     # @return [Integer | false | nil]
-    def create_or_update(record, keep_results: true)
-      rec_ids = record_identifiers(record)
+    def create_or_update(retrieved_record, keep_results: true)
+      rec_ids = record_identifiers(retrieved_record)
       existing_record = model.where(rec_ids).first
       if existing_record
         existing_record.no_track = true if existing_record.respond_to? :no_track
         existing_record.current_user = current_user if existing_record.respond_to? :current_user=
 
         # Check if there is an exact match for the record. If so, we are done
-        if record_matches_retrieved(existing_record, record)
+        if record_matches_retrieved(existing_record, retrieved_record)
           unchanged_ids << rec_ids
           return false
         end
 
+        handle_setting_master_id(existing_record, retrieved_record)
+
         existing_record.force_save!
-        if existing_record.update(record)
+        if existing_record.update(retrieved_record)
           if keep_results
             updated_ids << rec_ids
             upserted_records << existing_record
@@ -407,9 +439,12 @@ module Redcap
           errors << { id: rec_ids, errors: existing_record.errors, action: :update }
         end
       else
-        new_record = model.new(record)
+        new_record = model.new(retrieved_record)
         new_record.no_track = true if new_record.respond_to? :no_track
         new_record.current_user = current_user if new_record.respond_to? :current_user=
+
+        handle_setting_master_id(new_record, retrieved_record)
+
         new_record.force_save!
         if new_record.save
           if keep_results
@@ -500,6 +535,10 @@ module Redcap
         # *disabled* can be updated in this way
         all_data_dictionary_fields[field_name]&.field_type&.values_match?(new_value, existing_attrs[field_name])
       end
+
+      # Handle special case - if the option to set_master_id_using_association && the current master_id is not set
+      # This will allow the lookup of the master to run by treating it as having changed.
+      res[:master_id] = true if set_master_id_using_association && existing_record['master_id'].nil?
 
       res.empty?
     end

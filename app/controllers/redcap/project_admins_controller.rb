@@ -72,7 +72,7 @@ class Redcap::ProjectAdminsController < AdminController
     @redcap__project_admin.data_dictionary_version = nil
     @redcap__project_admin.update!(captured_project_info: nil, transfer_mode: 'none')
 
-    msg = "Reconfiguration requested at #{DateTime.now}"
+    msg = "Reconfiguration requested at #{DateTime.now} - wait a few seconds then click the *refresh* button to review the changes"
     render json: { message: msg }, status: 200
   end
 
@@ -81,7 +81,7 @@ class Redcap::ProjectAdminsController < AdminController
     @redcap__project_admin.current_admin ||= current_admin
     @redcap__project_admin.update_dynamic_model
 
-    msg = "Reconfiguration requested at #{DateTime.now}"
+    msg = "Reconfiguration requested at #{DateTime.now} - wait a few seconds then click the *refresh* button to review the changes"
     render json: { message: msg }, status: 200
   end
 

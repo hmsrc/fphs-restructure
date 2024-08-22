@@ -429,6 +429,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       setup_file_fields
       rc = @project_admin
       rc.current_admin = @admin
+      setup_file_store rc.job_admin
       setup_file_store
 
       # expect(@admin.matching_user).to eq @user
@@ -788,7 +789,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       @projects = setup_redcap_project_admin_configs
       @project = @projects.first
 
-      # Create the first DM with multiple choice summary fields
+      # Create the first DM with integer survey identifier field
       rc = Redcap::ProjectAdmin.active.first
       rc.records_request_options.exportSurveyFields = true
       rc.data_options.associate_master_through_external_identifer = 'scantrons'
@@ -851,6 +852,111 @@ RSpec.describe Redcap::DataRecords, type: :model do
 
         expect(sa).to eq r.redcap_survey_identifier.to_i
       end
+    end
+  end
+
+  describe 'project associating foreign key with external id and setting master_id field' do
+    before :all do
+      @bad_admin, = create_admin
+      @bad_admin.update! disabled: true
+      create_admin
+      @projects = setup_redcap_project_admin_configs
+      @project = @projects.first
+
+      # Create the first DM with master_id
+      rc = Redcap::ProjectAdmin.active.first
+      rc.records_request_options.exportSurveyFields = true
+      rc.data_options.associate_master_through_external_identifer = 'scantrons'
+      rc.data_options.set_master_id_using_association = true
+      rc.study = 'external-id-test'
+      rc.current_admin = @admin
+      rc.save!
+
+      rc.reload
+      expect(rc.data_options.associate_master_through_external_identifer).to eq 'scantrons'
+      puts "rc.id: #{rc.id}"
+
+      ds = Redcap::DynamicStorage.new rc, "redcap_test.test_rc#{rand 100_000_000_000_000}_recs"
+      ds.category = 'redcap-test-env'
+      @dm = ds.create_dynamic_model
+      expect(ds.dynamic_model_ready?).to be_truthy
+      expect(@dm.field_list).to include('master_id')
+    end
+
+    before :example do
+      create_admin
+      setup_file_store
+      reset_mocks
+
+      # Set up scantrons to match to redcap_survey_identifiers
+      setup_access :scantrons unless @user.has_access_to? :create, :table, :scantrons
+
+      create_sid_scantrons
+    end
+
+    it 'saves records with integer survey identifiers and associated master_id' do
+      dm = @dm
+
+      rc = Redcap::ProjectAdmin.active.find_by(study: 'external-id-test')
+      rc.current_admin = @admin
+      rc.save!
+      expect(rc.data_options.associate_master_through_external_identifer).to eq 'scantrons'
+      dd = rc.redcap_data_dictionary
+      all_rf = dd.all_retrievable_fields
+      expect(all_rf[:redcap_survey_identifier_id].field_type.name).to eq :integer_survey_identifier
+
+      stub_request_records @project[:server_url], @project[:api_key]
+      dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
+
+      dr.retrieve
+      dr.summarize_fields
+      dr.handle_survey_identifier
+
+      expect(dr.records.first.keys).to include(:redcap_survey_identifier_id)
+
+      expect { dr.validate }.not_to raise_error
+      dr.store
+
+      expect(dr.errors).to be_empty
+      created_record_ids = dr.created_ids.map { |r| r[:record_id] }.sort
+      expect(created_record_ids).to eq @record_ids.sort
+      expect(dr.updated_ids).to be_empty
+
+      stored_recs = dm.implementation_class.where(record_id: created_record_ids)
+      stored_recs.each do |r|
+        sa = r.redcap_survey_identifier_id
+
+        expect(sa).to eq r.redcap_survey_identifier.to_i
+        expect(r['master_id']).to eq r.master.id
+      end
+
+      # Retrieving again makes no changes
+      dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
+
+      dr.retrieve
+      dr.summarize_fields
+      dr.handle_survey_identifier
+      dr.store
+
+      expect(dr.updated_ids).to be_empty
+      expect(dr.created_ids).to be_empty
+
+      # Force a change in a master_id
+      stored_recs = dm.implementation_class.where(record_id: created_record_ids)
+      rec = stored_recs.first
+      rec.force_save!
+      rec.update!(current_user: @user, master_id: nil)
+
+      # Retrieving again makes no changes
+      dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
+
+      dr.retrieve
+      dr.summarize_fields
+      dr.handle_survey_identifier
+      dr.store
+
+      expect(dr.updated_ids.length).to eq 1
+      expect(dr.created_ids).to be_empty
     end
   end
 end

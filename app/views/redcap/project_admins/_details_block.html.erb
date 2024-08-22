@@ -109,6 +109,9 @@ if req&.result
   <% unless object_instance.associate_master_through_external_id_valid? %>
   <p class="info-danger">Dynamic model _configurations.foreign_key_through_external_id has not been added</p>
   <% end %>
+  <% unless object_instance.set_master_id_using_association_valid? %>
+  <p class="info-danger">Option set_master_id_using_association requires associate_master_through_external_identifer to be set</p>
+  <% end %>  
 <p><label>pull schedule</label>
   <span>
   <% if  object_instance.frequency.present? && object_instance.transfer_mode == 'scheduled' %>

@@ -17,9 +17,13 @@ module Redcap
       project_admin.current_user.app_type = project_admin.job_app_type
       project_admin.in_background_job = true
 
-      raise FphsException, 'RedcapJobHandler: job admin is not set' unless project_admin.current_admin
-      raise FphsException, 'RedcapJobHandler: job user is not set' unless project_admin.current_user
-      raise FphsException, 'RedcapJobHandler: job user app type is not set' unless project_admin.current_user.app_type
+      raise FphsException, 'RedcapJobHandler: job admin is not set' unless project_admin.current_admin.is_a?(Admin)
+      raise FphsException, 'RedcapJobHandler: job user is not set' unless project_admin.current_user.is_a?(User)
+
+      unless project_admin.current_user.app_type.is_a?(Admin::AppType)
+        raise FphsException,
+              'RedcapJobHandler: job user app type is not set'
+      end
 
       Rails.logger.info 'Running REDCap job with - ' \
                         "admin: #{project_admin.current_admin.email} - " \

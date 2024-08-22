@@ -7,6 +7,11 @@ module Redcap
   class DynamicStorage
     include Dynamic::ModelGenerator
 
+    ExtraFieldTypes = {
+      disabled: 'boolean',
+      master_id: 'integer'
+    }.freeze
+
     attr_accessor :project_admin, :qualified_table_name, :category
 
     def self.default_category
@@ -54,11 +59,7 @@ module Redcap
 
       extra_fields&.each do |ef|
         ef = ef.to_sym
-        ft = if ef == :disabled
-               'boolean'
-             else
-               'string'
-             end
+        ft = ExtraFieldTypes[ef] || 'string'
         @field_types[ef] = ft.to_s
       end
 
@@ -66,7 +67,7 @@ module Redcap
     end
 
     #
-    # Return a hash of all fields, with a value true if they are to berepresented as an array
+    # Return a hash of all fields, with a value true if they are to be represented as an array
     # in the database. Used alongside #field_types a full definition of the field can be made
     # for migrations.
     # @return [Hash]
@@ -80,7 +81,8 @@ module Redcap
 
       extra_fields&.each do |ef|
         ef = ef.to_sym
-        ft = (ef != :disabled)
+        # Assume it is an array if it isn't one of the predefined extra fields
+        ft = !ExtraFieldTypes.keys.include?(ef)
         @array_fields[ef] = ft
       end
 
@@ -237,6 +239,7 @@ module Redcap
 
       @extra_fields = []
       @extra_fields << 'disabled' if project_admin.disable_deleted_records?
+      @extra_fields << 'master_id' if project_admin.data_options.set_master_id_using_association
 
       return @extra_fields unless project_admin.data_options.add_multi_choice_summary_fields
 

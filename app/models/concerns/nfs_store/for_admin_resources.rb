@@ -50,7 +50,7 @@ module NfsStore
     # Master record to be used to contain filestore containers
     # @return [Master]
     def master
-      Settings.admin_master
+      @master ||= Settings.admin_master
     end
 
     def master_id

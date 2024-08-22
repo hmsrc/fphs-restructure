@@ -224,6 +224,7 @@ module Redcap
                                       handle_deleted_records
                                       prefix_dynamic_model_config_library
                                       associate_master_through_external_identifer
+                                      set_master_id_using_association
                                       run_jobs_as_user
                                       run_jobs_in_app_type]
 
@@ -501,6 +502,10 @@ module Redcap
 
     def associate_master_through_external_id_valid?
       data_options.associate_master_through_external_identifer.blank? || dynamic_storage.dynamic_model_master_external_id_added?
+    end
+
+    def set_master_id_using_association_valid?
+      !data_options.set_master_id_using_association || data_options.associate_master_through_external_identifer.present?
     end
 
     #

@@ -50,6 +50,11 @@ data_options:
     # When this is specified, and the project is set to `exportSurveyFields: true` then an additional
     # `redcap_survey_identifier_id` field is added to the dynamic model database table, defined as an
     # integer type. This allows it to be correctly joined to integer typed external id fields on other tables.
+  set_master_id_using_association: true|false
+    # If option `associate_master_through_external_identifer` is set, the ability to retrieve the master record
+    # can be used to set a `master_id` field directly on the dynamic model. Setting this option to *true* will
+    # add a `master_id` field automatically, and ensure it is set when records are retrieved from REDCap.
+    # NOTE: for large datasets that change regularly, this may slow down record retrieval significantly.  
   run_jobs_as_user: <username>
     # Sets the admin and matching user that will be used to run background jobs, 
     # such as getting project metadata or retrieving records from REDCap.

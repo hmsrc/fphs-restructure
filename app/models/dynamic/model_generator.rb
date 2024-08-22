@@ -83,7 +83,10 @@ module Dynamic
       end
 
       fla = field_list.split
-      if fla.include?('master_id')
+
+      # Remove master_id from the list and make it the foreign key name, only if
+      # the foreign_key_name was not already set or was set to master_id already
+      if fla.include?('master_id') && (foreign_key_name.blank? || foreign_key_name == 'master_id')
         foreign_key_name = 'master_id'
         @field_list = fla.select { |f| f != 'master_id' }.join(' ')
       end
