@@ -44,18 +44,12 @@ class SaveTriggers::UpdateThis < SaveTriggers::SaveTriggersBase
         end
 
         with_result = config[:with_result]
+        update_with = config[:with]
+        force_not_editable_save = config[:force_not_editable_save]
+        force_not_valid = config[:force_not_valid]
+
         handle_with_result with_result, vals
-
-        config[:with].each do |fn, def_val|
-          if def_val.is_a? Hash
-            ca = ConditionalActions.new def_val, @item
-            res = ca.get_this_val
-          else
-            res = FieldDefaults.calculate_default @item, def_val
-          end
-
-          vals[fn] = res
-        end
+        handle_with_attributes update_with, vals
 
         # Retain the flags so that the #update! doesn't change
         # what we need to report through the API
@@ -64,10 +58,13 @@ class SaveTriggers::UpdateThis < SaveTriggers::SaveTriggersBase
         updated = res._updated
         disabled = res._disabled
         @item.transaction do
-          res.ignore_configurable_valid_if = true if config[:force_not_valid]
-          res.force_save! if config[:force_not_editable_save]
+          res.ignore_configurable_valid_if = true if force_not_valid
+          res.force_save! if force_not_editable_save
           new_vals = vals.merge(current_user: @item.current_user || @item.user, skip_save_trigger: true)
           res.update! new_vals
+
+          ei_vals = vals[:embedded_item]
+          res.update_embedded_item(ei_vals, force_not_editable_save:, force_not_valid:) if ei_vals
         end
         res._created = created
         res._updated = updated

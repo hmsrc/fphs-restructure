@@ -37,19 +37,10 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
           end
         end
 
-        in_master = @master
+        self.in_master = @master
 
         handle_with_result with_result, vals
-
-        create_with&.each do |fn, def_val|
-          res = FieldDefaults.calculate_default @item, def_val
-          vals[fn] = res
-
-          if fn.to_sym == :master_id
-            in_master = Master.find(res)
-            in_master.current_user = @item.current_user
-          end
-        end
+        handle_with_attributes create_with, vals
 
         @item.transaction do
           new_type = in_master.assoc_named(model_name.to_s.pluralize)
@@ -67,6 +58,8 @@ class SaveTriggers::CreateReference < SaveTriggers::SaveTriggersBase
               new_item.force_save!
             end
             new_item.save!
+
+            new_item.create_embedded_item(vals[:embedded_item], force_create:, force_not_valid:) if vals[:embedded_item]
           end
 
           res =
