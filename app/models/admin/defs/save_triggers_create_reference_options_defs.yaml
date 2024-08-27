@@ -25,6 +25,10 @@
                 received_by: received_by
                 select_facility: 'Lab: {{select_lab}}'
                 # Substitutions use data only from the "from:" item                
+                embedded_item:
+                  rank: rank
+                  rec_type: rec_type
+                  data: '{{select_lab}}'
 
             with: 
               field_name: 'now()'
@@ -35,6 +39,13 @@
               field_name_4: 
                 reference_name:
                   field_name: return_value
+              field_name_5: '\{\{curly_tag\}\} - \{\{curly_tag2\}\}'
+              field_name_6: '\{\{\{data.data_structure\}\}\}' # Get a data structure as original object, for JSON fields etc                  
+              embedded_item:
+                field_name: 'literal value'
+                field_name_2: 
+                  reference_name:
+                    field_name: return_value
 
             to_existing_record: # use an existing record of type "model_name", rather than creating a new one
               record_id: 'Hash with return_value, such as {model_name: {match: value, id: "return_value"\}\}'

@@ -74,8 +74,8 @@ module Dynamic
                          force_reload: nil, showable_only: true)
       clear_model_reference_memo if force_reload
 
-      memoize_references({ reference_type: reference_type, active_only: active_only,
-                           ref_order: ref_order, use_options_order_by: use_options_order_by }) do
+      memoize_references({ reference_type:, active_only:,
+                           ref_order:, use_options_order_by: }) do
         # NOTE: @config_order_model_references is set by GeneralDataConcerns#as_json to
         #       provide a simple way to indicate model use_options_order_by should be true
         #       for json generation
@@ -97,9 +97,9 @@ module Dynamic
               to_record_type: ref_type,
               filter_by: ref_config[:filter_by],
               without_reference: ref_config[:without_reference],
-              ref_order: ref_order,
+              ref_order:,
               active: active_only,
-              order_by: (use_options_order_by && ref_config[:order_by])
+              order_by: use_options_order_by && ref_config[:order_by]
             }
 
             got = case ref_config[:from]
@@ -219,7 +219,7 @@ module Dynamic
           rin => {
             from: 'any',
             to_record_type: rin,
-            filter_by: filter_by,
+            filter_by:,
             without_reference: true,
             many: 'direct_embed',
             ref_config: { embed_resource_name: rin },
@@ -285,7 +285,7 @@ module Dynamic
               end
 
               user_can_create = target_object_creatable?(ref_type, ref_config)
-              res = { ref_type: ref_type, many: creatable_add_config, ref_config: ref_config } if user_can_create
+              res = { ref_type:, many: creatable_add_config, ref_config: } if user_can_create
             end
 
             cre_res[ref_key] = { ref_type => res } if res[:ref_type] || !only_creatables
@@ -311,7 +311,7 @@ module Dynamic
       if mrc&.class_parent_name == 'ActivityLog'
 
         elt = ref_config[:add_with] && ref_config[:add_with][:extra_log_type]
-        ref_obj = mrc.new(extra_log_type: elt, master: master)
+        ref_obj = mrc.new(extra_log_type: elt, master:)
       else
         attrs = {}
         if mrc.no_master_association
@@ -390,7 +390,7 @@ module Dynamic
         label = activity_selector_config[activity_key]
 
         elt_ref_config = ref_config.merge(
-          label: label,
+          label:,
           to_record_label: label,
           add_with: {
             extra_log_type: activity_key.to_s
@@ -421,10 +421,10 @@ module Dynamic
       ref_created_by_user = ref_config[:from] if ref_config[:from].in?(['user_is_creator', 'other_user_is_creator'])
       pass_options = {
         to_record_type: ref_type,
-        filter_by: filter_by,
+        filter_by:,
         active: true,
-        without_reference: without_reference,
-        ref_created_by_user: ref_created_by_user
+        without_reference:,
+        ref_created_by_user:
       }
 
       if add_config == 'many'
@@ -562,6 +562,49 @@ module Dynamic
         apply_embedded_item_current_user(res)
         res
       end
+    end
+
+    #
+    # Create an embedded item inside the current instance, setting up a
+    # model_references record if needed (skipped if directly embedded)
+    # @param [Hash] attrs
+    # @param [true|false] force_create
+    # @param [true|false] force_not_valid
+    # @return [UserBase] embedded item that was created
+    def create_embedded_item(attrs, force_create: nil, force_not_valid: nil)
+      self.action_name = 'create'
+      ei = embedded_item
+      return unless ei
+
+      ei.ignore_configurable_valid_if = force_not_valid
+
+      if force_create
+        ei.send(:force_write_user)
+        ei.force_save!
+      end
+
+      ei.update!(attrs)
+      ModelReference.create_with self, ei unless direct_embed?
+      self.action_name = 'index'
+      ei
+    end
+
+    #
+    # Update an embedded item inside the current instance
+    # @param [Hash] attrs
+    # @param [true|false] force_not_editable_save
+    # @param [true|false] force_not_valid
+    # @return [UserBase] embedded item that was updated
+    def update_embedded_item(attrs, force_not_editable_save: nil, force_not_valid: nil)
+      self.action_name = 'update'
+      ei = embedded_item
+      return unless ei
+
+      ei.ignore_configurable_valid_if = force_not_valid
+      ei.force_save! if force_not_editable_save
+      ei.update!(attrs)
+      self.action_name = 'index'
+      ei
     end
 
     def memoize_embedded_item(&block)

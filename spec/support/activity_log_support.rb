@@ -186,4 +186,12 @@ module ActivityLogSupport
 
     others
   end
+
+  def setup_option_config(position, label, fields)
+    c = @activity_log.option_configs[position]
+    expect(c.label).to eq label
+    expect(c.fields).to eq fields
+
+    setup_access c.resource_name, resource_type: :activity_log_type, user: @user
+  end
 end
