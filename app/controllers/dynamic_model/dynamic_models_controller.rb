@@ -60,14 +60,16 @@ class DynamicModel::DynamicModelsController < UserBaseController
   #
   # Setup the option type config for :default
   def handle_option_type_config
-    etp = object_instance.option_type.to_s.underscore.to_sym
+    etp = params[:option_type_name] if current_admin_sample
+    etp = object_instance.option_type.to_s.underscore.to_sym if etp.blank?
 
     # set_item
 
-    unless etp.present? && @implementation_class && @implementation_class.definition.option_configs_names&.include?(etp)
+    unless etp.present? && @implementation_class && @implementation_class.definition.option_configs_names&.include?(etp.to_sym)
       return
     end
 
+    etp = etp.to_sym
     @option_type_name = etp
     # Get the options that were current when the form was originally created, or the current
     # options if this is a new instance
@@ -77,7 +79,10 @@ class DynamicModel::DynamicModelsController < UserBaseController
                             @implementation_class.definition.option_type_config_for(etp)
                           end
 
-    @option_type_attr_name = :option_type
+    conf_attr_name = @option_type_config.config_obj.configurations&.dig(:option_type_attr_name)
+    @option_type_attr_name = conf_attr_name.presence || :option_type
+
+    object_instance.extra_log_type = @option_type_name unless object_instance.persisted?
   end
 
   def param_set_name

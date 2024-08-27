@@ -7,6 +7,18 @@
   url_pre = "/masters/#{admin_master}" unless object_instance.implementation_class.no_master_association
 %>
 <p>
+<form method="get" action="<%="#{url_pre}/#{object_instance.implementation_class.to_s.underscore.pluralize}/new?"%>" 
+      data-remote="true"
+      data-result-target=<%="##{object_instance.resource_name.hyphenate}-#{admin_master}-"%>
+      data-result-target-force="true"
+>
+<%= select_tag :option_type_name, options_for_select(object_instance.option_configs_names || []) %>
+<%= hidden_field_tag :admin_sample, 'true' %>
+<button>refresh</button>
+</form>
+</p>
+<p>
+  
   <%= link_to 'refresh', "#{url_pre}/#{object_instance.implementation_class.to_s.underscore.pluralize}/new?admin_sample=true", 
     data: {
       remote: true, 
