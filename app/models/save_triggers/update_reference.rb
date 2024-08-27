@@ -50,21 +50,25 @@ class SaveTriggers::UpdateReference < SaveTriggers::SaveTriggersBase
         end
 
         with_result = config[:with_result]
-        handle_with_result with_result, vals
+        update_with = config[:with]
+        force_not_editable_save = config[:force_not_editable_save]
+        force_not_valid = config[:force_not_valid]
 
-        config[:with].each do |fn, def_val|
-          res = FieldDefaults.calculate_default @item, def_val
-          vals[fn] = res
-        end
+        handle_with_result with_result, vals
+        handle_with_attributes update_with, vals
 
         @item.transaction do
           ca = ConditionalActions.new config[:first], @item
           res = ca.get_this_val
           raise FphsException, "No reference found to update: #{config[:first]&.keys}" unless res
 
-          res.ignore_configurable_valid_if = true if config[:force_not_valid]
-          res.force_save! if config[:force_not_editable_save]
+          res.ignore_configurable_valid_if = true if force_not_valid
+          res.force_save! if force_not_editable_save
           res.update! vals.merge(current_user: @item.current_user || @item.user)
+
+          ei_vals = vals[:embedded_item]
+          res.update_embedded_item(ei_vals, force_not_editable_save:, force_not_valid:) if ei_vals
+
           @item.save_trigger_results['updated_items'] << res
           @item.save_trigger_results['updated_results'] << true
         end

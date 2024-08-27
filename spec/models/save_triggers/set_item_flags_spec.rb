@@ -6,12 +6,6 @@ RSpec.describe SaveTriggers::SetItemFlags, type: :model do
   include ModelSupport
   include ActivityLogSupport
 
-  def random_phone_number
-    pn = "(617)123-1234 c#{rand 1_000_000_000}"
-    pn = random_phone_number while PlayerContact.where(data: pn).count > 0
-    pn
-  end
-
   before :example do
     SetupHelper.setup_al_player_contact_phones
     SetupHelper.setup_al_gen_tests AlNameGenTestCr, 'elt_save_test', 'player_contact'

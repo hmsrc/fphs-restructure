@@ -12,6 +12,7 @@ RSpec.describe 'Model reference implementation', type: :model do
     AlNameGenTestMrh
   end
 
+  include ActivityLogSupport
   include ModelSupport
   include PlayerContactSupport
   include BulkMsgSupport
@@ -19,14 +20,6 @@ RSpec.describe 'Model reference implementation', type: :model do
 
   before :context do
     SetupHelper.setup_al_gen_tests AlNameGenTestMrh, 'elt', 'player_contact'
-  end
-
-  def setup_option_config(position, label, fields)
-    c = @activity_log.option_configs[position]
-    expect(c.label).to eq label
-    expect(c.fields).to eq fields
-
-    setup_access c.resource_name, resource_type: :activity_log_type, user: @user
   end
 
   describe 'references defined for activity logs' do

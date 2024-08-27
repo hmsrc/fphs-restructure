@@ -6,12 +6,6 @@ RSpec.describe SaveTriggers::CreateMaster, type: :model do
   include ModelSupport
   include ActivityLogSupport
 
-  def random_phone_number
-    pn = "(617)123-1234 c#{rand 1_000_000_000}"
-    pn = random_phone_number while PlayerContact.where(data: pn).count > 0
-    pn
-  end
-
   def last_msid
     last_msid = (Master.order(msid: :desc).first.msid || 123) + 1
   end
