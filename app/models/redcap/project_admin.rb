@@ -548,8 +548,12 @@ module Redcap
       return @job_app_type if @job_app_type
 
       ja = data_options.run_jobs_in_app_type
-      res = Admin::AppType.find_active_by_name_or_id(ja)
-      @job_app_type = res || current_user.app_type
+      res = if ja
+              Admin::AppType.find_active_by_name_or_id(ja)
+            else
+              current_user.app_type
+            end
+      @job_app_type = res
     end
 
     def invalidate_cache

@@ -111,7 +111,7 @@ module GeneralDataConcerns
   def tracker_histories
     return @memo_tracker_histories if @memo_tracker_histories
 
-    return unless respond_to?(:master_id) && !self.class.no_master_association
+    return unless respond_to?(:master_id) && !allow_no_master_and_not_set?
 
     # Check for the existence of tracker_histories in the super class. If it
     # already exists, it is an association that we should not be overriding
@@ -167,7 +167,7 @@ module GeneralDataConcerns
   # Returns a simple hash alternative ids accessible by the current user
   # @return [Hash]
   def ids
-    master.alternative_ids
+    master&.alternative_ids
   end
 
   #
@@ -295,7 +295,7 @@ module GeneralDataConcerns
       extras[:methods] << :def_version
       extras[:methods] << :vdef_version
 
-      if respond_to?(:master) && !self.class.no_master_association && !is_a?(TrackerHistory) && !is_a?(Tracker)
+      if respond_to?(:master) && !allow_no_master_and_not_set? && !is_a?(TrackerHistory) && !is_a?(Tracker)
         extras[:methods] << :ids
       end
 
