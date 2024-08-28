@@ -12,7 +12,18 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.8.3] - 2024-08-22
+## Unreleased
+
+- [Added] new check in Redcap project to ensure user has access to the associated external id table, if specified
+- [Added] ability for report edit table name and fields to be specified as {{table_name}} and {{table_fields}} to allow editing of arbitrary tables in the generic report
+- [Added] RedcapJobUserEmail setting to be viewed in server info
+- [Fixed] user creating an external identifier with additional fields loses their value - fixes #307
+- [Changed] external identifier details panel to add "search data" link - especially helpful if the user can edit the results for example to add other field entries to external id records
+- [Changed] specification of Redcap project run_jobs_in_app_type to only use the current user's app type if the configuration is not specified (it previously ignored a specified app not being found)
+- [Added] exceptions to make it clear if a master id was not found through an external id for various reasons
+- [Fixed] incorrect error message
+
+## [8.8.4] - 2024-08-27
 
 - [Added] save trigger create_reference, update_reference and update_this to accept embedded_item hash to create or update the appropriate item automatically
 

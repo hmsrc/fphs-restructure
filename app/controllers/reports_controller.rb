@@ -15,6 +15,8 @@ class ReportsController < UserBaseController
                 :search_attrs_params_hash, :embedded_report, :object_instance
   ResultsLimit = Master.results_limit
 
+  NotPermittedParams = %i[user_id created_at updated_at tracker_id tracker_history_id admin_id].freeze
+
   attr_accessor :failed
 
   # List of available reports
@@ -140,13 +142,16 @@ class ReportsController < UserBaseController
   def update
     return not_authorized unless @report.editable_data?
 
-    if @report_item.update(secure_params)
+    clean_secure_params
+
+    if @report_item.update!(secure_params)
       refresh_updated_data
       render json: { report_item: @report_item }
     else
       logger.warn "Error updating #{@report_item}: #{@report_item.errors.inspect}"
       flash.now[:warning] = "Error updating #{@report_item}: #{error_message}"
-      edit
+      # edit form will continue to be displayed - return the error for JS flash
+      render json: object_instance.errors, status: :unprocessable_entity
     end
   end
 
@@ -256,9 +261,9 @@ class ReportsController < UserBaseController
       return
     end
 
-    @runner.data_reference.init(table_name: table_name,
-                                schema_name: schema_name,
-                                table_fields: table_fields)
+    @runner.data_reference.init(table_name:,
+                                schema_name:,
+                                table_fields:)
   end
 
   def show_report
@@ -403,6 +408,8 @@ class ReportsController < UserBaseController
 
     return if params[:id] == 'cancel' || params[:id].blank?
 
+    @report.substitute_table_name_and_fields(params)
+
     id = params[:id]
     id = id.to_i
     @report_item = report_model.find(id)
@@ -498,5 +505,11 @@ class ReportsController < UserBaseController
   def render_json
     render json: { results: @results,
                    search_attributes: @runner.search_attr_values }
+  end
+
+  def clean_secure_params
+    NotPermittedParams.each do |k|
+      secure_params.delete(k)
+    end
   end
 end

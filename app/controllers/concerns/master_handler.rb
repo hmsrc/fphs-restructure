@@ -104,7 +104,7 @@ module MasterHandler
       if object_instance.update(secure_params)
         reload_objects
         handle_additional_updates :update
-        if object_instance.has_multiple_results
+        if object_instance.has_multiple_results && !@assigning_master_to_existing_instance
           @master_objects = object_instance.multiple_results
           index
         else
@@ -344,6 +344,10 @@ module MasterHandler
       @master = Master.find(params[:master_id]) unless primary_model.no_master_association && !params[:master_id]
     else
       object = primary_model.find(params[:id])
+      unless primary_model.no_master_association || object.master_id
+        @assigning_master_to_existing_instance = true
+        object.master = Master.find(params[:master_id])
+      end
       set_object_instance object
       @master = object.master unless primary_model.no_master_association
       @id = object.id

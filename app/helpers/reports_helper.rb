@@ -14,7 +14,7 @@ module ReportsHelper
   def report_edit_btn(id)
     return unless id
 
-    rp = edit_report_path(id, report_id: @report.id, filter: filter_params_permitted)
+    rp = edit_report_path(id, report_id: @report.id, filter: filter_params_permitted, table_name: params[:table_name])
     link_to '',
             rp,
             remote: true,
