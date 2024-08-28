@@ -129,8 +129,12 @@ if req&.result
   in app type <%= link_to link_label_open_in_new(object_instance.job_app_type&.name), admin_app_types_path(filter: {id: object_instance.job_app_type&.id}), target: '_blank' %>
     <% if !object_instance.job_app_type %>
     <p class="info-danger"><code>run_jobs_as_app_type</code> configuration is not set to an active app type</p>
-    <% elsif object_instance.job_user.accessible_app_type_ids.include?(object_instance.job_app_type&.id) %>
-    <p class="info-danger"><code>run_jobs_as_user</code> configuration is not set to a real user</p>
+    <% elsif !object_instance.job_user.accessible_app_type_ids.include?(object_instance.job_app_type&.id) %>
+    <p class="info-danger"><code>run_jobs_as_user</code> is not permitted to access app type <code><%=object_instance.job_app_type&.name%> (<%= object_instance.job_app_type&.id %>)</code></p>
+    <% end %>
+    <% am = object_instance.associate_master_through_external_id_resource_name
+       if am && !object_instance.job_user&.has_access_to?(:access, :table, am, alt_app_type_id: object_instance.job_app_type&.id, force_reset: true ) %>
+    <p class="info-danger"><code><%=object_instance.job_user&.email%></code> is not permitted to access external identifier <code><%=am%></code> in <code><%=object_instance.job_app_type&.name%></code></p>         
     <% end %>
   <% else %>
   <span>bad configuration</span>
