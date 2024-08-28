@@ -153,7 +153,12 @@ module Dynamic
       # in order to pluck the next available pre-generated ID from a list.
       def master_build_with_next_id(owner, att = nil)
         # For the case when we are building one for edit form, no attributes are provided
-        return new master: owner unless att
+        unless att
+          att = assign_next_available_id(owner)
+          return new(master: owner) unless att
+
+          return att if att
+        end
 
         # If attributes are provided, ensure they don't attempt to do anything bad
         att = att.to_h.symbolize_keys
@@ -278,6 +283,7 @@ module Dynamic
         self.updated_at = existing_item_updated.updated_at
         self.id = existing_item_updated.id
       else
+        self.just_assigned = master_id_changed?
         super
       end
     end
@@ -411,7 +417,7 @@ module Dynamic
       uniqueness_fields = self.class.definition.configurations&.dig(:uniqueness_fields) || [self.class.external_id_attribute]
 
       cond = uniqueness_fields.map { |f| [f, attributes[f.to_s]] }.to_h
-      self.class.find_by(cond)
+      self.class.where.not(id:).find_by(cond)
     end
 
     def can_change_master?
@@ -429,11 +435,11 @@ module Dynamic
         errors.add :master, "record this #{self.class.label} is associated with can not be changed"
       end
 
-      if master_id.nil? && (!respond_to?(:admin_id) || admin_id.nil?)
+      if master_id.nil? && (!respond_to?(:admin_id) || admin_id.nil?) && master_id_changed?
         errors.add :master_id, "must be set when adding #{self.class.external_id_attribute}"
       end
 
-      return unless external_id_changed? || !persisted?
+      return if persisted? && !external_id_changed? && !master_id_changed?
 
       s = already_taken
       return unless s
