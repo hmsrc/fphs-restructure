@@ -392,13 +392,27 @@ module Redcap
     def handle_setting_master_id(update_record, retrieved_record)
       return unless do_handle_setting_master_id
 
+      isi = retrieved_record[integer_survey_identifier_field_name]
+      recid = retrieved_record.first.last
+      unless isi
+        raise FphsException,
+              "Integer survey identifier field is empty, can't set master id, for record #{recid}"
+      end
+
       # Start by setting the integer survey identifier field, so the association can get the master with the new value
-      update_record[integer_survey_identifier_field_name] = retrieved_record[integer_survey_identifier_field_name]
+      update_record[integer_survey_identifier_field_name] = isi
 
       # Retrieve the master_id from the record (which goes through the association), then set the value returned
       # on the actual underlying attribute. Although this looks like it is assigning the same value, this is not
       # actually what is happening.
-      update_record.master_id = update_record.master_id
+      res = update_record.master_id = update_record.master_id
+
+      unless res
+        raise FphsException,
+              "Redcap pull failed to get master id through association, for record #{recid} with survey identifier #{isi}"
+      end
+
+      res
     end
 
     #
