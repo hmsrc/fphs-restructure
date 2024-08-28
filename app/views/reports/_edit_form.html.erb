@@ -16,6 +16,7 @@
           <%= render partial: 'form_errors' %>
           <td class="report-el report-edit-btn-cell report-edit-btn-cell-editing">
             <%= hidden_filter_fields %>
+            <%= params[:table_name].present? ? hidden_field_tag(:table_name, params[:table_name]) : '' %>
             <%= report_edit_cancel %><button class="btn btn-primary report-edit-submit"><i class="glyphicon glyphicon-ok"></i></button>
           </td>
           <% if object_instance.respond_to?(:id) %>

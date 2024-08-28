@@ -36,6 +36,15 @@ module Reports
       editable_data?
     end
 
+    def substitute_table_name_and_fields(params)
+      self.edit_model = params[:table_name] if edit_model == '{{table_name}}'
+      emc = edit_model_class
+      return unless emc
+
+      flist = emc.attribute_names - ReportsController::NotPermittedParams.map(&:to_s)
+      self.edit_field_names = flist.join(',') if edit_field_names == '{{table_fields}}'
+    end
+
     # If the results can be edited, what class represents each result
     def edit_model_class
       return unless editable_data?
