@@ -100,19 +100,20 @@ class DynamicModel < ActiveRecord::Base
 
     remove_assoc_class('Master', nil, '')
 
+    man = model_association_name
     if foreign_key_through_external_id
       add_master_association_through_external_id
     else
-      Master.has_many model_association_name, inverse_of: :master,
-                                              class_name: "DynamicModel::#{model_class_name}",
-                                              foreign_key: foreign_key_name,
-                                              primary_key: primary_key_name
+      Master.has_many man, inverse_of: :master,
+                           class_name: "DynamicModel::#{model_class_name}",
+                           foreign_key: foreign_key_name,
+                           primary_key: primary_key_name
     end
     # Add a filtered scope method, which allows master associations to remove non-accessible items automatically
     # This is not the default scope, since it calls #calc_if(:showable_if,...) under the covers, and that may
     # reference the associations itself, causing a cascade of calls
-    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{model_association_name}" do
-      send(model_association_name).filter_results
+    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{man}" do
+      send(man).filter_results
     end
   end
 
