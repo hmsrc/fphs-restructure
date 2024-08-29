@@ -14,7 +14,7 @@ module ViewHandlers
       # subject info to be requested for a Master. Substitutions for example use this to get
       # subject_info.last_name as opposed to subject_infos.last_name
       if respond_to? :definition
-        Master.has_one one_of_this_association_name,
+        Master.has_one definition.one_of_this_association_name,
                        -> { order(Master.subject_info_rank_order_clause) },
                        class_name: "DynamicModel::#{definition.model_class_name}",
                        foreign_key: definition.foreign_key_name,
