@@ -98,6 +98,13 @@ class Admin::MigrationGenerator
   end
 
   #
+  # Return a hash keyed by table name and value schema name
+  # @return [Hash{String=>String}]
+  def self.table_schema_hash
+    Admin::MigrationGenerator.tables_and_views.map { |a| [a['table_name'], a['schema_name']] }.to_h
+  end
+
+  #
   # Reset the memoized tables and views value
   def self.tables_and_views_reset!
     @tables_and_views = nil

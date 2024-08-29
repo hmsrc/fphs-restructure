@@ -546,6 +546,14 @@ module Dynamic
     end
 
     #
+    # Get the schema name for the current table_name
+    # Particularly useful if the schema_name is not set
+    # @return [String|nil]
+    def schema_name_in_db
+      Admin::MigrationGenerator.table_schema_hash[table_name]
+    end
+
+    #
     # Get an estimated count of records in the table. Cached for 15 minutes
     # @return [Integer]
     def estimated_record_count
