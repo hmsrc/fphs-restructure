@@ -160,6 +160,7 @@ _fpa.show_if.methods = {
             var exp_field_value = data[cond_field];
             if (typeof exp_field_value == 'number') exp_field_value = exp_field_value.toString();
             if (typeof exp_field_value == 'undefined') exp_field_value = null;
+            if (exp_field_value === true || exp_field_value === false) exp_value = (exp_value === '1' ? [true, 'yes', 1, '1'] : [false, 'no', 0, '0']);
 
             // to have value
 
@@ -172,15 +173,19 @@ _fpa.show_if.methods = {
             else if (typeof exp_value == 'string')
               exp_value = [exp_value];
             else if (typeof exp_value == 'boolean') {
-              exp_value = [exp_value, (exp_value ? 'yes' : 'no')];
+              // Allow boolean fields to match on true/false, yes/no, '1'/'0' values
+              exp_value = [exp_value, (exp_value ? 'yes' : 'no'), (exp_value ? '1' : '0')];
             }
             else if (typeof exp_value == 'number') {
               exp_value = [exp_value.toString()];
             }
             else if (typeof exp_value == 'object') {
               for (var i = 0; i < exp_value.length; i++) {
+                // Allow boolean fields to match on true/false, yes/no, '1'/'0' values
                 if (exp_value[i] === true && exp_value.indexOf('yes') == -1) exp_value.push('yes');
                 if (exp_value[i] === false && exp_value.indexOf('no') == -1) exp_value.push('no');
+                if (exp_value[i] === true && exp_value.indexOf('1') == -1) exp_value.push('1');
+                if (exp_value[i] === false && exp_value.indexOf('0') == -1) exp_value.push('0');
                 if (typeof exp_value[i] == 'number') exp_value[i] = exp_value[i].toString();
               }
             }

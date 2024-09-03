@@ -5,7 +5,7 @@ module Reports
   # Handle the running of a report, including substitutions of search attribute values
   # and special :flag and {{data_reference}} style substitutions.
   class Runner
-    attr_accessor :report, :count_only, :sql, :current_user, :results, :using_defaults
+    attr_accessor :report, :count_only, :sql, :current_user, :results, :using_defaults, :runner_hash
     attr_writer :search_attr_values
 
     ReportIdAttribName = '_report_id_'
@@ -14,6 +14,7 @@ module Reports
       self.report = report
       self.current_user = report.current_user
       self.sql = report.sql.dup
+      self.runner_hash = SecureRandom.hex(15)
     end
 
     #
@@ -57,8 +58,18 @@ module Reports
         raise ActiveRecord::Rollback
       end
 
+      # Keep a cached list of fields, so we can use them in subsequent record editing
+      # which otherwise not know the fields returned from the earlier query.
+      Rails.cache.write("runner_hash-#{runner_hash}", results.fields.to_a)
+
       cache_results
       results
+    end
+
+    def self.cached_fields(runner_hash)
+      return if runner_hash.blank?
+
+      Rails.cache.read("runner_hash-#{runner_hash}")&.map(&:to_sym)
     end
 
     #

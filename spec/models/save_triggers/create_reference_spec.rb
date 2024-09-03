@@ -244,9 +244,9 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
       create_user
       @master = create_master
 
-      setup_access :player_contacts
-      setup_access :addresses
-      setup_access :activity_log__player_contact_phones
+      setup_access :player_contacts, user: @user
+      setup_access :addresses, user: @user
+      setup_access :activity_log__player_contact_phones, user: @user
 
       @activity_log = al = ActivityLog.active.where(name: al_name).first
       @working_data = '(111)222-3333 ext 12312312'
@@ -375,8 +375,16 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
                                                 select_who: 'abc',
                                                 master: @master)
       al_pc.save!
-      al_pc.create_embedded_item(pc_hash)
-      pc = PlayerContact.find_by(pc_hash)
+
+      expect(@master.current_user).to eq @user
+      @master.player_contacts.create!(rec_type: 'email', data: 'test@test.tst', rank: -1)
+      expect(al_pc.master).to eq @master
+      expect(@master.current_user).to eq al_pc.current_user
+      expect(al_pc.current_user.has_access_to?(:create, :table, :player_contacts)).to be_truthy
+      ei = al_pc.create_embedded_item(pc_hash)
+      expect(ei).to be_a PlayerContact
+
+      pc = PlayerContact.all.reload.find_by(pc_hash)
       expect(pc).not_to be nil
 
       al_pc.clear_embedded_item_memo

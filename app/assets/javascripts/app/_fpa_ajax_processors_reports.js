@@ -270,7 +270,9 @@ _fpa.postprocessors_reports = {
         if ($edit_cell.length) return;
 
         const $newel = $this.clone();
-        $newel.appendTo($edit_row);
+
+        var $replace_cell = $edit_row.find(`td.report-el-edit-disabled-cell-${dct}`)
+        $replace_cell.replaceWith($newel);
 
         // If the field contains a canvas element, make sure it is set up
         const $canvas = $newel.find('canvas');

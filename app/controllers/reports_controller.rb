@@ -212,6 +212,14 @@ class ReportsController < UserBaseController
 
     if @report_item.respond_to?(:master) && !@report_item.class.no_master_association
       @master = @report_item.master
+
+      # Specifically, if an edited report item did not previously have a master_id set, but now will have,
+      # ensure the current user can be set appropriately.
+      if !@master && secure_params[:master_id].present?
+        @report_item.master_id = secure_params[:master_id]
+        @master = @report_item.master
+      end
+
       @master.current_user = current_user if @master
     elsif @report_item.respond_to? :current_user
       @report_item.current_user = current_user
