@@ -33,7 +33,7 @@ module Redcap
 
     def create_failure_record(exception, action, project_admin)
       error = exception
-      backtrace = error.backtrace[0..20].join("\n")
+      backtrace = error.short_string_backtrace
       if error.respond_to? :response
         response = error.response
         result = { error:, response:, backtrace: }
