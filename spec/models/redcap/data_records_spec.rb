@@ -965,7 +965,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       dr.retrieve
       # Force a change to the retrieved records
       orig_rcsid = dr.records.first[:redcap_survey_identifier]
-      dr.records.first[:redcap_survey_identifier] = nil
+      dr.records.first[:redcap_survey_identifier] = ''
 
       dr.summarize_fields
       dr.handle_survey_identifier
@@ -993,7 +993,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
 
       dr.retrieve
-      dr.records.first[:redcap_survey_identifier] = nil
+      dr.records.first[:redcap_survey_identifier] = ''
 
       dr.summarize_fields
       dr.handle_survey_identifier

@@ -153,7 +153,7 @@ module AppExceptionHandler
       if Rails.env.production?
         Admin::ExceptionLog.create message: msg || 'error',
                                    main: error.inspect,
-                                   backtrace: error.backtrace.join("\n"),
+                                   backtrace: error.short_string_backtrace,
                                    user_id:,
                                    admin_id:
       end

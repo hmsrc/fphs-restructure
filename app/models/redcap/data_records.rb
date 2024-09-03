@@ -130,7 +130,9 @@ module Redcap
       return unless records.first.has_key?(si_name)
 
       records.each do |rec|
-        rec[integer_si_name] = rec[si_name]&.to_i
+        val = rec[si_name]
+        val = nil if val.blank?
+        rec[integer_si_name] = val&.to_i
       end
 
       @has_integer_survey_identifier = true
@@ -471,7 +473,11 @@ module Redcap
         new_record.no_track = true if new_record.respond_to? :no_track
         new_record.current_user = current_user if new_record.respond_to? :current_user=
 
-        handle_setting_master_id(new_record, retrieved_record)
+        res = handle_setting_master_id(new_record, retrieved_record)
+        unless res
+          skipped_ids << rec_ids
+          return
+        end
 
         new_record.force_save!
         if new_record.save

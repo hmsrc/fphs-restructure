@@ -12,7 +12,12 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
-## [8.8.3] - 2024-08-22
+## Unreleased
+
+- [Changed] logging to use short backtrace
+- [Fixed] redcap storage issue with blank survey identifiers
+
+## [8.8.7] - 2024-09-03
 
 - [Added] skip_store_if_no_survey_identifier option to redcap projects
 - [Changed] handling of report record editing to correctly handle columns not editable or not configured to edit
