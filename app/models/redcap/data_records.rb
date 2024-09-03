@@ -12,7 +12,8 @@ module Redcap
                   :created_ids, :updated_ids, :unchanged_ids, :disabled_ids, :storage_stage,
                   :current_admin, :retrieved_files, :upserted_records, :imported_files,
                   :step_count, :job, :done,
-                  :integer_survey_identifier_field_name, :survey_identifier_field_name, :set_master_id_using_association
+                  :integer_survey_identifier_field_name, :survey_identifier_field_name, :set_master_id_using_association,
+                  :skip_store_if_no_survey_identifier, :skipped_ids
 
     def initialize(project_admin, class_name)
       super()
@@ -23,6 +24,7 @@ module Redcap
       self.created_ids = []
       self.unchanged_ids = []
       self.disabled_ids = []
+      self.skipped_ids = []
       self.errors = []
       self.current_admin = project_admin.admin
       self.project_admin.current_admin = current_admin
@@ -33,6 +35,7 @@ module Redcap
       self.survey_identifier_field_name = project_admin.survey_identifier_field.to_sym
       self.integer_survey_identifier_field_name = project_admin.integer_survey_identifier_field.to_sym
       self.set_master_id_using_association = project_admin.data_options.set_master_id_using_association
+      self.skip_store_if_no_survey_identifier = project_admin.data_options.skip_store_if_no_survey_identifier
     end
 
     #
@@ -389,18 +392,24 @@ module Redcap
     # If the project has the option set_master_id_using_association, update
     # the new/update record master_id value with the master_id returned from the
     # external id association.
+    # @return [Integer | nil] - master_id if it was set, -1 if we don't handle setting the master id,
+    #                           or nil if the record is to be skipped
     def handle_setting_master_id(update_record, retrieved_record)
-      return unless do_handle_setting_master_id
+      return -1 unless do_handle_setting_master_id
 
       isi = retrieved_record[integer_survey_identifier_field_name]
       recid = retrieved_record.first.last
-      unless isi
+      if !isi && !skip_store_if_no_survey_identifier
         raise FphsException,
               "Integer survey identifier field is empty, can't set master id, for record #{recid}"
+      elsif isi
+        # Start by setting the integer survey identifier field, so the association can get the master with the new value
+        update_record[integer_survey_identifier_field_name] = isi
+      elsif skip_store_if_no_survey_identifier
+        # No survey identifier is returned and the project option skip_store_if_no_survey_identifier is set, so
+        # just return with no result, indicating a skip.
+        return
       end
-
-      # Start by setting the integer survey identifier field, so the association can get the master with the new value
-      update_record[integer_survey_identifier_field_name] = isi
 
       # Retrieve the master_id from the record (which goes through the association), then set the value returned
       # on the actual underlying attribute. Although this looks like it is assigning the same value, this is not
@@ -440,7 +449,12 @@ module Redcap
           return false
         end
 
-        handle_setting_master_id(existing_record, retrieved_record)
+        res = handle_setting_master_id(existing_record, retrieved_record)
+        # No valid result, but no exception, so just skip this one
+        unless res
+          skipped_ids << rec_ids
+          return
+        end
 
         existing_record.force_save!
         if existing_record.update(retrieved_record)
@@ -575,6 +589,7 @@ module Redcap
         count_updated_ids: updated_ids&.length,
         count_unchanged_ids: unchanged_ids&.length,
         count_disabled_ids: disabled_ids&.length,
+        count_skipped_ids: skipped_ids&.length,
         count_processed: done,
         table: project_admin.dynamic_model_table,
         errors:,

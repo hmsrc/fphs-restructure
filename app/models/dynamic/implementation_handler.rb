@@ -244,6 +244,8 @@ module Dynamic
       fo.each do |name, config|
         next unless config.key?(:preset_value) || config.key?(:blank_preset_value)
 
+        next unless attribute_names.include?(name.to_s)
+
         init_value = config[:preset_value]
         if init_value
           res = FieldDefaults.calculate_default self, init_value

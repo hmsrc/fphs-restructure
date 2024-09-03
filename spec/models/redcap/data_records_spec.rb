@@ -947,7 +947,7 @@ RSpec.describe Redcap::DataRecords, type: :model do
       rec.force_save!
       rec.update!(current_user: @user, master_id: nil)
 
-      # Retrieving again makes no changes
+      # Retrieving again makes the changes
       dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
 
       dr.retrieve
@@ -957,6 +957,56 @@ RSpec.describe Redcap::DataRecords, type: :model do
 
       expect(dr.updated_ids.length).to eq 1
       expect(dr.created_ids).to be_empty
+
+      # Now check an error is raised if no survey identifier is provided
+      # Retrieving again - no changes yet
+
+      dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
+      dr.retrieve
+      # Force a change to the retrieved records
+      orig_rcsid = dr.records.first[:redcap_survey_identifier]
+      dr.records.first[:redcap_survey_identifier] = nil
+
+      dr.summarize_fields
+      dr.handle_survey_identifier
+      expect { dr.store }.to raise_error(FphsException, /Integer survey identifier field is empty, can't set master id, for record 1/)
+
+      expect(dr.updated_ids.length).to eq 0
+      expect(dr.created_ids).to be_empty
+
+      # Now try with a survey identifier that doesn't match any external ids
+      dr.records.first[:redcap_survey_identifier] = -999
+
+      dr.summarize_fields
+      dr.handle_survey_identifier
+      expect { dr.store }.to raise_error(FphsException, /Redcap pull failed to get master id through association, for record 1 with survey identifier -999/)
+
+      expect(dr.updated_ids.length).to eq 0
+      expect(dr.created_ids).to be_empty
+
+      # Now check no error is raised if no survey identifier is provided when a default master is provided
+      # Retrieving again makes the changes
+      expect(Master.find(-1)).to be_a Master
+
+      rc.data_options.skip_store_if_no_survey_identifier = -1
+      rc.save!
+      dr = Redcap::DataRecords.new(rc, dm.implementation_class.name)
+
+      dr.retrieve
+      dr.records.first[:redcap_survey_identifier] = nil
+
+      dr.summarize_fields
+      dr.handle_survey_identifier
+      expect { dr.store }.not_to raise_error
+      expect(dr.updated_ids.length).to eq 0
+      expect(dr.skipped_ids.length).to eq 1
+      expect(dr.created_ids).to be_empty
+
+      get_rid = dr.skipped_ids.first[:record_id]
+      expect(get_rid).to eq '1'
+      res = dm.implementation_class.where(record_id: get_rid).reload
+      expect(res.count).to eq 1
+      expect(res.first.redcap_survey_identifier).to eq orig_rcsid
     end
   end
 end

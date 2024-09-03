@@ -57,9 +57,9 @@ RSpec.describe SaveTriggers::UpdateThis, type: :model do
       create_user
       @master = create_master
 
-      setup_access :player_contacts
-      setup_access :addresses
-      setup_access :activity_log__player_contact_phones
+      setup_access :player_contacts, user: @user
+      setup_access :addresses, user: @user
+      setup_access :activity_log__player_contact_phones, user: @user
 
       @activity_log = al = ActivityLog.active.where(name: al_name).first
       @working_data = '(111)222-3333 ext 12312312'

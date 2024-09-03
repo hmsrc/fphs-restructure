@@ -55,6 +55,10 @@ data_options:
     # can be used to set a `master_id` field directly on the dynamic model. Setting this option to *true* will
     # add a `master_id` field automatically, and ensure it is set when records are retrieved from REDCap.
     # NOTE: for large datasets that change regularly, this may slow down record retrieval significantly.  
+  skip_store_if_no_survey_identifier: true | nil
+    # If we are using an association to match a redcap survey identifier to a master record
+    # it won't be found if the public survey link was used and no survey identifier was populated.
+    # This option allows the record to be skipped when pulling, allowing other records to be retrieved
   run_jobs_as_user: <username>
     # Sets the admin and matching user that will be used to run background jobs, 
     # such as getting project metadata or retrieving records from REDCap.
