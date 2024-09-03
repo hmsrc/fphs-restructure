@@ -73,7 +73,7 @@ module Reports
 
     # Edit fields that can be updated in a record
     def edit_fields
-      all_configured_edit_fields - search_reports_fields
+      all_configured_edit_fields - search_reports_fields - [:id]
     end
 
     # List any search_reports_ fields that represent criteria to feed to another report in the UI
