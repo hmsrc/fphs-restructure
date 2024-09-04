@@ -316,7 +316,7 @@ module CalcActions
                              when :reference
                                current_instance.reference
                              when :embedded_item
-                               current_instance.embedded_item
+                               current_instance.embedded_item(embed_action_type: :viewing)
                              end
     end
 

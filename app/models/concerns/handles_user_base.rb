@@ -786,12 +786,8 @@ module HandlesUserBase
   # Check if the record can be saved (based on editable and creatable rules) and if not, raise an exception
   def check_can_save
     if persisted? && !can_edit?
-      msg = if Rails.env.test?
-              "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}" \
-              " - #{current_user.email} - #{current_user.app_type&.name}"
-            else
-              "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}"
-            end
+      msg = "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}" \
+            " - #{current_user.email} - #{current_user.app_type&.name}"
       raise FphsException, msg
     end
 
