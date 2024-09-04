@@ -280,14 +280,16 @@ module Dynamic
       # Look up user based on a snippet of the configuration
       def user_for_conf_snippet(config)
         user = config[:user]
-        if user.to_i > 0
-          user = User.active.find(user)
-        elsif user.is_a? String
-          user = User.active.find_by_email(user)
+        app_type = config[:app_type]
+        app_type = Admin::AppType.find_active_by_name_or_id(app_type) if app_type
+        if user
+          user = User.find_active_by_email_or_id(user)
+          user.app_type = app_type if app_type
+          user.save
+        elsif app_type
+          user = User.use_batch_user(app_type)
         end
 
-        app_type = config[:app_type]
-        user = User.use_batch_user(app_type) if user.nil? && app_type
         user
       end
       # End of class_methods
