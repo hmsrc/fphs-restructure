@@ -232,7 +232,7 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
     end
   end
 
-  describe 'creating a referenceed activity log from an activity log' do
+  describe 'creating a referenced activity log from an activity log' do
     before :context do
       SetupHelper.setup_al_gen_tests 'Gen Test ELT', 'elt', 'player_contact'
     end
@@ -406,7 +406,8 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
 
       pc2 = PlayerContact.find_by(pc_hash_1)
       expect(pc2).not_to be nil
-      expect(ei.embedded_item).to eq pc2
+      eiei = ei.embedded_item(embed_action_type: :viewing, force_reload: true)
+      expect(eiei).to eq pc2
 
       # Now create the activity log with create_reference with_result defined
       @master.player_contacts.create!(pc_hash_2)
