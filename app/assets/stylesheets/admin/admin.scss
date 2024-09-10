@@ -53,6 +53,7 @@ a.collapsed > .caret {
 .admin-title {
   padding-left: 15px;
   padding-right: 15px;
+  margin-left: 47px;
 }
 
 .admin-help-icon {
@@ -175,3 +176,31 @@ div#creddocframe {
 a.link-disabled {
   color: gray;
 }
+
+
+.admin-action-page {
+  position: relative;
+  overflow: visible;
+}
+
+#components-menu-button {
+  top: 30px;
+  position: absolute;
+}
+
+.components-menu-block {
+  top: 103px;
+  position: absolute;
+  left: 0;
+}
+
+.components-menu {
+  max-width: 450px;
+  background: white;
+  padding: 4px;
+  position: absolute;
+  z-index: 2000;
+  min-width: 300px;
+  box-shadow: 0 4px 6px 4px rgba(0, 0, 0, 0.15);
+}
+

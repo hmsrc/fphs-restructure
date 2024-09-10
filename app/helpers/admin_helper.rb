@@ -96,11 +96,16 @@ module AdminHelper
     res.html_safe
   end
 
+  def admin_app_type
+    @app_type ||= current_user&.app_type || current_admin.matching_user&.app_type || Admin::AppType.active.first
+  end
+
   def show_admin_heading(alt_title = nil)
     alt_title ||= title
     res = <<~END_HTML
       <div class="panel panel-default admin-action-page">
-        <div class="panel-heading">#{' '}
+        <div class="panel-heading">
+          #{render partial: 'admin/common_templates/app_components_dropdown'}
           <h1 class="admin-title">#{alt_title}
             #{ link_to(
               '',
@@ -117,7 +122,7 @@ module AdminHelper
                       'working-target': '#help-sidebar-body' }
             ) }
             #{render partial: 'admin_handler/status_bar'}
-          </h1>
+            </h1>
         </div>
       </div>
     END_HTML
