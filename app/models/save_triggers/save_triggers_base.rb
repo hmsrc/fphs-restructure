@@ -15,8 +15,12 @@ class SaveTriggers::SaveTriggersBase
     item.save_trigger_results ||= {} if item.respond_to? :save_trigger_results
 
     if item.respond_to? :current_user
-      self.user = item.current_user
-      raise FphsException, 'save_trigger item master user must be set' unless user
+      cu = item.current_user
+      extra_detail = "master: #{master} item: #{item} / #{item.class.no_master_association}"
+      raise FphsException, "save_trigger item current user not set - #{extra_detail}" unless cu
+
+      self.user = cu
+      raise FphsException, "save_trigger item master user must be set - #{extra_detail}" unless user
     end
 
     self.model_defs = if config.is_a? Array
