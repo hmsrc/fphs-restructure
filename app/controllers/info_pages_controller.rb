@@ -39,7 +39,7 @@ class InfoPagesController < ActionController::Base
     end
 
     if params[:display_as] == 'embedded' && params[:display_embed_where] == 'sidebar'
-      render partial: 'info_pages/show_in_sidebar'
+      render partial: 'info_pages/show_in_sidebar', content_type: 'text/html'
     else
       render :show, layout: 'public_application'
     end
