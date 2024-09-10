@@ -1681,7 +1681,7 @@ _fpa.form_utils = {
 
         if (href.indexOf('display_as=embedded') < 0) {
           let sym = href.indexOf('?') > 0 ? '&' : '?';
-          $(this).attr('href', `${href}${sym}display_as=embedded#open-in-sidebar`);
+          $(this).attr('href', `${href}${sym}display_as=embedded&display_embed_where=sidebar&#open-in-sidebar`);
         }
 
         $(this).click(function (ev) {
