@@ -414,9 +414,9 @@ class ReportsController < UserBaseController
     id = params[:report_id]
     setup_report id
 
-    return if params[:id] == 'cancel' || params[:id].blank?
-
     @report.substitute_table_name_and_fields(params)
+
+    return if params[:id] == 'cancel' || params[:id].blank?
 
     id = params[:id]
     id = id.to_i

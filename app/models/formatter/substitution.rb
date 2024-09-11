@@ -13,6 +13,12 @@ module Formatter
     # - else text
     IfBlockRegEx = %r{({{#if (#{TagnameRegExString})}}(.+?)({{else}}(.+?))?{{/if}})}m
 
+    IsOperator = '["\']===|!===|==|!==|<|>|<=|>=["\']'
+    IsExpectedResult = '["\']?.+["\']?'
+    StartQuote = '["\'‘]'
+    EndQuote = '["\'’]'
+    IsBlockRegEx = %r{({{#is ([0-9a-zA-Z_.:-]+) #{StartQuote}(===|!===|==|!==|<|>|<=|>=)#{EndQuote} (#{StartQuote}?.+#{EndQuote}?)}}(.+?)({{else}}(.+?))?{{/is}})}m
+
     OverrideTags = /^(embedded_report_|add_item_button_|glyphicon_|template_block_)/
 
     FunctionalDirectives = %w[shortlink].freeze
@@ -65,6 +71,48 @@ module Formatter
           all_content.sub!(block_container, if_block[2] || '')
         else
           all_content.sub!(block_container, if_block[4] || '')
+        end
+      end
+
+      # Replace each if block {{#if ...}}...(optional {{else}}...){{/if}}
+      is_blocks = all_content.scan(IsBlockRegEx)
+      is_blocks.each do |is_block|
+        block_container = is_block[0]
+        tag = is_block[1]
+        tag_value = value_for_tag(tag, sub_data, tag_subs: nil, ignore_missing: true)
+        op = is_block[2]
+        exp = is_block[3]
+
+        exp_parts = exp.match(/(#{StartQuote})(.+)(#{EndQuote})/)
+        exp = if exp_parts[1] && exp_parts[3]
+                exp_parts[2]
+              else
+                exp_parts[2].to_i
+              end
+
+        comp = case op
+               when '==='
+                 tag_value == exp
+               when '!=='
+                 tag_value != exp
+               when '=='
+                 tag_value == exp
+               when '!='
+                 tag_value != exp
+               when '>='
+                 tag_value >= exp
+               when '<='
+                 tag_value <= exp
+               when '>'
+                 tag_value > exp
+               when '<'
+                 tag_value < exp
+               end
+
+        if comp
+          all_content.sub!(block_container, is_block[4] || '')
+        else
+          all_content.sub!(block_container, is_block[5] || '')
         end
       end
 
