@@ -25,7 +25,7 @@ class PagesController < ApplicationController
   def index
     unless current_user && !current_admin
       @is_admin_index = true
-      @app_type = current_user&.app_type || current_admin.matching_user&.app_type || Admin::AppType.active.first
+      @app_type ||= helpers.admin_app_type
       @server_info = Admin::ServerInfo.new(current_admin)
 
       render 'index', layout: 'admin_application'
