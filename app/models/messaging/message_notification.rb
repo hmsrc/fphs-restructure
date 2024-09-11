@@ -94,10 +94,18 @@ module Messaging
         raise FphsException, 'Content template name or text must be set'
       end
 
-      self.generated_text = layout_template.generate content_template_name: content_template_name,
-                                                     content_template_text: content_template_text,
-                                                     data: data,
-                                                     ignore_missing: ignore_missing
+      # We need to prevent conversion to html for all SMS
+      markdown_to_html = if sms?
+                           false
+                         else
+                           :force_markdown_to_html
+                         end
+
+      self.generated_text = layout_template.generate(content_template_name:,
+                                                     content_template_text:,
+                                                     data:,
+                                                     ignore_missing:,
+                                                     markdown_to_html:)
 
       self.generated_content = generated_text
       save!
@@ -112,7 +120,7 @@ module Messaging
     def generate_view(ignore_missing: false)
       return generated_content if generated_content.present?
 
-      generate(ignore_missing: ignore_missing)
+      generate(ignore_missing:)
     rescue FphsException => e
       "EXCEPTION: #{e}"
     end
@@ -242,8 +250,8 @@ module Messaging
         NotificationMailer.send_message_notification(self).deliver_now
       elsif sms?
         sms = Messaging::NotificationSms.new
-        sms.send_now(self, recipient_sms_numbers: recipient_sms_numbers, generated_text: generated_text,
-                           importance: importance, logger: logger)
+        sms.send_now(self, recipient_sms_numbers:, generated_text:,
+                           importance:, logger:)
       else
         raise FphsException, "No recognized message type for message notification: #{message_type}"
       end
@@ -335,7 +343,7 @@ module Messaging
                                        default_country_code: rec[:default_country_code]
           recipient_sms_numbers = [pn]
           # Generate and send to this specific phone number with the data for this item
-          resp = generate_and_send recipient_sms_numbers: recipient_sms_numbers
+          resp = generate_and_send(recipient_sms_numbers:)
 
           list_item.set_response list_item.user, resp
           # Add the phone number to the recipient data hash
