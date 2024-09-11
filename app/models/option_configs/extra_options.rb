@@ -229,6 +229,9 @@ module OptionConfigs
       if embed == 'default_embed_resource'
         rn = config_obj.default_embed_resource_name(name)
         self.embed = { resource_name: rn }
+      elsif embed.is_a?(String)
+        rn = embed
+        self.embed = { resource_name: rn }
       else
         rn = embed[:resource_name]
       end
