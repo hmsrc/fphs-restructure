@@ -23,14 +23,14 @@
       data_labels: []
     };
   
-    $.extend(opts, component_options);
-  
     <% if embedded_report%>
       opts.height = '30%';
       opts.width = '100%';
       opts.options.maintainAspectRatio = false;
       opts.options.responsive = true;
     <% end %>
+  
+    $.extend(opts, component_options);
   
     var width = opts.width;
     var height = opts.height;

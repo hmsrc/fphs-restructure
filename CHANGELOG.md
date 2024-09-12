@@ -12,6 +12,15 @@ Note that not every tagged version may be suitable for production use. A Github 
 
 Since [version 8.4.0](#840---2024-01-10) the convention is that releases made within forked repositories should be up-versioned with a patch release, *x.y.z+1*. When changes are incorporated back into the primary repo [consected/restructure](https://github.com/consected/restructure) a new minor release will be created, *x.y+1,0*.
 
+## Unreleased
+
+- [Changed] sorting of external identifier columns in master panel
+- [Added] logger info when an item is not creatable
+- [Fixed] broken chart size
+- [Added] CONTENTS_LIST capability to help sidebar. Specify a link `[CONTENTS_LIST](h2)` to list h2 tags in place of the link
+- [Fixed] content type for create shortlink in substitutions
+- [Fixed] dynamic definition option `embed: <string>` doesn't work - fixes #388
+
 ## [8.8.3] - 2024-08-22
 
 - [Fixed] message notifications sending SMS messages with HTML markup

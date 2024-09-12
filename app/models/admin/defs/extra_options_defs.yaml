@@ -215,8 +215,13 @@
       on_create:                  
       on_update:
 
-  # embed can be defined in one of two styles:
-  embed: default_embed_resource # simply embeds the dynamic model matching the default_embed_resource_name for this activity
+  # embed can be defined in one of three styles:
+  embed: default_embed_resource 
+    # Simply embeds the dynamic model matching the default_embed_resource_name for this activity
+    # Must include a field acting as a foreign key onto the parent `<singularized parent table name>_id`
+
+  embed: resource name for the item to be embedded
+    # Must include a field acting as a foreign key onto the parent `<singularized parent table name>_id`
 
   embed(form 2):
     resource_name: resource name for the item to embed
