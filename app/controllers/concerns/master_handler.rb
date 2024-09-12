@@ -305,6 +305,7 @@ module MasterHandler
     handle_option_type_config if action_name == 'new' && respond_to?(:handle_option_type_config, true)
     return if current_admin_sample || object_instance.allows_current_user_access_to?(:create)
 
+    Rails.logger.warn "This item is not creatable: #{object_instance.class.name} - #{object_instance&.attributes}"
     not_creatable
     nil
   end
