@@ -207,11 +207,14 @@ a.link-disabled {
 .admin-sample-field-info, .admin-sample-form-info{
   color: gray;
   font-family: 'Courier New', Courier, monospace;
+  text-align: right;
 }
 
 .admin-sample-form-info {
-  margin-left: 8px;
-  margin-top: 3px;
+  padding-left: 8px;
+  padding-top: 3px;
+  text-align: left;
+  background-color: #f1f1f1;
 }
 
 .caption-before .admin-sample-field-info{
