@@ -65,7 +65,7 @@
           this:
             calculate:
               # Returns value
-              (sum|min|max):
+              (sum|min|max|count_not_null|mean):
                 attributes:
                   - attr1
                   - attr2
