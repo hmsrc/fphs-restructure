@@ -1,0 +1,954 @@
+div.reset-row .nfs-store--manage--container-data,
+.standalone-page-design .custom-editor .nfs-store--manage--container-data,
+.standalone-page-design .custom-editor-viewer .nfs-store--manage--container-data {
+  display: none;
+}
+div.reset-row img,
+.standalone-page-design .custom-editor img,
+.standalone-page-design .custom-editor-viewer img {
+  max-width: 100%;
+}
+div.reset-row .caption-before,
+div.reset-row .ctlabel,
+.standalone-page-design .custom-editor .caption-before,
+.standalone-page-design .custom-editor .ctlabel,
+.standalone-page-design .custom-editor-viewer .caption-before,
+.standalone-page-design .custom-editor-viewer .ctlabel {
+  display: none;
+}
+div.reset-row hr,
+.standalone-page-design .custom-editor hr,
+.standalone-page-design .custom-editor-viewer hr {
+  border-top: 3px solid rgb(213, 213, 213);
+  float: none;
+  clear: both;
+}
+div.reset-row .common-template-item div,
+div.reset-row .common-template-item ul,
+div.reset-row .common-template-item li,
+div.reset-row .common-template-item h1,
+div.reset-row .common-template-item h2,
+div.reset-row .common-template-item h3,
+div.reset-row .common-template-item h4,
+.standalone-page-design .custom-editor .common-template-item div,
+.standalone-page-design .custom-editor .common-template-item ul,
+.standalone-page-design .custom-editor .common-template-item li,
+.standalone-page-design .custom-editor .common-template-item h1,
+.standalone-page-design .custom-editor .common-template-item h2,
+.standalone-page-design .custom-editor .common-template-item h3,
+.standalone-page-design .custom-editor .common-template-item h4,
+.standalone-page-design .custom-editor-viewer .common-template-item div,
+.standalone-page-design .custom-editor-viewer .common-template-item ul,
+.standalone-page-design .custom-editor-viewer .common-template-item li,
+.standalone-page-design .custom-editor-viewer .common-template-item h1,
+.standalone-page-design .custom-editor-viewer .common-template-item h2,
+.standalone-page-design .custom-editor-viewer .common-template-item h3,
+.standalone-page-design .custom-editor-viewer .common-template-item h4 {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  width: auto;
+  float: none;
+  overflow: hidden;
+}
+div.reset-row div,
+div.reset-row ul,
+div.reset-row li,
+div.reset-row h1,
+div.reset-row h2,
+div.reset-row h3,
+div.reset-row h4,
+.standalone-page-design .custom-editor div,
+.standalone-page-design .custom-editor ul,
+.standalone-page-design .custom-editor li,
+.standalone-page-design .custom-editor h1,
+.standalone-page-design .custom-editor h2,
+.standalone-page-design .custom-editor h3,
+.standalone-page-design .custom-editor h4,
+.standalone-page-design .custom-editor-viewer div,
+.standalone-page-design .custom-editor-viewer ul,
+.standalone-page-design .custom-editor-viewer li,
+.standalone-page-design .custom-editor-viewer h1,
+.standalone-page-design .custom-editor-viewer h2,
+.standalone-page-design .custom-editor-viewer h3,
+.standalone-page-design .custom-editor-viewer h4 {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  width: auto;
+  float: none;
+}
+div.reset-row .list-group-item.is-heading.object-results-header,
+.standalone-page-design .custom-editor .list-group-item.is-heading.object-results-header,
+.standalone-page-design .custom-editor-viewer .list-group-item.is-heading.object-results-header {
+  display: none;
+}
+div.reset-row li[data-field-name=default_layout],
+div.reset-row li[data-field-name=position_number],
+div.reset-row li[data-field-name=slug],
+div.reset-row li[data-field-name=block_width],
+div.reset-row li[data-field-name=extra_classes],
+div.reset-row li[data-field-name=tag_select_allow_roles_access],
+div.reset-row li[data-field-name=disabled],
+.standalone-page-design .custom-editor li[data-field-name=default_layout],
+.standalone-page-design .custom-editor li[data-field-name=position_number],
+.standalone-page-design .custom-editor li[data-field-name=slug],
+.standalone-page-design .custom-editor li[data-field-name=block_width],
+.standalone-page-design .custom-editor li[data-field-name=extra_classes],
+.standalone-page-design .custom-editor li[data-field-name=tag_select_allow_roles_access],
+.standalone-page-design .custom-editor li[data-field-name=disabled],
+.standalone-page-design .custom-editor-viewer li[data-field-name=default_layout],
+.standalone-page-design .custom-editor-viewer li[data-field-name=position_number],
+.standalone-page-design .custom-editor-viewer li[data-field-name=slug],
+.standalone-page-design .custom-editor-viewer li[data-field-name=block_width],
+.standalone-page-design .custom-editor-viewer li[data-field-name=extra_classes],
+.standalone-page-design .custom-editor-viewer li[data-field-name=tag_select_allow_roles_access],
+.standalone-page-design .custom-editor-viewer li[data-field-name=disabled] {
+  display: none;
+}
+div.reset-row p br,
+.standalone-page-design .custom-editor p br,
+.standalone-page-design .custom-editor-viewer p br {
+  display: block;
+  content: "";
+  margin-top: 0.8em;
+  line-height: 190%;
+  vertical-align: top;
+}
+div.reset-row .standalone-page-col .result-target,
+.standalone-page-design .custom-editor .standalone-page-col .result-target,
+.standalone-page-design .custom-editor-viewer .standalone-page-col .result-target {
+  margin: 0;
+}
+div.reset-row .message-well,
+.standalone-page-design .custom-editor .message-well,
+.standalone-page-design .custom-editor-viewer .message-well {
+  background: rgb(245, 245, 245);
+  border-color: #dcdcdc;
+  -webkit-box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 14px;
+}
+
+div.reset-row .custom-editor,
+div.reset-row .custom-editor-viewer,
+div.reset-row .default-layout-rows,
+div.reset-row .default-layout-columns,
+div.reset-row .default-layout-one-column,
+div.reset-row .default-layout-two-columns,
+div.reset-row .default-layout-three-columns,
+.standalone-page-design .custom-editor,
+.standalone-page-design .custom-editor-viewer,
+.standalone-page-design .default-layout-rows,
+.standalone-page-design .default-layout-columns,
+.standalone-page-design .default-layout-one-column,
+.standalone-page-design .default-layout-two-columns,
+.standalone-page-design .default-layout-three-columns {
+  font-size: 16px;
+}
+div.reset-row .custom-editor h1,
+div.reset-row .custom-editor-viewer h1,
+div.reset-row .default-layout-rows h1,
+div.reset-row .default-layout-columns h1,
+div.reset-row .default-layout-one-column h1,
+div.reset-row .default-layout-two-columns h1,
+div.reset-row .default-layout-three-columns h1,
+.standalone-page-design .custom-editor h1,
+.standalone-page-design .custom-editor-viewer h1,
+.standalone-page-design .default-layout-rows h1,
+.standalone-page-design .default-layout-columns h1,
+.standalone-page-design .default-layout-one-column h1,
+.standalone-page-design .default-layout-two-columns h1,
+.standalone-page-design .default-layout-three-columns h1 {
+  font-size: 44px;
+  line-height: 130%;
+}
+div.reset-row .custom-editor h2,
+div.reset-row .custom-editor-viewer h2,
+div.reset-row .default-layout-rows h2,
+div.reset-row .default-layout-columns h2,
+div.reset-row .default-layout-one-column h2,
+div.reset-row .default-layout-two-columns h2,
+div.reset-row .default-layout-three-columns h2,
+.standalone-page-design .custom-editor h2,
+.standalone-page-design .custom-editor-viewer h2,
+.standalone-page-design .default-layout-rows h2,
+.standalone-page-design .default-layout-columns h2,
+.standalone-page-design .default-layout-one-column h2,
+.standalone-page-design .default-layout-two-columns h2,
+.standalone-page-design .default-layout-three-columns h2 {
+  font-size: 30px;
+  line-height: 130%;
+}
+div.reset-row .custom-editor h3,
+div.reset-row .custom-editor-viewer h3,
+div.reset-row .default-layout-rows h3,
+div.reset-row .default-layout-columns h3,
+div.reset-row .default-layout-one-column h3,
+div.reset-row .default-layout-two-columns h3,
+div.reset-row .default-layout-three-columns h3,
+.standalone-page-design .custom-editor h3,
+.standalone-page-design .custom-editor-viewer h3,
+.standalone-page-design .default-layout-rows h3,
+.standalone-page-design .default-layout-columns h3,
+.standalone-page-design .default-layout-one-column h3,
+.standalone-page-design .default-layout-two-columns h3,
+.standalone-page-design .default-layout-three-columns h3 {
+  font-size: 26px;
+  line-height: 130%;
+}
+div.reset-row .custom-editor h4,
+div.reset-row .custom-editor-viewer h4,
+div.reset-row .default-layout-rows h4,
+div.reset-row .default-layout-columns h4,
+div.reset-row .default-layout-one-column h4,
+div.reset-row .default-layout-two-columns h4,
+div.reset-row .default-layout-three-columns h4,
+.standalone-page-design .custom-editor h4,
+.standalone-page-design .custom-editor-viewer h4,
+.standalone-page-design .default-layout-rows h4,
+.standalone-page-design .default-layout-columns h4,
+.standalone-page-design .default-layout-one-column h4,
+.standalone-page-design .default-layout-two-columns h4,
+.standalone-page-design .default-layout-three-columns h4 {
+  font-size: 22px;
+  line-height: 130%;
+}
+div.reset-row .custom-editor .page-item-container,
+div.reset-row .custom-editor-viewer .page-item-container,
+div.reset-row .default-layout-rows .page-item-container,
+div.reset-row .default-layout-columns .page-item-container,
+div.reset-row .default-layout-one-column .page-item-container,
+div.reset-row .default-layout-two-columns .page-item-container,
+div.reset-row .default-layout-three-columns .page-item-container,
+.standalone-page-design .custom-editor .page-item-container,
+.standalone-page-design .custom-editor-viewer .page-item-container,
+.standalone-page-design .default-layout-rows .page-item-container,
+.standalone-page-design .default-layout-columns .page-item-container,
+.standalone-page-design .default-layout-one-column .page-item-container,
+.standalone-page-design .default-layout-two-columns .page-item-container,
+.standalone-page-design .default-layout-three-columns .page-item-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+div.reset-row .custom-editor .main-item,
+div.reset-row .custom-editor-viewer .main-item,
+div.reset-row .default-layout-rows .main-item,
+div.reset-row .default-layout-columns .main-item,
+div.reset-row .default-layout-one-column .main-item,
+div.reset-row .default-layout-two-columns .main-item,
+div.reset-row .default-layout-three-columns .main-item,
+.standalone-page-design .custom-editor .main-item,
+.standalone-page-design .custom-editor-viewer .main-item,
+.standalone-page-design .default-layout-rows .main-item,
+.standalone-page-design .default-layout-columns .main-item,
+.standalone-page-design .default-layout-one-column .main-item,
+.standalone-page-design .default-layout-two-columns .main-item,
+.standalone-page-design .default-layout-three-columns .main-item {
+  width: 100%;
+}
+div.reset-row .custom-editor .main-item li[data-field-name=title],
+div.reset-row .custom-editor .main-item li[data-field-name=description],
+div.reset-row .custom-editor-viewer .main-item li[data-field-name=title],
+div.reset-row .custom-editor-viewer .main-item li[data-field-name=description],
+div.reset-row .default-layout-rows .main-item li[data-field-name=title],
+div.reset-row .default-layout-rows .main-item li[data-field-name=description],
+div.reset-row .default-layout-columns .main-item li[data-field-name=title],
+div.reset-row .default-layout-columns .main-item li[data-field-name=description],
+div.reset-row .default-layout-one-column .main-item li[data-field-name=title],
+div.reset-row .default-layout-one-column .main-item li[data-field-name=description],
+div.reset-row .default-layout-two-columns .main-item li[data-field-name=title],
+div.reset-row .default-layout-two-columns .main-item li[data-field-name=description],
+div.reset-row .default-layout-three-columns .main-item li[data-field-name=title],
+div.reset-row .default-layout-three-columns .main-item li[data-field-name=description],
+.standalone-page-design .custom-editor .main-item li[data-field-name=title],
+.standalone-page-design .custom-editor .main-item li[data-field-name=description],
+.standalone-page-design .custom-editor-viewer .main-item li[data-field-name=title],
+.standalone-page-design .custom-editor-viewer .main-item li[data-field-name=description],
+.standalone-page-design .default-layout-rows .main-item li[data-field-name=title],
+.standalone-page-design .default-layout-rows .main-item li[data-field-name=description],
+.standalone-page-design .default-layout-columns .main-item li[data-field-name=title],
+.standalone-page-design .default-layout-columns .main-item li[data-field-name=description],
+.standalone-page-design .default-layout-one-column .main-item li[data-field-name=title],
+.standalone-page-design .default-layout-one-column .main-item li[data-field-name=description],
+.standalone-page-design .default-layout-two-columns .main-item li[data-field-name=title],
+.standalone-page-design .default-layout-two-columns .main-item li[data-field-name=description],
+.standalone-page-design .default-layout-three-columns .main-item li[data-field-name=title],
+.standalone-page-design .default-layout-three-columns .main-item li[data-field-name=description] {
+  display: none;
+}
+div.reset-row .custom-editor em,
+div.reset-row .custom-editor-viewer em,
+div.reset-row .default-layout-rows em,
+div.reset-row .default-layout-columns em,
+div.reset-row .default-layout-one-column em,
+div.reset-row .default-layout-two-columns em,
+div.reset-row .default-layout-three-columns em,
+.standalone-page-design .custom-editor em,
+.standalone-page-design .custom-editor-viewer em,
+.standalone-page-design .default-layout-rows em,
+.standalone-page-design .default-layout-columns em,
+.standalone-page-design .default-layout-one-column em,
+.standalone-page-design .default-layout-two-columns em,
+.standalone-page-design .default-layout-three-columns em {
+  padding-right: 0.15em;
+}
+div.reset-row .custom-editor .embedded-items-item,
+div.reset-row .custom-editor-viewer .embedded-items-item,
+div.reset-row .default-layout-rows .embedded-items-item,
+div.reset-row .default-layout-columns .embedded-items-item,
+div.reset-row .default-layout-one-column .embedded-items-item,
+div.reset-row .default-layout-two-columns .embedded-items-item,
+div.reset-row .default-layout-three-columns .embedded-items-item,
+.standalone-page-design .custom-editor .embedded-items-item,
+.standalone-page-design .custom-editor-viewer .embedded-items-item,
+.standalone-page-design .default-layout-rows .embedded-items-item,
+.standalone-page-design .default-layout-columns .embedded-items-item,
+.standalone-page-design .default-layout-one-column .embedded-items-item,
+.standalone-page-design .default-layout-two-columns .embedded-items-item,
+.standalone-page-design .default-layout-three-columns .embedded-items-item {
+  flex-grow: 1;
+}
+div.reset-row .custom-editor .embedded-items-item li[data-field-name=title],
+div.reset-row .custom-editor-viewer .embedded-items-item li[data-field-name=title],
+div.reset-row .default-layout-rows .embedded-items-item li[data-field-name=title],
+div.reset-row .default-layout-columns .embedded-items-item li[data-field-name=title],
+div.reset-row .default-layout-one-column .embedded-items-item li[data-field-name=title],
+div.reset-row .default-layout-two-columns .embedded-items-item li[data-field-name=title],
+div.reset-row .default-layout-three-columns .embedded-items-item li[data-field-name=title],
+.standalone-page-design .custom-editor .embedded-items-item li[data-field-name=title],
+.standalone-page-design .custom-editor-viewer .embedded-items-item li[data-field-name=title],
+.standalone-page-design .default-layout-rows .embedded-items-item li[data-field-name=title],
+.standalone-page-design .default-layout-columns .embedded-items-item li[data-field-name=title],
+.standalone-page-design .default-layout-one-column .embedded-items-item li[data-field-name=title],
+.standalone-page-design .default-layout-two-columns .embedded-items-item li[data-field-name=title],
+.standalone-page-design .default-layout-three-columns .embedded-items-item li[data-field-name=title] {
+  display: none;
+}
+div.reset-row .custom-editor table.table,
+div.reset-row .custom-editor-viewer table.table,
+div.reset-row .default-layout-rows table.table,
+div.reset-row .default-layout-columns table.table,
+div.reset-row .default-layout-one-column table.table,
+div.reset-row .default-layout-two-columns table.table,
+div.reset-row .default-layout-three-columns table.table,
+.standalone-page-design .custom-editor table.table,
+.standalone-page-design .custom-editor-viewer table.table,
+.standalone-page-design .default-layout-rows table.table,
+.standalone-page-design .default-layout-columns table.table,
+.standalone-page-design .default-layout-one-column table.table,
+.standalone-page-design .default-layout-two-columns table.table,
+.standalone-page-design .default-layout-three-columns table.table {
+  width: auto;
+  min-width: 25%;
+  background: rgb(239, 239, 239);
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+div.reset-row .custom-editor .notes-block.notes-empty .notes-text:before,
+div.reset-row .custom-editor-viewer .notes-block.notes-empty .notes-text:before,
+div.reset-row .default-layout-rows .notes-block.notes-empty .notes-text:before,
+div.reset-row .default-layout-columns .notes-block.notes-empty .notes-text:before,
+div.reset-row .default-layout-one-column .notes-block.notes-empty .notes-text:before,
+div.reset-row .default-layout-two-columns .notes-block.notes-empty .notes-text:before,
+div.reset-row .default-layout-three-columns .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .custom-editor .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .custom-editor-viewer .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .default-layout-rows .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .default-layout-columns .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .default-layout-one-column .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .default-layout-two-columns .notes-block.notes-empty .notes-text:before,
+.standalone-page-design .default-layout-three-columns .notes-block.notes-empty .notes-text:before {
+  content: "";
+}
+div.reset-row .default-layout-rows.common-page-template-item,
+.standalone-page-design .default-layout-rows.common-page-template-item {
+  margin: 0 14%;
+  width: auto;
+  float: none;
+}
+div.reset-row .default-layout-columns.common-page-template-item,
+div.reset-row .default-layout-one-column.common-page-template-item,
+div.reset-row .default-layout-two-columns.common-page-template-item,
+div.reset-row .default-layout-three-columns.common-page-template-item,
+.standalone-page-design .default-layout-columns.common-page-template-item,
+.standalone-page-design .default-layout-one-column.common-page-template-item,
+.standalone-page-design .default-layout-two-columns.common-page-template-item,
+.standalone-page-design .default-layout-three-columns.common-page-template-item {
+  margin: 0 7%;
+  width: auto;
+  float: none;
+}
+div.reset-row .notes-text > ol,
+div.reset-row .notes-text > ul,
+.standalone-page-design .notes-text > ol,
+.standalone-page-design .notes-text > ul {
+  padding-inline-end: 40px;
+  margin-bottom: 2.4em;
+  padding-left: 0;
+}
+div.reset-row .headers-left .notes-text,
+.standalone-page-design .headers-left .notes-text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+div.reset-row .headers-left .notes-text h1,
+div.reset-row .headers-left .notes-text h2,
+div.reset-row .headers-left .notes-text h3,
+div.reset-row .headers-left .notes-text h4,
+.standalone-page-design .headers-left .notes-text h1,
+.standalone-page-design .headers-left .notes-text h2,
+.standalone-page-design .headers-left .notes-text h3,
+.standalone-page-design .headers-left .notes-text h4 {
+  width: 37%;
+  margin-right: 2%;
+}
+div.reset-row .headers-left .notes-text p,
+div.reset-row .headers-left .notes-text ul,
+.standalone-page-design .headers-left .notes-text p,
+.standalone-page-design .headers-left .notes-text ul {
+  width: 60%;
+}
+div.reset-row .headers-left .notes-text > ul,
+.standalone-page-design .headers-left .notes-text > ul {
+  margin-bottom: 3em;
+}
+div.reset-row .headers-left .notes-text > ul > li > ul,
+div.reset-row .headers-left .notes-text > ul > li > ol,
+.standalone-page-design .headers-left .notes-text > ul > li > ul,
+.standalone-page-design .headers-left .notes-text > ul > li > ol {
+  margin-bottom: 2em;
+}
+div.reset-row .headers-left .notes-text > ul > li,
+.standalone-page-design .headers-left .notes-text > ul > li {
+  list-style: none;
+  min-height: 1.6em;
+}
+div.reset-row .headers-left .notes-text > ul > li > ul > li,
+.standalone-page-design .headers-left .notes-text > ul > li > ul > li {
+  list-style-type: disc;
+  list-style-position: outside;
+  margin-left: 1.6em;
+}
+div.reset-row .headers-left .notes-text > ul > li > ol > li,
+.standalone-page-design .headers-left .notes-text > ul > li > ol > li {
+  list-style-type: decimal;
+  list-style-position: outside;
+  margin-left: 1.6em;
+}
+div.reset-row .headers-left .notes-text h1 + p,
+div.reset-row .headers-left .notes-text h2 + p,
+div.reset-row .headers-left .notes-text h3 + p,
+div.reset-row .headers-left .notes-text h4 + p,
+.standalone-page-design .headers-left .notes-text h1 + p,
+.standalone-page-design .headers-left .notes-text h2 + p,
+.standalone-page-design .headers-left .notes-text h3 + p,
+.standalone-page-design .headers-left .notes-text h4 + p {
+  margin-bottom: 1.5em;
+}
+div.reset-row .headers-left .notes-text .notes-text th,
+div.reset-row .headers-left .notes-text .notes-text tr,
+.standalone-page-design .headers-left .notes-text .notes-text th,
+.standalone-page-design .headers-left .notes-text .notes-text tr {
+  word-break: normal;
+  vertical-align: top;
+}
+div.reset-row .standalone-page-design .custom-editor,
+div.reset-row .standalone-page-design .custom-editor-viewer,
+div.reset-row .default-layout-columns .embedded-items-item,
+div.reset-row .common-template-item div.browse-container,
+.standalone-page-design .standalone-page-design .custom-editor,
+.standalone-page-design .standalone-page-design .custom-editor-viewer,
+.standalone-page-design .default-layout-columns .embedded-items-item,
+.standalone-page-design .common-template-item div.browse-container {
+  padding: 0.4em 2% 1.5em;
+}
+div.reset-row .standalone-page-design .custom-editor h1,
+div.reset-row .standalone-page-design .custom-editor h2,
+div.reset-row .standalone-page-design .custom-editor h3,
+div.reset-row .standalone-page-design .custom-editor h4,
+div.reset-row .standalone-page-design .custom-editor-viewer h1,
+div.reset-row .standalone-page-design .custom-editor-viewer h2,
+div.reset-row .standalone-page-design .custom-editor-viewer h3,
+div.reset-row .standalone-page-design .custom-editor-viewer h4,
+div.reset-row .default-layout-columns .embedded-items-item h1,
+div.reset-row .default-layout-columns .embedded-items-item h2,
+div.reset-row .default-layout-columns .embedded-items-item h3,
+div.reset-row .default-layout-columns .embedded-items-item h4,
+div.reset-row .common-template-item div.browse-container h1,
+div.reset-row .common-template-item div.browse-container h2,
+div.reset-row .common-template-item div.browse-container h3,
+div.reset-row .common-template-item div.browse-container h4,
+.standalone-page-design .standalone-page-design .custom-editor h1,
+.standalone-page-design .standalone-page-design .custom-editor h2,
+.standalone-page-design .standalone-page-design .custom-editor h3,
+.standalone-page-design .standalone-page-design .custom-editor h4,
+.standalone-page-design .standalone-page-design .custom-editor-viewer h1,
+.standalone-page-design .standalone-page-design .custom-editor-viewer h2,
+.standalone-page-design .standalone-page-design .custom-editor-viewer h3,
+.standalone-page-design .standalone-page-design .custom-editor-viewer h4,
+.standalone-page-design .default-layout-columns .embedded-items-item h1,
+.standalone-page-design .default-layout-columns .embedded-items-item h2,
+.standalone-page-design .default-layout-columns .embedded-items-item h3,
+.standalone-page-design .default-layout-columns .embedded-items-item h4,
+.standalone-page-design .common-template-item div.browse-container h1,
+.standalone-page-design .common-template-item div.browse-container h2,
+.standalone-page-design .common-template-item div.browse-container h3,
+.standalone-page-design .common-template-item div.browse-container h4 {
+  margin-bottom: 0.67em;
+}
+div.reset-row .standalone-page-design .custom-editor .notes-text th,
+div.reset-row .standalone-page-design .custom-editor .notes-text tr,
+div.reset-row .standalone-page-design .custom-editor-viewer .notes-text th,
+div.reset-row .standalone-page-design .custom-editor-viewer .notes-text tr,
+div.reset-row .default-layout-columns .embedded-items-item .notes-text th,
+div.reset-row .default-layout-columns .embedded-items-item .notes-text tr,
+div.reset-row .common-template-item div.browse-container .notes-text th,
+div.reset-row .common-template-item div.browse-container .notes-text tr,
+.standalone-page-design .standalone-page-design .custom-editor .notes-text th,
+.standalone-page-design .standalone-page-design .custom-editor .notes-text tr,
+.standalone-page-design .standalone-page-design .custom-editor-viewer .notes-text th,
+.standalone-page-design .standalone-page-design .custom-editor-viewer .notes-text tr,
+.standalone-page-design .default-layout-columns .embedded-items-item .notes-text th,
+.standalone-page-design .default-layout-columns .embedded-items-item .notes-text tr,
+.standalone-page-design .common-template-item div.browse-container .notes-text th,
+.standalone-page-design .common-template-item div.browse-container .notes-text tr {
+  word-break: normal;
+  vertical-align: top;
+}
+div.reset-row .embedded-items-item.option-type-attachments,
+.standalone-page-design .embedded-items-item.option-type-attachments {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgb(221, 221, 221);
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 3px 3px 0px #d6d6d6;
+  margin: 0.4em 0 1.2em;
+}
+div.reset-row .default-layout-rows .page-item-container,
+.standalone-page-design .default-layout-rows .page-item-container {
+  flex-flow: column;
+}
+div.reset-row .default-layout-rows .page-item-container .embedded-items-item,
+.standalone-page-design .default-layout-rows .page-item-container .embedded-items-item {
+  flex-shrink: 1;
+  flex-grow: 0;
+}
+
+#standalone-page > .standalone-page-container .icon-files-center .container-icons-folder-items {
+  justify-content: center;
+}
+#standalone-page > .standalone-page-container .icon-files-center .container-icons-entry .browse-entry-classifications .bem-class-title {
+  margin-right: 0;
+}
+#standalone-page > .standalone-page-container .hide-file-browser {
+  display: none;
+}
+#standalone-page > .standalone-page-container .notes-empty {
+  display: none;
+}
+#standalone-page > .standalone-page-container .no-border {
+  border: 0;
+  box-shadow: none;
+}
+#standalone-page > .standalone-page-container .no-background {
+  background-color: transparent;
+}
+
+div.reset-row .custom-editor > ol,
+div.reset-row .custom-editor > ul,
+div.reset-row .custom-editor-viewer > ol,
+div.reset-row .custom-editor-viewer > ul,
+.standalone-page-design .custom-editor > ol,
+.standalone-page-design .custom-editor > ul,
+.standalone-page-design .custom-editor-viewer > ol,
+.standalone-page-design .custom-editor-viewer > ul {
+  padding-inline-end: 40px;
+  margin-bottom: 10px;
+  padding-left: 0;
+}
+div.reset-row .custom-editor ul li,
+div.reset-row .custom-editor ul ul,
+div.reset-row .custom-editor-viewer ul li,
+div.reset-row .custom-editor-viewer ul ul,
+.standalone-page-design .custom-editor ul li,
+.standalone-page-design .custom-editor ul ul,
+.standalone-page-design .custom-editor-viewer ul li,
+.standalone-page-design .custom-editor-viewer ul ul {
+  list-style-position: outside;
+  list-style-type: disc;
+  margin-left: 1.6em;
+  overflow: visible;
+}
+div.reset-row .custom-editor ol li,
+div.reset-row .custom-editor ol ol,
+div.reset-row .custom-editor-viewer ol li,
+div.reset-row .custom-editor-viewer ol ol,
+.standalone-page-design .custom-editor ol li,
+.standalone-page-design .custom-editor ol ol,
+.standalone-page-design .custom-editor-viewer ol li,
+.standalone-page-design .custom-editor-viewer ol ol {
+  list-style-position: outside;
+  list-style-type: decimal;
+  margin-left: 1.6em;
+  overflow: visible;
+}
+div.reset-row .custom-editor img,
+div.reset-row .custom-editor-viewer img,
+.standalone-page-design .custom-editor img,
+.standalone-page-design .custom-editor-viewer img {
+  background: silver;
+  height: 1em;
+  width: 1em;
+  border-radius: 50%;
+}
+div.reset-row .custom-editor img.loaded-image,
+div.reset-row .custom-editor-viewer img.loaded-image,
+.standalone-page-design .custom-editor img.loaded-image,
+.standalone-page-design .custom-editor-viewer img.loaded-image {
+  height: auto;
+  width: auto;
+  background: transparent;
+  border-radius: unset;
+}
+div.reset-row .custom-editor img.broken-image,
+div.reset-row .custom-editor-viewer img.broken-image,
+.standalone-page-design .custom-editor img.broken-image,
+.standalone-page-design .custom-editor-viewer img.broken-image {
+  opacity: 0;
+}
+div.reset-row .edit-field-container .custom-editor,
+.standalone-page-design .edit-field-container .custom-editor {
+  font-size: 16px;
+}
+div.reset-row p,
+.standalone-page-design p {
+  min-height: 1.6em;
+}
+div.reset-row .ei-item-footer ul li,
+div.reset-row .ei-item-footer ul ul,
+.standalone-page-design .ei-item-footer ul li,
+.standalone-page-design .ei-item-footer ul ul {
+  list-style-position: inside;
+  list-style-type: none;
+  margin-left: 0;
+  overflow: hidden;
+}
+
+.standalone-page-design .custom-editor img.broken-image,
+.standalone-page-design .custom-editor-viewer img.broken-image {
+  opacity: 100;
+}
+
+@media (max-width: 767px) {
+  div.reset-row .standalone-page-design .custom-editor,
+  div.reset-row .standalone-page-design .custom-editor-viewer {
+    font-size: 20px;
+    padding: 0.4em 1em 1em;
+  }
+  div.reset-row .default-layout-rows.common-page-template-item,
+  div.reset-row .default-layout-columns.common-page-template-item,
+  div.reset-row .default-layout-one-column.common-page-template-item,
+  div.reset-row .default-layout-two-columns.common-page-template-item,
+  div.reset-row .default-layout-three-columns.common-page-template-item,
+  .standalone-page-design .default-layout-rows.common-page-template-item,
+  .standalone-page-design .default-layout-columns.common-page-template-item,
+  .standalone-page-design .default-layout-one-column.common-page-template-item,
+  .standalone-page-design .default-layout-two-columns.common-page-template-item,
+  .standalone-page-design .default-layout-three-columns.common-page-template-item {
+    margin: 0 1%;
+  }
+  div.reset-row .custom-editor,
+  div.reset-row .custom-editor-viewer,
+  div.reset-row .default-layout-rows,
+  div.reset-row .default-layout-columns,
+  div.reset-row .default-layout-one-column,
+  div.reset-row .default-layout-two-columns,
+  div.reset-row .default-layout-three-columns,
+  .standalone-page-design .custom-editor,
+  .standalone-page-design .custom-editor-viewer,
+  .standalone-page-design .default-layout-rows,
+  .standalone-page-design .default-layout-columns,
+  .standalone-page-design .default-layout-one-column,
+  .standalone-page-design .default-layout-two-columns,
+  .standalone-page-design .default-layout-three-columns {
+    font-size: 18px;
+  }
+  div.reset-row .custom-editor .notes-text,
+  div.reset-row .custom-editor .embedded-items-item,
+  div.reset-row .custom-editor-viewer .notes-text,
+  div.reset-row .custom-editor-viewer .embedded-items-item,
+  div.reset-row .default-layout-rows .notes-text,
+  div.reset-row .default-layout-rows .embedded-items-item,
+  div.reset-row .default-layout-columns .notes-text,
+  div.reset-row .default-layout-columns .embedded-items-item,
+  div.reset-row .default-layout-one-column .notes-text,
+  div.reset-row .default-layout-one-column .embedded-items-item,
+  div.reset-row .default-layout-two-columns .notes-text,
+  div.reset-row .default-layout-two-columns .embedded-items-item,
+  div.reset-row .default-layout-three-columns .notes-text,
+  div.reset-row .default-layout-three-columns .embedded-items-item,
+  .standalone-page-design .custom-editor .notes-text,
+  .standalone-page-design .custom-editor .embedded-items-item,
+  .standalone-page-design .custom-editor-viewer .notes-text,
+  .standalone-page-design .custom-editor-viewer .embedded-items-item,
+  .standalone-page-design .default-layout-rows .notes-text,
+  .standalone-page-design .default-layout-rows .embedded-items-item,
+  .standalone-page-design .default-layout-columns .notes-text,
+  .standalone-page-design .default-layout-columns .embedded-items-item,
+  .standalone-page-design .default-layout-one-column .notes-text,
+  .standalone-page-design .default-layout-one-column .embedded-items-item,
+  .standalone-page-design .default-layout-two-columns .notes-text,
+  .standalone-page-design .default-layout-two-columns .embedded-items-item,
+  .standalone-page-design .default-layout-three-columns .notes-text,
+  .standalone-page-design .default-layout-three-columns .embedded-items-item {
+    width: auto !important;
+  }
+  div.reset-row .custom-editor .notes-text,
+  div.reset-row .custom-editor-viewer .notes-text,
+  div.reset-row .default-layout-rows .notes-text,
+  div.reset-row .default-layout-columns .notes-text,
+  div.reset-row .default-layout-one-column .notes-text,
+  div.reset-row .default-layout-two-columns .notes-text,
+  div.reset-row .default-layout-three-columns .notes-text,
+  .standalone-page-design .custom-editor .notes-text,
+  .standalone-page-design .custom-editor-viewer .notes-text,
+  .standalone-page-design .default-layout-rows .notes-text,
+  .standalone-page-design .default-layout-columns .notes-text,
+  .standalone-page-design .default-layout-one-column .notes-text,
+  .standalone-page-design .default-layout-two-columns .notes-text,
+  .standalone-page-design .default-layout-three-columns .notes-text {
+    font-size: 18px;
+  }
+  div.reset-row .custom-editor h1,
+  div.reset-row .custom-editor-viewer h1,
+  div.reset-row .default-layout-rows h1,
+  div.reset-row .default-layout-columns h1,
+  div.reset-row .default-layout-one-column h1,
+  div.reset-row .default-layout-two-columns h1,
+  div.reset-row .default-layout-three-columns h1,
+  .standalone-page-design .custom-editor h1,
+  .standalone-page-design .custom-editor-viewer h1,
+  .standalone-page-design .default-layout-rows h1,
+  .standalone-page-design .default-layout-columns h1,
+  .standalone-page-design .default-layout-one-column h1,
+  .standalone-page-design .default-layout-two-columns h1,
+  .standalone-page-design .default-layout-three-columns h1 {
+    font-size: 48px;
+  }
+  div.reset-row .custom-editor h2,
+  div.reset-row .custom-editor-viewer h2,
+  div.reset-row .default-layout-rows h2,
+  div.reset-row .default-layout-columns h2,
+  div.reset-row .default-layout-one-column h2,
+  div.reset-row .default-layout-two-columns h2,
+  div.reset-row .default-layout-three-columns h2,
+  .standalone-page-design .custom-editor h2,
+  .standalone-page-design .custom-editor-viewer h2,
+  .standalone-page-design .default-layout-rows h2,
+  .standalone-page-design .default-layout-columns h2,
+  .standalone-page-design .default-layout-one-column h2,
+  .standalone-page-design .default-layout-two-columns h2,
+  .standalone-page-design .default-layout-three-columns h2 {
+    font-size: 34px;
+  }
+  div.reset-row .custom-editor h3,
+  div.reset-row .custom-editor-viewer h3,
+  div.reset-row .default-layout-rows h3,
+  div.reset-row .default-layout-columns h3,
+  div.reset-row .default-layout-one-column h3,
+  div.reset-row .default-layout-two-columns h3,
+  div.reset-row .default-layout-three-columns h3,
+  .standalone-page-design .custom-editor h3,
+  .standalone-page-design .custom-editor-viewer h3,
+  .standalone-page-design .default-layout-rows h3,
+  .standalone-page-design .default-layout-columns h3,
+  .standalone-page-design .default-layout-one-column h3,
+  .standalone-page-design .default-layout-two-columns h3,
+  .standalone-page-design .default-layout-three-columns h3 {
+    font-size: 28px;
+  }
+  div.reset-row .custom-editor h4,
+  div.reset-row .custom-editor-viewer h4,
+  div.reset-row .default-layout-rows h4,
+  div.reset-row .default-layout-columns h4,
+  div.reset-row .default-layout-one-column h4,
+  div.reset-row .default-layout-two-columns h4,
+  div.reset-row .default-layout-three-columns h4,
+  .standalone-page-design .custom-editor h4,
+  .standalone-page-design .custom-editor-viewer h4,
+  .standalone-page-design .default-layout-rows h4,
+  .standalone-page-design .default-layout-columns h4,
+  .standalone-page-design .default-layout-one-column h4,
+  .standalone-page-design .default-layout-two-columns h4,
+  .standalone-page-design .default-layout-three-columns h4 {
+    font-size: 24px;
+  }
+  div.reset-row .custom-editor .edit-field-container .custom-editor,
+  div.reset-row .custom-editor-viewer .edit-field-container .custom-editor,
+  div.reset-row .default-layout-rows .edit-field-container .custom-editor,
+  div.reset-row .default-layout-columns .edit-field-container .custom-editor,
+  div.reset-row .default-layout-one-column .edit-field-container .custom-editor,
+  div.reset-row .default-layout-two-columns .edit-field-container .custom-editor,
+  div.reset-row .default-layout-three-columns .edit-field-container .custom-editor,
+  .standalone-page-design .custom-editor .edit-field-container .custom-editor,
+  .standalone-page-design .custom-editor-viewer .edit-field-container .custom-editor,
+  .standalone-page-design .default-layout-rows .edit-field-container .custom-editor,
+  .standalone-page-design .default-layout-columns .edit-field-container .custom-editor,
+  .standalone-page-design .default-layout-one-column .edit-field-container .custom-editor,
+  .standalone-page-design .default-layout-two-columns .edit-field-container .custom-editor,
+  .standalone-page-design .default-layout-three-columns .edit-field-container .custom-editor {
+    font-size: 20px;
+  }
+  div.reset-row .default-layout-rows .notes-text,
+  div.reset-row .default-layout-rows .embedded-items-item,
+  .standalone-page-design .default-layout-rows .notes-text,
+  .standalone-page-design .default-layout-rows .embedded-items-item {
+    width: 100% !important;
+  }
+}
+.standalone-page-design .center-column,
+.reset-row .common-template-item.common-page-template-item .center-column {
+  margin: 0 auto;
+}
+.standalone-page-design .column-3,
+.reset-row .common-template-item.common-page-template-item .column-3 {
+  max-width: 300px;
+}
+.standalone-page-design .column-4,
+.reset-row .common-template-item.common-page-template-item .column-4 {
+  max-width: 400px;
+}
+.standalone-page-design .column-6,
+.reset-row .common-template-item.common-page-template-item .column-6 {
+  max-width: 600px;
+}
+.standalone-page-design .column-8,
+.reset-row .common-template-item.common-page-template-item .column-8 {
+  max-width: 800px;
+}
+.standalone-page-design .column-9,
+.reset-row .common-template-item.common-page-template-item .column-9 {
+  max-width: 900px;
+}
+.standalone-page-design .column-12,
+.reset-row .common-template-item.common-page-template-item .column-12 {
+  max-width: 1200px;
+}
+
+@media (min-width: 485px) {
+  .standalone-page-design .float-images-left .custom-editor img,
+  .standalone-page-design .float-images-left .custom-editor-viewer img,
+  div.reset-row .float-images-left .custom-editor img,
+  div.reset-row .float-images-left .custom-editor-viewer img {
+    float: left;
+    margin-right: 22px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+  }
+}
+.standalone-page-design .photo-borders .custom-editor img,
+.standalone-page-design .photo-borders .custom-editor-viewer img,
+div.reset-row .photo-borders .custom-editor img,
+div.reset-row .photo-borders .custom-editor-viewer img {
+  padding: 4px;
+  border: solid silver 1px;
+}
+.standalone-page-design .image-screenshots .custom-editor img.loaded-image,
+.standalone-page-design .image-screenshots .custom-editor-viewer img.loaded-image,
+div.reset-row .image-screenshots .custom-editor img.loaded-image,
+div.reset-row .image-screenshots .custom-editor-viewer img.loaded-image {
+  max-width: 800px;
+  box-shadow: 2px 2px 4px silver;
+  border: 1px solid rgb(192, 192, 192);
+  display: block;
+  margin: 17px auto;
+}
+.standalone-page-design .table-header-hide thead,
+div.reset-row .table-header-hide thead {
+  display: none;
+}
+.standalone-page-design .table-center table.table,
+div.reset-row .table-center table.table {
+  margin: 1em auto;
+}
+.standalone-page-design .list-workflow .custom-editor-viewer ul,
+div.reset-row .list-workflow .custom-editor-viewer ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.standalone-page-design .list-workflow .custom-editor-viewer ul li,
+div.reset-row .list-workflow .custom-editor-viewer ul li {
+  display: flex;
+  align-items: center;
+  min-height: 100px;
+  width: 150px;
+  background: rgb(40, 91, 129);
+  color: white;
+  vertical-align: middle;
+  border-radius: 5px 60px 60px 5px;
+  padding: 20px 20px 20px 15px;
+  margin: 10px;
+  text-align: left;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+.standalone-page-design .list-workflow .custom-editor-viewer ul li strong,
+div.reset-row .list-workflow .custom-editor-viewer ul li strong {
+  width: 100%;
+}
+.standalone-page-design .list-workflow .custom-editor-viewer ul li a,
+div.reset-row .list-workflow .custom-editor-viewer ul li a {
+  color: white;
+}
+.standalone-page-design .h1-center h1,
+div.reset-row .h1-center h1 {
+  text-align: center;
+}
+.standalone-page-design .h2-center h2,
+div.reset-row .h2-center h2 {
+  text-align: center;
+}
+.standalone-page-design .h3-center h3,
+div.reset-row .h3-center h3 {
+  text-align: center;
+}
+.standalone-page-design .h4-center h4,
+div.reset-row .h4-center h4 {
+  text-align: center;
+}
+.standalone-page-design .glyphicon-alert-red .glyphicon-alert,
+div.reset-row .glyphicon-alert-red .glyphicon-alert {
+  color: #a00;
+}
+
+.page-embedded-block .custom-editor {
+  border: 1px solid #cccccc;
+  margin-bottom: 18px;
+}
+
+#help-sidebar-body div.reset-row .default-layout-rows.common-page-template-item,
+#help-sidebar-body .standalone-page-design .default-layout-rows.common-page-template-item {
+  margin: 0;
+  width: auto;
+  float: none;
+}
+
+.standalone-page-design .model-reference-result.multi-model-reference-result.is-in-show-viewable.mrblock-activity-log--study-info-part.mrblock-extra-log-type-attachments.hidden {
+  display: block !important;
+}
+.standalone-page-design .model-reference-result.multi-model-reference-result.is-in-show-viewable.mrblock-activity-log--study-info-part.mrblock-extra-log-type-attachments.hidden .model-reference-result.use-secure-view-on-links-setup.sv-added-setup-links.hidden {
+  display: block !important;
+}
