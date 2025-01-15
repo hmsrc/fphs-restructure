@@ -1,0 +1,21 @@
+.markdown-editor-toolbar input[type=text].link-input {
+  width: 150px;
+  max-width: 150px;
+}
+.markdown-editor-toolbar .dropdown-menu.input-append {
+  padding: 20px;
+  min-width: 300px;
+  background-color: #f3f3f3;
+}
+.markdown-editor-toolbar .dropdown-menu.input-append input.form-control, .markdown-editor-toolbar .dropdown-menu.input-append select.form-control {
+  margin-bottom: 10px;
+  border: rgb(192, 192, 192) 1px solid !important;
+  min-height: 20px;
+}
+.markdown-editor-toolbar .dropdown-menu.input-append button {
+  border: rgb(192, 192, 192) 1px solid;
+  background-color: rgb(255, 255, 255);
+}
+.markdown-editor-toolbar .btn-group a.btn {
+  color: #333333;
+}
