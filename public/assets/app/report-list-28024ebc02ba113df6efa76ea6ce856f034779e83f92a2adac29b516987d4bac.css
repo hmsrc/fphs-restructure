@@ -1,0 +1,53 @@
+.report-list {
+  padding: 1.3%;
+}
+.report-list .report-list-result {
+  padding: 1.4em 1em;
+  border-bottom: 1px solid rgb(228, 228, 228);
+}
+.report-list[data-results-count="0"]:after {
+  content: "no results";
+  text-align: center;
+  font-size: 22px;
+  display: block;
+}
+.report-list ul.report-result-cell-tags {
+  display: block;
+  list-style-type: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 0px;
+}
+.report-list li.report-result-cell-tags {
+  list-style: none;
+  display: inline-block;
+  background: rgb(225, 225, 225);
+  padding: 3px 5px;
+  border-radius: 3px;
+  border: 1px solid rgb(192, 192, 192);
+  font-size: 90%;
+  margin-right: 4px;
+  line-height: 1em;
+  margin-bottom: 4px;
+}
+.report-list .report-list-header-item {
+  color: gray;
+  display: inline-block;
+  margin-right: 1.4em;
+  min-width: 10em;
+}
+.report-list pre {
+  padding: 10px 0;
+  background: transparent;
+  border: 0;
+  font-family: sans-serif;
+}
+.report-list markdown {
+  margin: 1em 0;
+  display: block;
+}
+.report-list ul.report-inner-hash {
+  list-style: none;
+}
