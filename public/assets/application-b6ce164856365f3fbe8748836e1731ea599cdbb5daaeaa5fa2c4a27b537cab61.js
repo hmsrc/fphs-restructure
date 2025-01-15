@@ -112618,7 +112618,7 @@ _fpa.postprocessors_reports = {
 
       if (_fpa.templates['search-count-template']) {
         var h = _fpa.templates['search-count-template'](data);
-        block.find('.search_count_reports').html(h);
+        $('[data-report-count]').html(h);
       }
     }
 
@@ -114291,6 +114291,9 @@ _fpa.form_utils = {
         console.log(`set filtered select ${filter_sel} to val: ${new_val} == ${$(filter_sel).val()}`)
         // end of hack
 
+        window.setTimeout(function () {
+          $($el).change()
+        }, 1)
 
       })
       .addClass('filters-select-attached');
@@ -115414,6 +115417,43 @@ _fpa.form_utils = {
       .addClass('formatted-slfs');
   },
 
+  reorder_sub_list_columns: function (block) {
+    const $outer = block.parents('.reorder-sublist-columns');
+    if ($outer.length === 0) return;
+
+    window.setTimeout(function () {
+      var heights = [];
+      var cols = $outer.find('.sublist-column');
+      if (cols.length === 0) return;
+
+      cols.each(function () {
+        var h = $(this).height();
+        if ($(this).find('[data-sub-item]').length === 0) {
+          // No items in the column
+          h = 0;
+        }
+        heights.push([$(this).prop('id'), h]);
+      });
+
+      heights.sort(function (a, b) {
+        return b[1] - a[1]
+      });
+
+      var prev = null;
+      for (var key in heights) {
+        if (!heights.hasOwnProperty(key)) continue;
+
+        var id = heights[key][0];
+        var $col = $(`#${id}`);
+        if (prev) {
+          prev.after($col);
+        }
+        prev = $col;
+      }
+    }, 200)
+
+  },
+
   setup_contact_field_mask: function (block) {
     var check_rec = function (rec_type, input) {
       if (typeof rec_type == 'string') {
@@ -115755,6 +115795,7 @@ _fpa.form_utils = {
     _fpa.form_utils.setup_error_clear(block);
     _fpa.form_utils.resize_children(block);
     _fpa.form_utils.setup_sub_lists(block);
+    _fpa.form_utils.reorder_sub_list_columns(block);
     _fpa.form_utils.apply_view_handlers(block);
     _fpa.form_utils.setup_secure_view_links(block);
 

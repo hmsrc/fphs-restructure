@@ -11918,6 +11918,12 @@ Original highlight.js style (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
 .big-select-overlay[readonly] {
   background: white;
 }
+
+.big-select-description {
+  position: absolute;
+  right: 4px;
+  top: 9px;
+}
 :root {
   --body-text-color: #333333;
   --template-block-text-color: #555;
@@ -12874,7 +12880,7 @@ table.admin-list tbody td pre.full-width {
 }
 
 #admin_user_role_role_name {
-  width: 300px;
+  width: 100%;
 }
 
 input.form-control.tt-hint {
@@ -13167,7 +13173,7 @@ form .full-width input.form-control {
 }
 
 .form-inline .twitter-typeahead {
-  width: auto;
+  width: 100%;
 }
 
 form select {
@@ -13778,23 +13784,6 @@ fieldset.readonly-edit-fieldset select::-ms-expand {
   .help-sidebar .btn.btn-expander {
     display: none;
   }
-}
-@import url("https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400");
-@font-face {
-  font-family: "Roboto";
-  src: url(/fonts/roboto/Roboto-Regular.ttf);
-}
-@font-face {
-  font-family: "Roboto-Bold";
-  src: url(/fonts/roboto/Roboto-Bold.ttf);
-}
-@font-face {
-  font-family: "Roboto-Italic";
-  src: url(/fonts/roboto/Roboto-Italic.ttf);
-}
-@font-face {
-  font-family: "Roboto-BoldItalic";
-  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
 }
 div.help-view-doc,
 .common-help-item,
