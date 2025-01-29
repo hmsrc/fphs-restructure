@@ -24,6 +24,22 @@
   font-family: "Assistant";
   src: url(/fonts/assistant/Assistant-VariableFont_wght.ttf);
 }
+@font-face {
+  font-family: "Roboto";
+  src: url(/fonts/roboto/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: "Roboto-Bold";
+  src: url(/fonts/roboto/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: "Roboto-Italic";
+  src: url(/fonts/roboto/Roboto-Italic.ttf);
+}
+@font-face {
+  font-family: "Roboto-BoldItalic";
+  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
+}
 /*!
  * Generated using the Bootstrap Customizer (https://getbootstrap.com/docs/3.4/customize/)
  */

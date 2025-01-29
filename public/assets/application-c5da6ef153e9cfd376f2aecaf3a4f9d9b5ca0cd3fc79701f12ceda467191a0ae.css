@@ -24,6 +24,22 @@
   font-family: "Assistant";
   src: url(/fonts/assistant/Assistant-VariableFont_wght.ttf);
 }
+@font-face {
+  font-family: "Roboto";
+  src: url(/fonts/roboto/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: "Roboto-Bold";
+  src: url(/fonts/roboto/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: "Roboto-Italic";
+  src: url(/fonts/roboto/Roboto-Italic.ttf);
+}
+@font-face {
+  font-family: "Roboto-BoldItalic";
+  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
+}
 /*!
  * Generated using the Bootstrap Customizer (https://getbootstrap.com/docs/3.4/customize/)
  */
@@ -7689,6 +7705,22 @@ button.close {
   font-family: "Assistant";
   src: url(/fonts/assistant/Assistant-VariableFont_wght.ttf);
 }
+@font-face {
+  font-family: "Roboto";
+  src: url(/fonts/roboto/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: "Roboto-Bold";
+  src: url(/fonts/roboto/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: "Roboto-Italic";
+  src: url(/fonts/roboto/Roboto-Italic.ttf);
+}
+@font-face {
+  font-family: "Roboto-BoldItalic";
+  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
+}
 /*!
  * Generated using the Bootstrap Customizer (https://getbootstrap.com/docs/3.4/customize/)
  */
@@ -11950,6 +11982,22 @@ Original highlight.js style (c) Ivan Sagalaev <maniac@softwaremaniacs.org>
   font-family: "Assistant";
   src: url(/fonts/assistant/Assistant-VariableFont_wght.ttf);
 }
+@font-face {
+  font-family: "Roboto";
+  src: url(/fonts/roboto/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: "Roboto-Bold";
+  src: url(/fonts/roboto/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: "Roboto-Italic";
+  src: url(/fonts/roboto/Roboto-Italic.ttf);
+}
+@font-face {
+  font-family: "Roboto-BoldItalic";
+  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
+}
 html {
   min-height: 100%;
   background: rgb(248, 248, 248);
@@ -15507,6 +15555,22 @@ table .report-cb-inner {
 @font-face {
   font-family: "Assistant";
   src: url(/fonts/assistant/Assistant-VariableFont_wght.ttf);
+}
+@font-face {
+  font-family: "Roboto";
+  src: url(/fonts/roboto/Roboto-Regular.ttf);
+}
+@font-face {
+  font-family: "Roboto-Bold";
+  src: url(/fonts/roboto/Roboto-Bold.ttf);
+}
+@font-face {
+  font-family: "Roboto-Italic";
+  src: url(/fonts/roboto/Roboto-Italic.ttf);
+}
+@font-face {
+  font-family: "Roboto-BoldItalic";
+  src: url(/fonts/roboto/Roboto-BoldItalic.ttf);
 }
 span.disabled,
 a.disabled {
