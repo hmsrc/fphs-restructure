@@ -46,6 +46,7 @@ module Redcap
 
     attr_reader :logger
     attr_writer :log
+    attr_accessor :raw_response, :response_code
 
     def initialize
       @logger = Logger.new STDOUT
@@ -122,6 +123,22 @@ module Redcap
       post payload
     end
 
+    def survey_link(instrument: nil, record_id: nil, request_options: nil)
+      attrs = {                                      
+        instrument: instrument,
+        record: record_id.to_s
+      }
+
+      request_options = attrs.merge(request_options)
+
+      self.raw_response = true
+
+      payload = build_payload content: :surveyLink,
+                              request_options: request_options
+
+      post payload
+    end
+
     def update(data = [], request_options: nil)
       payload = {
         token: configuration.token,
@@ -194,7 +211,13 @@ module Redcap
     def post(payload = {})
       log "Redcap POST to #{configuration.host} with #{payload}"
       response = RestClient.post configuration.host, payload
-      response = JSON.parse(response)
+      self.response_code = response.code
+
+      unless raw_response
+        response = JSON.parse(response) 
+      else
+        response = response.to_s
+      end
       log 'Response:'
       log response
       response
@@ -205,6 +228,8 @@ module Redcap
       log "Redcap POST for file field to #{configuration.host} with #{payload}"
       response = RestClient::Request.execute method: :post, url: configuration.host, payload: payload,
                                              raw_response: true
+      
+      self.response_code = response.code
       file = response.file
       log 'File:'
       log file

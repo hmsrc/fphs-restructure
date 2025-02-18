@@ -12707,10 +12707,25 @@ body.registrations.new a[data-target="#help-sidebar"] {
 .activity-logs-generic-block {
   margin-top: 0.8em;
 }
-.activity-logs-generic-block.ajax-running {
-  background: silver;
+.activity-logs-generic-block .activity-logs-inner-block {
+  min-height: 20px;
+}
+.activity-logs-generic-block.ajax-running .activity-logs-inner-block {
+  background: gray;
+  animation: runningAjax 4s;
+}
+.activity-logs-generic-block.formatting-block {
+  animation: none;
 }
 
+@keyframes runningAjax {
+  from {
+    transform: scale(0, 1);
+  }
+  to {
+    transform: scale(1, 1);
+  }
+}
 .activity-logs-header,
 .activity-log-list {
   padding: 1em;
