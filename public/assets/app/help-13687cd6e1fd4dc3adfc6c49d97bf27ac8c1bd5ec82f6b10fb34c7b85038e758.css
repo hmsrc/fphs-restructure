@@ -1,0 +1,677 @@
+div.help-view-doc,
+.common-help-item,
+.md-formatted-block,
+#help-sidebar-body div.standalone-page-col.reset-row,
+#help-sidebar-body div.info-page.reset-row {
+  font-family: Roboto, sans-serif;
+}
+div.help-view-doc .common-help-item,
+.common-help-item .common-help-item,
+.md-formatted-block .common-help-item,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item,
+#help-sidebar-body div.info-page.reset-row .common-help-item {
+  padding: 0 4%;
+  background: rgb(255, 255, 255);
+  padding-top: 30px;
+  padding-bottom: 60px;
+}
+div.help-view-doc .nfs-store--manage--container-data,
+.common-help-item .nfs-store--manage--container-data,
+.md-formatted-block .nfs-store--manage--container-data,
+#help-sidebar-body div.standalone-page-col.reset-row .nfs-store--manage--container-data,
+#help-sidebar-body div.info-page.reset-row .nfs-store--manage--container-data {
+  display: none;
+}
+div.help-view-doc img,
+.common-help-item img,
+.md-formatted-block img,
+#help-sidebar-body div.standalone-page-col.reset-row img,
+#help-sidebar-body div.info-page.reset-row img {
+  max-width: 100%;
+  min-width: 200px;
+  min-height: 50px;
+  opacity: 0.5;
+  background-color: silver;
+  animation: working 1s ease-in-out infinite;
+}
+div.help-view-doc img.broken-image,
+.common-help-item img.broken-image,
+.md-formatted-block img.broken-image,
+#help-sidebar-body div.standalone-page-col.reset-row img.broken-image,
+#help-sidebar-body div.info-page.reset-row img.broken-image {
+  animation: none;
+}
+div.help-view-doc img.loaded-image,
+.common-help-item img.loaded-image,
+.md-formatted-block img.loaded-image,
+#help-sidebar-body div.standalone-page-col.reset-row img.loaded-image,
+#help-sidebar-body div.info-page.reset-row img.loaded-image {
+  opacity: 1;
+  transition: ease-in 600ms;
+  animation: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0.3em;
+  background: none;
+  border: 1px solid rgb(232, 232, 232);
+  border-radius: 3px;
+  margin-bottom: 0.6em;
+}
+div.help-view-doc hr,
+.common-help-item hr,
+.md-formatted-block hr,
+#help-sidebar-body div.standalone-page-col.reset-row hr,
+#help-sidebar-body div.info-page.reset-row hr {
+  border-top: 3px solid rgb(213, 213, 213);
+}
+div.help-view-doc div,
+div.help-view-doc h1,
+div.help-view-doc h2,
+div.help-view-doc h3,
+div.help-view-doc h4,
+.common-help-item div,
+.common-help-item h1,
+.common-help-item h2,
+.common-help-item h3,
+.common-help-item h4,
+.md-formatted-block div,
+.md-formatted-block h1,
+.md-formatted-block h2,
+.md-formatted-block h3,
+.md-formatted-block h4,
+#help-sidebar-body div.standalone-page-col.reset-row div,
+#help-sidebar-body div.standalone-page-col.reset-row h1,
+#help-sidebar-body div.standalone-page-col.reset-row h2,
+#help-sidebar-body div.standalone-page-col.reset-row h3,
+#help-sidebar-body div.standalone-page-col.reset-row h4,
+#help-sidebar-body div.info-page.reset-row div,
+#help-sidebar-body div.info-page.reset-row h1,
+#help-sidebar-body div.info-page.reset-row h2,
+#help-sidebar-body div.info-page.reset-row h3,
+#help-sidebar-body div.info-page.reset-row h4 {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  width: auto;
+  float: none;
+}
+div.help-view-doc h1,
+div.help-view-doc h2,
+div.help-view-doc h3,
+div.help-view-doc h4,
+div.help-view-doc strong,
+div.help-view-doc b,
+.common-help-item h1,
+.common-help-item h2,
+.common-help-item h3,
+.common-help-item h4,
+.common-help-item strong,
+.common-help-item b,
+.md-formatted-block h1,
+.md-formatted-block h2,
+.md-formatted-block h3,
+.md-formatted-block h4,
+.md-formatted-block strong,
+.md-formatted-block b,
+#help-sidebar-body div.standalone-page-col.reset-row h1,
+#help-sidebar-body div.standalone-page-col.reset-row h2,
+#help-sidebar-body div.standalone-page-col.reset-row h3,
+#help-sidebar-body div.standalone-page-col.reset-row h4,
+#help-sidebar-body div.standalone-page-col.reset-row strong,
+#help-sidebar-body div.standalone-page-col.reset-row b,
+#help-sidebar-body div.info-page.reset-row h1,
+#help-sidebar-body div.info-page.reset-row h2,
+#help-sidebar-body div.info-page.reset-row h3,
+#help-sidebar-body div.info-page.reset-row h4,
+#help-sidebar-body div.info-page.reset-row strong,
+#help-sidebar-body div.info-page.reset-row b {
+  margin-bottom: 0.67em;
+  margin-top: 1em;
+  font-family: Roboto-Bold, sans-serif;
+}
+div.help-view-doc h1 i,
+div.help-view-doc h1 em,
+div.help-view-doc h2 i,
+div.help-view-doc h2 em,
+div.help-view-doc h3 i,
+div.help-view-doc h3 em,
+div.help-view-doc h4 i,
+div.help-view-doc h4 em,
+div.help-view-doc strong i,
+div.help-view-doc strong em,
+div.help-view-doc b i,
+div.help-view-doc b em,
+.common-help-item h1 i,
+.common-help-item h1 em,
+.common-help-item h2 i,
+.common-help-item h2 em,
+.common-help-item h3 i,
+.common-help-item h3 em,
+.common-help-item h4 i,
+.common-help-item h4 em,
+.common-help-item strong i,
+.common-help-item strong em,
+.common-help-item b i,
+.common-help-item b em,
+.md-formatted-block h1 i,
+.md-formatted-block h1 em,
+.md-formatted-block h2 i,
+.md-formatted-block h2 em,
+.md-formatted-block h3 i,
+.md-formatted-block h3 em,
+.md-formatted-block h4 i,
+.md-formatted-block h4 em,
+.md-formatted-block strong i,
+.md-formatted-block strong em,
+.md-formatted-block b i,
+.md-formatted-block b em,
+#help-sidebar-body div.standalone-page-col.reset-row h1 i,
+#help-sidebar-body div.standalone-page-col.reset-row h1 em,
+#help-sidebar-body div.standalone-page-col.reset-row h2 i,
+#help-sidebar-body div.standalone-page-col.reset-row h2 em,
+#help-sidebar-body div.standalone-page-col.reset-row h3 i,
+#help-sidebar-body div.standalone-page-col.reset-row h3 em,
+#help-sidebar-body div.standalone-page-col.reset-row h4 i,
+#help-sidebar-body div.standalone-page-col.reset-row h4 em,
+#help-sidebar-body div.standalone-page-col.reset-row strong i,
+#help-sidebar-body div.standalone-page-col.reset-row strong em,
+#help-sidebar-body div.standalone-page-col.reset-row b i,
+#help-sidebar-body div.standalone-page-col.reset-row b em,
+#help-sidebar-body div.info-page.reset-row h1 i,
+#help-sidebar-body div.info-page.reset-row h1 em,
+#help-sidebar-body div.info-page.reset-row h2 i,
+#help-sidebar-body div.info-page.reset-row h2 em,
+#help-sidebar-body div.info-page.reset-row h3 i,
+#help-sidebar-body div.info-page.reset-row h3 em,
+#help-sidebar-body div.info-page.reset-row h4 i,
+#help-sidebar-body div.info-page.reset-row h4 em,
+#help-sidebar-body div.info-page.reset-row strong i,
+#help-sidebar-body div.info-page.reset-row strong em,
+#help-sidebar-body div.info-page.reset-row b i,
+#help-sidebar-body div.info-page.reset-row b em {
+  font-family: Roboto-BoldItalic, sans-serif;
+}
+div.help-view-doc i,
+div.help-view-doc em,
+.common-help-item i,
+.common-help-item em,
+.md-formatted-block i,
+.md-formatted-block em,
+#help-sidebar-body div.standalone-page-col.reset-row i,
+#help-sidebar-body div.standalone-page-col.reset-row em,
+#help-sidebar-body div.info-page.reset-row i,
+#help-sidebar-body div.info-page.reset-row em {
+  font-family: Roboto-Italic, sans-serif;
+}
+div.help-view-doc i strong,
+div.help-view-doc i b,
+div.help-view-doc em strong,
+div.help-view-doc em b,
+.common-help-item i strong,
+.common-help-item i b,
+.common-help-item em strong,
+.common-help-item em b,
+.md-formatted-block i strong,
+.md-formatted-block i b,
+.md-formatted-block em strong,
+.md-formatted-block em b,
+#help-sidebar-body div.standalone-page-col.reset-row i strong,
+#help-sidebar-body div.standalone-page-col.reset-row i b,
+#help-sidebar-body div.standalone-page-col.reset-row em strong,
+#help-sidebar-body div.standalone-page-col.reset-row em b,
+#help-sidebar-body div.info-page.reset-row i strong,
+#help-sidebar-body div.info-page.reset-row i b,
+#help-sidebar-body div.info-page.reset-row em strong,
+#help-sidebar-body div.info-page.reset-row em b {
+  font-family: Roboto-BoldItalic, sans-serif;
+}
+div.help-view-doc .list-group-item.is-heading.object-results-header,
+.common-help-item .list-group-item.is-heading.object-results-header,
+.md-formatted-block .list-group-item.is-heading.object-results-header,
+#help-sidebar-body div.standalone-page-col.reset-row .list-group-item.is-heading.object-results-header,
+#help-sidebar-body div.info-page.reset-row .list-group-item.is-heading.object-results-header {
+  display: none;
+}
+div.help-view-doc p br,
+.common-help-item p br,
+.md-formatted-block p br,
+#help-sidebar-body div.standalone-page-col.reset-row p br,
+#help-sidebar-body div.info-page.reset-row p br {
+  display: block;
+  content: "";
+  margin-top: 0.8em;
+  line-height: 190%;
+  vertical-align: top;
+}
+div.help-view-doc .default-layout,
+.common-help-item .default-layout,
+.md-formatted-block .default-layout,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout,
+#help-sidebar-body div.info-page.reset-row .default-layout {
+  margin: 0;
+}
+div.help-view-doc .default-layout h1,
+.common-help-item .default-layout h1,
+.md-formatted-block .default-layout h1,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout h1,
+#help-sidebar-body div.info-page.reset-row .default-layout h1 {
+  font-size: 44px;
+  line-height: 130%;
+}
+div.help-view-doc .default-layout h2,
+.common-help-item .default-layout h2,
+.md-formatted-block .default-layout h2,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout h2,
+#help-sidebar-body div.info-page.reset-row .default-layout h2 {
+  font-size: 30px;
+  line-height: 130%;
+}
+div.help-view-doc .default-layout h3,
+.common-help-item .default-layout h3,
+.md-formatted-block .default-layout h3,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout h3,
+#help-sidebar-body div.info-page.reset-row .default-layout h3 {
+  font-size: 26px;
+  line-height: 130%;
+}
+div.help-view-doc .default-layout h4,
+.common-help-item .default-layout h4,
+.md-formatted-block .default-layout h4,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout h4,
+#help-sidebar-body div.info-page.reset-row .default-layout h4 {
+  font-size: 22px;
+  line-height: 130%;
+}
+div.help-view-doc .default-layout .page-item-container,
+.common-help-item .default-layout .page-item-container,
+.md-formatted-block .default-layout .page-item-container,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout .page-item-container,
+#help-sidebar-body div.info-page.reset-row .default-layout .page-item-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+div.help-view-doc .default-layout .main-item,
+.common-help-item .default-layout .main-item,
+.md-formatted-block .default-layout .main-item,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout .main-item,
+#help-sidebar-body div.info-page.reset-row .default-layout .main-item {
+  width: 100%;
+}
+div.help-view-doc .md-formatted-block h1,
+div.help-view-doc .md-formatted-block h2,
+div.help-view-doc .md-formatted-block h3,
+div.help-view-doc .md-formatted-block h4, div.help-view-doc .custom-editor-viewer h1,
+div.help-view-doc .custom-editor-viewer h2,
+div.help-view-doc .custom-editor-viewer h3,
+div.help-view-doc .custom-editor-viewer h4,
+.common-help-item .md-formatted-block h1,
+.common-help-item .md-formatted-block h2,
+.common-help-item .md-formatted-block h3,
+.common-help-item .md-formatted-block h4,
+.common-help-item .custom-editor-viewer h1,
+.common-help-item .custom-editor-viewer h2,
+.common-help-item .custom-editor-viewer h3,
+.common-help-item .custom-editor-viewer h4,
+.md-formatted-block .md-formatted-block h1,
+.md-formatted-block .md-formatted-block h2,
+.md-formatted-block .md-formatted-block h3,
+.md-formatted-block .md-formatted-block h4,
+.md-formatted-block .custom-editor-viewer h1,
+.md-formatted-block .custom-editor-viewer h2,
+.md-formatted-block .custom-editor-viewer h3,
+.md-formatted-block .custom-editor-viewer h4,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h1,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h2,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h3,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h4,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h1,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h2,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h3,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h4,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h1,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h2,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h3,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h4,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h1,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h2,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h3,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h4 {
+  margin-top: 1em;
+  color: rgb(80, 80, 80);
+}
+div.help-view-doc .md-formatted-block h1, div.help-view-doc .custom-editor-viewer h1,
+.common-help-item .md-formatted-block h1,
+.common-help-item .custom-editor-viewer h1,
+.md-formatted-block .md-formatted-block h1,
+.md-formatted-block .custom-editor-viewer h1,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h1,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h1,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h1,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h1 {
+  font-size: 32px;
+}
+div.help-view-doc .md-formatted-block h2, div.help-view-doc .custom-editor-viewer h2,
+.common-help-item .md-formatted-block h2,
+.common-help-item .custom-editor-viewer h2,
+.md-formatted-block .md-formatted-block h2,
+.md-formatted-block .custom-editor-viewer h2,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h2,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h2,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h2,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h2 {
+  font-size: 24px;
+}
+div.help-view-doc .md-formatted-block h3, div.help-view-doc .custom-editor-viewer h3,
+.common-help-item .md-formatted-block h3,
+.common-help-item .custom-editor-viewer h3,
+.md-formatted-block .md-formatted-block h3,
+.md-formatted-block .custom-editor-viewer h3,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h3,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h3,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h3,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h3 {
+  font-size: 20px;
+}
+div.help-view-doc .md-formatted-block h4, div.help-view-doc .custom-editor-viewer h4,
+.common-help-item .md-formatted-block h4,
+.common-help-item .custom-editor-viewer h4,
+.md-formatted-block .md-formatted-block h4,
+.md-formatted-block .custom-editor-viewer h4,
+#help-sidebar-body div.standalone-page-col.reset-row .md-formatted-block h4,
+#help-sidebar-body div.standalone-page-col.reset-row .custom-editor-viewer h4,
+#help-sidebar-body div.info-page.reset-row .md-formatted-block h4,
+#help-sidebar-body div.info-page.reset-row .custom-editor-viewer h4 {
+  font-size: 18px;
+}
+div.help-view-doc .default-layout-rows.content,
+div.help-view-doc .default-layout.content,
+.common-help-item .default-layout-rows.content,
+.common-help-item .default-layout.content,
+.md-formatted-block .default-layout-rows.content,
+.md-formatted-block .default-layout.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-rows.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout.content,
+#help-sidebar-body div.info-page.reset-row .default-layout-rows.content,
+#help-sidebar-body div.info-page.reset-row .default-layout.content {
+  margin: 0 14%;
+  width: auto;
+  float: none;
+}
+div.help-view-doc .default-layout-columns.content,
+div.help-view-doc .default-layout-one-column.content,
+div.help-view-doc .default-layout-two-columns.content,
+div.help-view-doc .default-layout-three-columns.content,
+.common-help-item .default-layout-columns.content,
+.common-help-item .default-layout-one-column.content,
+.common-help-item .default-layout-two-columns.content,
+.common-help-item .default-layout-three-columns.content,
+.md-formatted-block .default-layout-columns.content,
+.md-formatted-block .default-layout-one-column.content,
+.md-formatted-block .default-layout-two-columns.content,
+.md-formatted-block .default-layout-three-columns.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-columns.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-one-column.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-two-columns.content,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-three-columns.content,
+#help-sidebar-body div.info-page.reset-row .default-layout-columns.content,
+#help-sidebar-body div.info-page.reset-row .default-layout-one-column.content,
+#help-sidebar-body div.info-page.reset-row .default-layout-two-columns.content,
+#help-sidebar-body div.info-page.reset-row .default-layout-three-columns.content {
+  margin: 0 7%;
+  width: auto;
+  float: none;
+}
+div.help-view-doc .common-help-item,
+div.help-view-doc .common-help-item,
+div.help-view-doc .default-layout-columns,
+div.help-view-doc div.browse-container,
+.common-help-item .common-help-item,
+.common-help-item .common-help-item,
+.common-help-item .default-layout-columns,
+.common-help-item div.browse-container,
+.md-formatted-block .common-help-item,
+.md-formatted-block .common-help-item,
+.md-formatted-block .default-layout-columns,
+.md-formatted-block div.browse-container,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-columns,
+#help-sidebar-body div.standalone-page-col.reset-row div.browse-container,
+#help-sidebar-body div.info-page.reset-row .common-help-item,
+#help-sidebar-body div.info-page.reset-row .common-help-item,
+#help-sidebar-body div.info-page.reset-row .default-layout-columns,
+#help-sidebar-body div.info-page.reset-row div.browse-container {
+  margin: 0.4em 1.7em 1.5em;
+}
+div.help-view-doc .common-help-item .notes-text th,
+div.help-view-doc .common-help-item .notes-text tr,
+div.help-view-doc .common-help-item .notes-text th,
+div.help-view-doc .common-help-item .notes-text tr,
+div.help-view-doc .default-layout-columns .notes-text th,
+div.help-view-doc .default-layout-columns .notes-text tr,
+div.help-view-doc div.browse-container .notes-text th,
+div.help-view-doc div.browse-container .notes-text tr,
+.common-help-item .common-help-item .notes-text th,
+.common-help-item .common-help-item .notes-text tr,
+.common-help-item .common-help-item .notes-text th,
+.common-help-item .common-help-item .notes-text tr,
+.common-help-item .default-layout-columns .notes-text th,
+.common-help-item .default-layout-columns .notes-text tr,
+.common-help-item div.browse-container .notes-text th,
+.common-help-item div.browse-container .notes-text tr,
+.md-formatted-block .common-help-item .notes-text th,
+.md-formatted-block .common-help-item .notes-text tr,
+.md-formatted-block .common-help-item .notes-text th,
+.md-formatted-block .common-help-item .notes-text tr,
+.md-formatted-block .default-layout-columns .notes-text th,
+.md-formatted-block .default-layout-columns .notes-text tr,
+.md-formatted-block div.browse-container .notes-text th,
+.md-formatted-block div.browse-container .notes-text tr,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item .notes-text th,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item .notes-text tr,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item .notes-text th,
+#help-sidebar-body div.standalone-page-col.reset-row .common-help-item .notes-text tr,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-columns .notes-text th,
+#help-sidebar-body div.standalone-page-col.reset-row .default-layout-columns .notes-text tr,
+#help-sidebar-body div.standalone-page-col.reset-row div.browse-container .notes-text th,
+#help-sidebar-body div.standalone-page-col.reset-row div.browse-container .notes-text tr,
+#help-sidebar-body div.info-page.reset-row .common-help-item .notes-text th,
+#help-sidebar-body div.info-page.reset-row .common-help-item .notes-text tr,
+#help-sidebar-body div.info-page.reset-row .common-help-item .notes-text th,
+#help-sidebar-body div.info-page.reset-row .common-help-item .notes-text tr,
+#help-sidebar-body div.info-page.reset-row .default-layout-columns .notes-text th,
+#help-sidebar-body div.info-page.reset-row .default-layout-columns .notes-text tr,
+#help-sidebar-body div.info-page.reset-row div.browse-container .notes-text th,
+#help-sidebar-body div.info-page.reset-row div.browse-container .notes-text tr {
+  word-break: normal;
+  vertical-align: top;
+}
+div.help-view-doc .embedded-items-item.option-type-attachments,
+.common-help-item .embedded-items-item.option-type-attachments,
+.md-formatted-block .embedded-items-item.option-type-attachments,
+#help-sidebar-body div.standalone-page-col.reset-row .embedded-items-item.option-type-attachments,
+#help-sidebar-body div.info-page.reset-row .embedded-items-item.option-type-attachments {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgb(221, 221, 221);
+  padding: 8px;
+  border-radius: 4px;
+  box-shadow: 0 3px 3px 0px #d6d6d6;
+  margin: 0.4em 0 1.2em;
+}
+div.help-view-doc .embedded-items-item.option-type-attachments h1,
+div.help-view-doc .embedded-items-item.option-type-attachments h2,
+.common-help-item .embedded-items-item.option-type-attachments h1,
+.common-help-item .embedded-items-item.option-type-attachments h2,
+.md-formatted-block .embedded-items-item.option-type-attachments h1,
+.md-formatted-block .embedded-items-item.option-type-attachments h2,
+#help-sidebar-body div.standalone-page-col.reset-row .embedded-items-item.option-type-attachments h1,
+#help-sidebar-body div.standalone-page-col.reset-row .embedded-items-item.option-type-attachments h2,
+#help-sidebar-body div.info-page.reset-row .embedded-items-item.option-type-attachments h1,
+#help-sidebar-body div.info-page.reset-row .embedded-items-item.option-type-attachments h2 {
+  border-bottom: 1px rgb(221, 221, 221) solid;
+  padding-bottom: 0.3em;
+}
+div.help-view-doc > ol,
+div.help-view-doc > ul,
+.common-help-item > ol,
+.common-help-item > ul,
+.md-formatted-block > ol,
+.md-formatted-block > ul,
+#help-sidebar-body div.standalone-page-col.reset-row > ol,
+#help-sidebar-body div.standalone-page-col.reset-row > ul,
+#help-sidebar-body div.info-page.reset-row > ol,
+#help-sidebar-body div.info-page.reset-row > ul {
+  padding-inline-end: 40px;
+  margin-bottom: 1.4em;
+  padding-left: 0;
+}
+div.help-view-doc ul li,
+div.help-view-doc ul ul,
+.common-help-item ul li,
+.common-help-item ul ul,
+.md-formatted-block ul li,
+.md-formatted-block ul ul,
+#help-sidebar-body div.standalone-page-col.reset-row ul li,
+#help-sidebar-body div.standalone-page-col.reset-row ul ul,
+#help-sidebar-body div.info-page.reset-row ul li,
+#help-sidebar-body div.info-page.reset-row ul ul {
+  list-style-position: outside;
+  list-style-type: disc;
+  margin-left: 1.6em;
+  overflow: visible;
+}
+div.help-view-doc ul > li > ul,
+.common-help-item ul > li > ul,
+.md-formatted-block ul > li > ul,
+#help-sidebar-body div.standalone-page-col.reset-row ul > li > ul,
+#help-sidebar-body div.info-page.reset-row ul > li > ul {
+  margin-left: 0;
+  padding-left: 0;
+}
+div.help-view-doc li.list-group-item,
+.common-help-item li.list-group-item,
+.md-formatted-block li.list-group-item,
+#help-sidebar-body div.standalone-page-col.reset-row li.list-group-item,
+#help-sidebar-body div.info-page.reset-row li.list-group-item {
+  list-style-position: outside;
+  list-style-type: none;
+  margin-left: 0;
+  overflow: hidden;
+  padding: 0;
+}
+div.help-view-doc .container-icons-items li,
+div.help-view-doc .container-icons-items ul li,
+.common-help-item .container-icons-items li,
+.common-help-item .container-icons-items ul li,
+.md-formatted-block .container-icons-items li,
+.md-formatted-block .container-icons-items ul li,
+#help-sidebar-body div.standalone-page-col.reset-row .container-icons-items li,
+#help-sidebar-body div.standalone-page-col.reset-row .container-icons-items ul li,
+#help-sidebar-body div.info-page.reset-row .container-icons-items li,
+#help-sidebar-body div.info-page.reset-row .container-icons-items ul li {
+  list-style-type: none;
+}
+div.help-view-doc ol li,
+div.help-view-doc ol ol,
+.common-help-item ol li,
+.common-help-item ol ol,
+.md-formatted-block ol li,
+.md-formatted-block ol ol,
+#help-sidebar-body div.standalone-page-col.reset-row ol li,
+#help-sidebar-body div.standalone-page-col.reset-row ol ol,
+#help-sidebar-body div.info-page.reset-row ol li,
+#help-sidebar-body div.info-page.reset-row ol ol {
+  list-style-position: outside;
+  list-style-type: decimal;
+  margin-left: 1.6em;
+  overflow: visible;
+}
+div.help-view-doc,
+.common-help-item,
+.md-formatted-block,
+#help-sidebar-body div.standalone-page-col.reset-row,
+#help-sidebar-body div.info-page.reset-row {
+  font-size: 15px;
+}
+div.help-view-doc p,
+.common-help-item p,
+.md-formatted-block p,
+#help-sidebar-body div.standalone-page-col.reset-row p,
+#help-sidebar-body div.info-page.reset-row p {
+  min-height: 1.6em;
+}
+div.help-view-doc .help-footer,
+.common-help-item .help-footer,
+.md-formatted-block .help-footer,
+#help-sidebar-body div.standalone-page-col.reset-row .help-footer,
+#help-sidebar-body div.info-page.reset-row .help-footer {
+  padding: 15px;
+  background-color: rgb(221, 221, 221);
+  text-align: center;
+}
+div.help-view-doc pre,
+.common-help-item pre,
+.md-formatted-block pre,
+#help-sidebar-body div.standalone-page-col.reset-row pre,
+#help-sidebar-body div.info-page.reset-row pre {
+  overflow-x: auto;
+}
+div.help-view-doc pre code,
+.common-help-item pre code,
+.md-formatted-block pre code,
+#help-sidebar-body div.standalone-page-col.reset-row pre code,
+#help-sidebar-body div.info-page.reset-row pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+div.help-view-doc a[target]:after,
+.common-help-item a[target]:after,
+.md-formatted-block a[target]:after,
+#help-sidebar-body div.standalone-page-col.reset-row a[target]:after,
+#help-sidebar-body div.info-page.reset-row a[target]:after {
+  content: "\e164";
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: "Glyphicons Halflings";
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-left: 0.4em;
+  font-size: 80%;
+}
+div.help-view-doc .nfs-store-container-block a[target]:after,
+.common-help-item .nfs-store-container-block a[target]:after,
+.md-formatted-block .nfs-store-container-block a[target]:after,
+#help-sidebar-body div.standalone-page-col.reset-row .nfs-store-container-block a[target]:after,
+#help-sidebar-body div.info-page.reset-row .nfs-store-container-block a[target]:after {
+  display: none;
+}
+div.help-view-doc .footer,
+.common-help-item .footer,
+.md-formatted-block .footer,
+#help-sidebar-body div.standalone-page-col.reset-row .footer,
+#help-sidebar-body div.info-page.reset-row .footer {
+  display: none;
+}
+
+.help-doc-header {
+  text-align: center;
+}
+
+div.help-view-doc.not-embedded img,
+.common-help-item img,
+.md-formatted-block img {
+  opacity: 1;
+}
+
+/* Hide the help icon in the nav bar for standalone help pages */
+body.help .nav a[data-target="#help-sidebar"] {
+  display: none;
+}
