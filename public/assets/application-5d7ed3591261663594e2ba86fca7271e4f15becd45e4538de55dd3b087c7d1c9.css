@@ -12348,6 +12348,12 @@ a.glyphicon.glyphicon-remove-sign:hover {
   transform: rotate(180deg);
 }
 
+.caret.caret-large {
+  border-top: 8px dashed;
+  border-right: 8px solid transparent;
+  border-left: 8px solid transparent;
+}
+
 .nav.nav-pills li > a {
   background-color: white;
   color: var(--project-color);
@@ -12948,6 +12954,12 @@ table.admin-list tbody td pre.full-width {
 
 input.form-control.tt-hint {
   width: 100%;
+}
+
+input.form-control[type=checkbox] {
+  width: 1em;
+  display: inline-block;
+  margin-left: 1em;
 }
 
 .form-inline [data-out-attr-name=options] textarea.form-control,
