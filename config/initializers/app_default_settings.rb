@@ -23,7 +23,7 @@ class DefaultSettings
   DefaultMigrationSchema = 'ml_app'
   DbPrefix = 'restr'
   GlobalIdPrefix = 'fpa1'
-  CaptionAcronyms = %w[IPA IPAs BHS PI PIs HMS FPHS MD RA RAs].freeze
+  CaptionAcronyms = %w[IPA IPAs BHS PI PIs HMS FPHS MD RA RAs ID].freeze
   # Rails.logger levels to use for errors logged in AppExceptionHandler
   # Any unlisted method will default to level :error
   LogLevel = {
