@@ -22679,8 +22679,17 @@ _fpa_admin.all.admin_edit_form = class {
   // Do some initial setup
   admin_edit_form_setup() {
     var block = this.block
-
+    // Ensure we only scroll back to the form, not the top of the page
+    $('.postprocessed-scroll-here').removeClass('postprocessed-scroll-here').addClass('prevent-scroll');
     _fpa.utils.scrollTo(block, 200, -50);
+    // If the form is marked as having been saved, attempt to run the sample embedded report
+    var si = block.find('.saved-item');
+    if (si.length) {
+      si.removeClass('saved-item');
+      window.setTimeout(function () {
+        $('#report-form-submit-btn').click();
+      }, 150)
+    }
     $('tr.new-record').before($('tr.admin-list-item').first());
     $('.saved-row').removeClass('saved-row');
     $('.edit-as-custom-setup').removeClass('edit-as-custom-setup');
@@ -22993,7 +23002,10 @@ _fpa_admin.reports.admin_edit_form = class {
 
     // Set up codemirror text editors
     _fpa.form_utils.setup_textarea_editor(block)
-    aef.setup_search_attr_config()
+    // Run at next step to avoid UI lock ups
+    window.setTimeout(function () {
+      aef.setup_search_attr_config();
+    })
   }
 
   // Handle templates for the report admin page.

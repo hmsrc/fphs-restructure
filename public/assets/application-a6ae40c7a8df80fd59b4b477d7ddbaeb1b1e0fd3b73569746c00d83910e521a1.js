@@ -110962,6 +110962,9 @@ _fpa = {
           h_res.each(function () {
             var d = $(this);
             var di = d.attr('data-result');
+            // Special case: handle the replacement of the element id specified
+            // on this data-result item. Use # to specify the selector fully (other selectors may be used)
+            var rid = d.attr('data-replace-element-id');
             var isform = d.find('form');
             var formcontainer = $(e.currentTarget).parents('[data-form-container]');
 
@@ -110973,6 +110976,12 @@ _fpa = {
                 );
               var targets = $(t);
               e.stopPropagation();
+            } else if (rid) {
+              // Replace element with id matching [data-replace-id] attribute `rid`
+              var targets = $(rid);
+              // The new element has a matching id in the data result
+              d = d.find(rid);
+              if (targets.length === 0) console.log('WARN: [data-replace-element-id="' + rid + '"] returns no targets');
             } else {
               if (isform.length == 1 && formcontainer.length == 1) {
                 if (formcontainer.attr('data-subscription') == di) var targets = formcontainer;
@@ -111640,8 +111649,9 @@ _fpa.preprocessors = {
     _fpa.form_utils.on_form_submit(block);
 
     // Mark the block a form was within, to make scrolling more reliable
+    // Allow class force-form-block to be specified to handle specific embedded forms
     if (block.is('form')) {
-      var b = block.parents('.common-template-item, .new-block').not('.no-processed-scroll').first();
+      var b = block.parents('.common-template-item, .new-block, .force-form-block').not('.no-processed-scroll').first();
       if (b.hasClass('new-block')) {
         var cti = b.parents('.common-template-item').first();
         if (cti.length) {
@@ -114660,15 +114670,19 @@ _fpa.form_utils = {
 
   setup_bootstrap_items: function (block) {
     if (!block) block = $(document);
-    block.find('[data-toggle~="tooltip"]').not('.attached_bs').tooltip().addClass('attached_bs');
-    block.find('[data-toggle~="popover"]').not('.attached_bs').popover().addClass('attached_bs');
-    block.find('[data-show-popover="auto"]').not('.attached_bs').popover('show').addClass('attached_bs');
-    block.find('.dropdown-toggle').not('.attached_bs').dropdown().addClass('attached_bs');
+    // In long admin indexes, this can be slow. Attempt to take it
+    // out of the usual flow.
+    window.setTimeout(function () {
+      block.find('[data-toggle~="tooltip"]').not('.attached_bs').tooltip().addClass('attached_bs');
+      block.find('[data-toggle~="popover"]').not('.attached_bs').popover().addClass('attached_bs');
+      block.find('[data-show-popover="auto"]').not('.attached_bs').popover('show').addClass('attached_bs');
+      block.find('.dropdown-toggle').not('.attached_bs').dropdown().addClass('attached_bs');
 
-    block.find('table').each(function () {
-      var c = $(this).attr('class');
-      if (c == null || c === '') $(this).addClass('table');
-    });
+      block.find('table').not('.table').each(function () {
+        var c = $(this).attr('class');
+        if (c == null || c === '') $(this).addClass('table');
+      });
+    }, 600);
   },
 
   setup_data_toggles: function (block) {

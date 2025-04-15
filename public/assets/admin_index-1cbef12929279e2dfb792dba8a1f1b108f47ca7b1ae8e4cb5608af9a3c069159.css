@@ -1161,6 +1161,13 @@ ul.admin-options-tag-list li {
   margin-bottom: 10px;
 }
 
+.report-admin-inline-update-report {
+  height: 18px;
+}
+.report-admin-inline-update-report .btn-primary {
+  margin-right: 10px;
+}
+
 .report-admin-description-block .custom-editor {
   height: 120px;
   background-color: white;
