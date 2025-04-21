@@ -35,8 +35,11 @@
   margin-right: 1em;
 }
 
+.report-admin-report-path-link {
+  margin-right: 1em;
+}
 .report-admin-report-path-link:after {
-  padding-left: 0.6em;
+  padding-left: 0.3em;
   content: "\e164";
   position: relative;
   top: 1px;
