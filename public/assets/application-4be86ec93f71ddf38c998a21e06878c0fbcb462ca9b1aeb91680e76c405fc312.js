@@ -110332,6 +110332,11 @@ _fpa = {
         block.html('');
       }
 
+      if (data.multiple_results) {
+        data.results_count = data[data.multiple_results].length
+        block.attr('data-multiple-results-count', data.results_count)
+      }
+
       _fpa.prepare_template(block, template_name, data, options);
       _fpa.do_preprocessors(template_name, block, data, alt_preprocessor);
       _fpa.prepare_template_configs(data).then(function () {
@@ -119202,6 +119207,18 @@ _fpa.e_signature = class {
     return Object.prototype.toString.call(value) === '[object Array]';
   };
 
+  var includes = function (obj, inc) {
+    if (!obj) return;
+
+    if (isArray(obj)) {
+      var res = obj.indexOf(inc);
+      return (res !== -1);
+    }
+
+    var re = new RegExp(inc);
+    return obj.search(re) !== -1;
+  }
+
   var ExpressionRegistry = function () {
     this.expressions = [];
   };
@@ -119258,14 +119275,10 @@ _fpa.e_signature = class {
     return right.indexOf(left) === -1;
   });
   eR.add('includes', function (left, right) {
-    if (!left) return;
-    var re = new RegExp(right);
-    return left.search(right) !== -1;
+    return includes(left, right);
   });
   eR.add('!includes', function (left, right) {
-    if (!left) return;
-    var re = new RegExp(right);
-    return left.search(right) === -1;
+    return !includes(left, right);
   });
   eR.add('typeof', function (left, right) {
     if (!right) return;
@@ -119322,6 +119335,14 @@ _fpa.e_signature = class {
     for (var i in obj) {
       res += '<' + el + '>' + obj[i] + '</' + el + '>';
     }
+    return res;
+  });
+
+  Handlebars.registerHelper('split_lines', function (obj) {
+    var res = '';
+    if (!obj) return res;
+
+    res = obj.replaceAll("\r\n", "\n").split("\n");
     return res;
   });
 
@@ -119438,9 +119459,7 @@ _fpa.e_signature = class {
 
 
   Handlebars.registerHelper('includes', function (obj, inc) {
-    if (!obj) return;
-    var re = new RegExp(inc);
-    return obj.search(inc) !== -1;
+    return includes(obj, inc);
   });
 
   Handlebars.registerHelper('with_content', function (name, type, context, options) {
