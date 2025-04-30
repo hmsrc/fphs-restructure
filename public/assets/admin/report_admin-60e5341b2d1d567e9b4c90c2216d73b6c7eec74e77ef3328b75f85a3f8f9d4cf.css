@@ -1,0 +1,86 @@
+.report-admin-description-block,
+.report-admin-options-block,
+.report-admin-sql-block {
+  width: 99%;
+  margin-bottom: 10px;
+}
+
+.report-admin-inline-update-report {
+  height: 18px;
+}
+.report-admin-inline-update-report .btn-primary {
+  margin-right: 10px;
+}
+
+.report-admin-description-block .custom-editor {
+  height: 120px;
+  background-color: white;
+  overflow: auto;
+}
+
+.report-admin-options-block-inner {
+  height: 20vh;
+}
+
+.report-admin-sql-block-inner {
+  height: 60vh;
+}
+
+.report-admin-submit-block {
+  margin-bottom: 20px;
+}
+
+.btn.admin-test-report-btn {
+  margin-left: 1em;
+  margin-right: 1em;
+}
+
+.report-admin-report-path-link {
+  margin-right: 1em;
+}
+.report-admin-report-path-link:after {
+  padding-left: 0.3em;
+  content: "\e164";
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Glyphicons Halflings" !important;
+}
+
+.report-admin-search-attr-block input:invalid, .report-admin-search-attr-block select:invalid {
+  border-color: red;
+}
+.report-admin-search-attr-block #report-admin-search-attr-add-block {
+  margin-top: 10px;
+}
+.report-admin-search-attr-block .report-admin-search-attr-yaml-editor {
+  width: 99%;
+  height: 240px;
+}
+.report-admin-search-attr-block .report-admin-sb-item {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+.report-admin-search-attr-block .report-admin-sb-field {
+  margin-bottom: 15px;
+}
+.report-admin-search-attr-block .report-admin-search-attr-final-config {
+  height: 340px;
+}
+.report-admin-search-attr-block .report-admin-subblock {
+  margin-bottom: 15px;
+}
+.report-admin-search-attr-block .report-admin-sb-item-submit {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+.report-admin-search-attr-block div#search_attr_instruction {
+  margin-bottom: 15px;
+}
+.report-admin-search-attr-block pre.help-block {
+  width: 99%;
+}
