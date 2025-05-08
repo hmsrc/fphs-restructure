@@ -22598,6 +22598,15 @@ _fpa.postprocessors_admin = {
     }, 200);
 
 
+  },
+
+  search_attr_definer_setup: function (block, data) {
+    console.log('search_attr_definer_setup')
+    // Run at next step to avoid UI lock ups
+    window.setTimeout(function () {
+      var aef = new _fpa_admin.reports.admin_edit_form(block, data)
+      aef.setup_search_attr_config();
+    })
   }
 
 };
@@ -22677,11 +22686,13 @@ _fpa_admin.all.admin_edit_form = class {
 
 
   // Do some initial setup
-  admin_edit_form_setup() {
+  admin_edit_form_setup(no_scroll) {
     var block = this.block
     // Ensure we only scroll back to the form, not the top of the page
-    $('.postprocessed-scroll-here').removeClass('postprocessed-scroll-here').addClass('prevent-scroll');
-    _fpa.utils.scrollTo(block, 200, -50);
+    if (!no_scroll) {
+      $('.postprocessed-scroll-here').removeClass('postprocessed-scroll-here').addClass('prevent-scroll');
+      _fpa.utils.scrollTo(block, 200, -50);
+    }
     // If the form is marked as having been saved, attempt to run the sample embedded report
     var si = block.find('.saved-item');
     if (si.length) {
@@ -22701,7 +22712,7 @@ _fpa_admin.all.admin_edit_form = class {
 
     // Force some initial configuration of textarea blocks
     window.setTimeout(function () {
-      var el = $('.admin-edit-form textarea');
+      var el = $('.admin-edit-form textarea, .admin-edit-form .auto-click-link');
       el.click();
     }, 300);
 
@@ -23327,7 +23338,7 @@ class ReportSearchAttrsUi {
   setup_search_attrs_type() {
     var _this = this;
 
-    $('#search_attrs_type').change(function () {
+    $('.admin-edit-form.admin-report').not('.added-sa-type').on('change', '#search_attrs_type', function () {
       var search_attr_type = $(this).val();
 
       $('#search_attrs_filter').val('all');
@@ -23392,7 +23403,7 @@ class ReportSearchAttrsUi {
 
       var not_gs = search_attr_type !== 'general_selection' ? 'hide' : 'show';
       $('.report-attr-checks').collapse(not_gs);
-    });
+    }).addClass('added-sa-type');
   }
 
   //
@@ -23439,7 +23450,7 @@ class ReportSearchAttrsUi {
   setup_search_attrs_add() {
     var _this = this;
 
-    $('#search_attrs_add').click(function (ev) {
+    $('.admin-edit-form.admin-report').not('.added-sa-add').on('click', '#search_attrs_add', function (ev) {
       ev.preventDefault();
 
       var $attel = $('#report_search_attrs');
@@ -23509,8 +23520,8 @@ class ReportSearchAttrsUi {
       _this.setup_search_attr_list(_this.block);
       $("a[href='#report-admin-search-attr-add-block']").click();
 
-      _fpa.utils.scrollTo('#search_attr_definer', 100, -60);
-    });
+      _fpa.utils.scrollTo('#search_attr_definer-block-container', 100, -60);
+    }).addClass('added-sa-add');
   }
 
   // Set up the list of the report criteria fields
@@ -23526,6 +23537,12 @@ class ReportSearchAttrsUi {
 
   // Set up the form fields and initial state
   setup_search_attr_form() {
+    var aef = new _fpa_admin.all.admin_edit_form(this.block)
+    aef.admin_edit_form_setup(true)
+    aef.setup_filtered_selects()
+    aef.setup_codemirror_editors()
+    aef.setup_yaml_help_viewers()
+      
     $('.report-attr-checks').collapse('hide');
     $('#search_no_disabled').val('1').attr('checked', true);
 
@@ -23555,8 +23572,9 @@ class ReportSearchAttrsUi {
       $(this).find('[required]').attr('disabled', true)
     }).on('shown.bs.collapse', function () {
       $(this).find('[required]').attr('disabled', null)
-    })
-      ;
+    });
+
+    _fpa.form_utils.setup_chosen(this.block);
   }
 };
 _fpa_admin.user_access_controls.admin_edit_form = class {
