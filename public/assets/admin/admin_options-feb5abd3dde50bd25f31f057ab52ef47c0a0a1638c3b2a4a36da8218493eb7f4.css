@@ -1,0 +1,122 @@
+.admin-buttons-block {
+  margin: 8px;
+  z-index: 5;
+  position: relative;
+}
+
+.report-admin-submit-block {
+  z-index: 5;
+  position: relative;
+}
+
+.admin-details-section {
+  padding: 0 10px;
+}
+.admin-details-section .admin-field-list {
+  font-family: monospace;
+}
+
+.dynamic-details-section, .dynamic-list-section {
+  padding: 0 10px;
+}
+
+.admin-main-options-block {
+  width: 99%;
+}
+
+.admin-options-editor-block {
+  height: 80vh;
+  min-width: 300px;
+  width: auto;
+  margin: 6px;
+}
+
+.admin-options-ref-block {
+  min-height: 80vh;
+  height: auto;
+  min-width: 300px;
+  width: auto;
+  max-width: 50vw;
+  margin: 6px;
+}
+.admin-options-ref-block > div {
+  height: 100%;
+}
+
+.admin-options-block-outer {
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.admin-options-block-outer .tab-content {
+  overflow: auto;
+  height: auto;
+  flex-grow: 1;
+}
+
+ul.admin-options-tag-list {
+  padding-left: 0;
+}
+ul.admin-options-tag-list li {
+  padding: 3px 5px;
+  border: 1px solid silver;
+  border-radius: 3px;
+  line-height: 1em;
+  display: inline-block;
+  list-style: none;
+  background-color: white;
+  margin: 1px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.admin-options-ref-textarea-block {
+  width: 95%;
+  height: 60vh;
+  background-color: #f1f1f1;
+}
+.admin-options-ref-textarea-block textarea {
+  height: 60vh;
+}
+.admin-options-ref-textarea-block .CodeMirror {
+  height: 100%;
+  background-color: #f1f1f1;
+}
+
+.admin-options-ref-block .tab-content {
+  background-color: white;
+  padding: 1em;
+  border: 1px solid rgb(221, 221, 221);
+  border-top: 0;
+  height: 100%;
+  overflow: auto;
+}
+
+.admin-form-block-outer {
+  display: flex;
+}
+
+@media only screen and (max-width: 600px) {
+  .admin-form-block-outer {
+    display: block;
+  }
+}
+.admin-form-fields-block {
+  width: auto;
+  height: 80vh;
+}
+
+.admin-how-to {
+  margin-bottom: 30px;
+}
+
+.admin-details-section .toc {
+  margin-bottom: 30px;
+}
+
+.admin-info-col {
+  max-width: 50%;
+  flex-grow: 1;
+  min-width: 250px;
+}
