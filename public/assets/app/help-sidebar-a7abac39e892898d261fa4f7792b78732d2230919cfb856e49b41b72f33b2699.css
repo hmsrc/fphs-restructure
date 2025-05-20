@@ -1,0 +1,75 @@
+.help-sidebar {
+  width: 25vw;
+  background: rgb(255, 255, 255);
+  position: fixed;
+  top: 0;
+  right: 0;
+  border-left: 1px solid rgb(128, 128, 128);
+  border-top: 1px solid rgb(128, 128, 128);
+  padding: 1%;
+  box-shadow: 0 4px 6px 4px rgba(0, 0, 0, 0.15);
+  margin-top: 56px;
+  z-index: 2000;
+  overflow: hidden;
+}
+.help-sidebar .btn-expander {
+  display: inline-block;
+}
+.help-sidebar .btn-shrinker {
+  display: none;
+}
+.help-sidebar .help-scrollto-top {
+  float: left;
+}
+.help-sidebar.in {
+  height: calc(100vh - 56px);
+}
+.help-sidebar.expanded {
+  width: 95vw;
+}
+.help-sidebar.expanded .btn-expander {
+  display: none;
+}
+.help-sidebar.expanded .btn-shrinker {
+  display: inline-block;
+}
+.help-sidebar .help-sidebar-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-flow: column;
+}
+.help-sidebar .help-sidebar-container .help-embedded-content {
+  margin-bottom: 20px;
+}
+.help-sidebar #help-sidebar-header {
+  flex: 0 1 auto;
+}
+.help-sidebar #help-sidebar-body {
+  flex: 1 1 auto;
+  display: block;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: auto;
+  width: 100%;
+  padding: 1%;
+}
+.help-sidebar #help-sidebar-body table td,
+.help-sidebar #help-sidebar-body table th {
+  min-width: 100px;
+}
+
+@media (max-width: 1023px) {
+  .help-sidebar {
+    width: 80vw;
+  }
+}
+@media (max-width: 767px) {
+  .help-sidebar {
+    width: 95vw;
+  }
+  .help-sidebar .btn.btn-expander {
+    display: none;
+  }
+}

@@ -1,0 +1,19 @@
+[data-result-handlers] th[data-col-type=array_field_to_blocks], [data-result-handlers] td[data-col-type=array_field_to_blocks] {
+  display: none;
+}
+[data-result-handlers] td.gotitem {
+  width: 40px;
+  height: 6px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid silver;
+  color: rgba(0, 0, 0, 0);
+}
+[data-result-handlers] td.gotitem.gotitem-true {
+  background: green !important;
+}
+[data-result-handlers] th.added {
+  vertical-align: bottom;
+  text-align: left;
+  width: 40px;
+}

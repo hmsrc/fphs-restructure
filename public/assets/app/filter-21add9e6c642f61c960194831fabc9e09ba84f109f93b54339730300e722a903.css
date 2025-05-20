@@ -1,0 +1,34 @@
+#filter-accordion {
+  padding: 0 15px;
+}
+#filter-accordion .panel-default {
+  margin-top: 6px;
+}
+#filter-accordion .filter-small-gap {
+  height: 6px;
+  margin: 0;
+}
+#filter-accordion .btn-sm {
+  margin-bottom: 4px;
+}
+
+.extra-admin-controls {
+  margin: 0 15px;
+}
+.extra-admin-controls .panel-body {
+  padding: 4px 15px;
+}
+
+.admin-head-blocks {
+  margin: 0 15px 15px;
+}
+.admin-head-blocks .admin-head-block {
+  padding: 0 20px 10px;
+}
+
+span.sel-headspace {
+  font-size: 90%;
+  color: gray;
+  display: inline-block;
+  margin-left: 1em;
+}
