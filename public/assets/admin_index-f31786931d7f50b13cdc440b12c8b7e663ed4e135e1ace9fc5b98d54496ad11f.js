@@ -23291,6 +23291,16 @@ class ReportSearchAttr {
     this.def_block.filter_selector = val;
   }
 
+  get show_if() {
+    return this.def_block.show_if;
+  }
+
+  set show_if(val) {
+    if (!val) return;
+
+    this.def_block.show_if = val;
+  }
+
   get yaml() {
     return jsyaml.dump(this.hash);
   }
@@ -23480,6 +23490,7 @@ class ReportSearchAttrsUi {
       var multi = $('#search_attrs_multi').val();
       var label = $('#search_attrs_label').val();
       var defval = $('#search_attrs_default').val();
+      var show_if = $('#search_attrs_show_if').val();
       var resource_name = $('#search_attrs_resource_name').val();
       var selections_yaml = _this.ra_config_selections && _this.ra_config_selections.getValue();
       var conditions_yaml = _this.ra_conditions && _this.ra_conditions.getValue();
@@ -23509,6 +23520,7 @@ class ReportSearchAttrsUi {
         // If this is a text field, just set the value directly
         rsa.default = defval;
       }
+      rsa.show_if = show_if;
       rsa.disabled = no_disabled;
       rsa.filter_selector = filter_selector;
 
