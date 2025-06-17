@@ -22558,7 +22558,21 @@ var _fpa_admin = {
   user_roles: {}
 }
 
+_fpa_admin.form_utils = class {
+  // Handle Base64 encoding of options field
+  static encode_options_field($options_field) {
+    const EncodingTokenBase64 = "<Base64Encoded>";
+    if ($options_field.length > 0) {
 
+      var options_value = $options_field.val();
+      if (options_value) {
+        // Encode the options value in Base64 and add a token
+        const send_val = `${EncodingTokenBase64}${btoa(options_value)}`
+        $options_field.val(send_val);
+      }
+    }
+  }
+};
 _fpa.postprocessors_admin = {
 
   // When an edit form is shown
@@ -22943,6 +22957,36 @@ _fpa_admin.all.index_page = class {
   }
 
 };
+_fpa.before_send_processors_config_libraries_admin = {
+
+  // Before sending the report admin form, base64 encode the options field
+  // to avoid WAFs from blocking the request if using view_sql to define a view.
+  // This simply takes the options, encodes it and adds a token to the start of the string,
+  // so that the server knows to decode it.
+  // The encoded string is put back into the textarea. Since the form refreshes from the server
+  // response, the original options will be displayed back to the user in the code editor.
+  config_libraries_admin_form(block) {
+    const $options_field = block.find('textarea[name="admin_config_library[options]"]');
+    _fpa_admin.form_utils.encode_options_field($options_field)
+  }
+}
+
+Object.assign(_fpa.before_send_processors, _fpa.before_send_processors_config_libraries_admin);
+_fpa.before_send_processors_dynamic_models_admin = {
+
+  // Before sending the report admin form, base64 encode the options field
+  // to avoid WAFs from blocking the request if using view_sql to define a view.
+  // This simply takes the options, encodes it and adds a token to the start of the string,
+  // so that the server knows to decode it.
+  // The encoded string is put back into the textarea. Since the form refreshes from the server
+  // response, the original options will be displayed back to the user in the code editor.
+  dynamic_models_admin_form(block) {
+    const $options_field = block.find('textarea[name="dynamic_model[options]"]');
+    _fpa_admin.form_utils.encode_options_field($options_field)
+  }
+}
+
+Object.assign(_fpa.before_send_processors, _fpa.before_send_processors_dynamic_models_admin);
 _fpa_admin.dynamic_models.admin_edit_form = class {
 
   constructor(block, data) {
@@ -23011,19 +23055,8 @@ _fpa.before_send_processors_report_admin = {
   // The encoded string is put back into the textarea. Since the form refreshes from the server
   // response, the original SQL will be displayed back to the user in the code editor.
   report_admin_form(block) {
-    const EncodingTokenBase64 = "<Base64Encoded>";
-    // Handle Base64 encoding of SQL field
-
-    var $sql_field = block.find('textarea[name="report[sql]"]');
-    if ($sql_field.length > 0) {
-
-      var sql_value = $sql_field.val();
-      if (sql_value) {
-        // Encode the SQL value in Base64 and add a token
-        const send_val = `${EncodingTokenBase64}${btoa(sql_value)}`
-        $sql_field.val(send_val);
-      }
-    }
+    const $options_field = block.find('textarea[name="report[sql]"]');
+    _fpa_admin.form_utils.encode_options_field($options_field)
   }
 }
 
