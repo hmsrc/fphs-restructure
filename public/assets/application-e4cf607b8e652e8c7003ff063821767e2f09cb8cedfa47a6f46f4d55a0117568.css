@@ -16338,6 +16338,7 @@ td.tracker-history-notes td.tracker-record-meta span.record-meta {
 
 div.external-links {
   margin-bottom: 2em;
+  padding-top: 6px;
 }
 div.external-links a {
   background-color: white;
