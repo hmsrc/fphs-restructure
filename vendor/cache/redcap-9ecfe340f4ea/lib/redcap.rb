@@ -139,6 +139,53 @@ module Redcap
       post payload
     end
 
+    def participant_list(instrument: nil, event: nil, request_options: nil)
+      attrs = {                                      
+        instrument: instrument,
+        event: event
+      }
+
+      request_options = attrs.merge(request_options)
+
+      payload = build_payload content: :participantList,
+                              request_options: request_options
+
+      post payload
+    end
+
+    def arm(request_options: nil)
+      attrs = {}
+
+      request_options = attrs.merge(request_options)
+
+      payload = build_payload content: :arm,
+                              request_options: request_options
+
+      post payload
+    end
+
+    def event(request_options: nil)
+      attrs = {}
+
+      request_options = attrs.merge(request_options)
+
+      payload = build_payload content: :event,
+                              request_options: request_options
+
+      post payload
+    end
+
+    def repeating_forms_events(request_options: nil)
+      attrs = {}
+
+      request_options = attrs.merge(request_options)
+
+      payload = build_payload content: :repeatingFormsEvents,
+                              request_options: request_options
+
+      post payload
+    end
+    
     def update(data = [], request_options: nil)
       payload = {
         token: configuration.token,

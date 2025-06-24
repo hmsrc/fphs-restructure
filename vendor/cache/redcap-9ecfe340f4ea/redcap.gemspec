@@ -1,25 +1,25 @@
 # -*- encoding: utf-8 -*-
-# stub: redcap 0.3.9 ruby lib
+# stub: redcap 0.3.11 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "redcap".freeze
-  s.version = "0.3.9".freeze
+  s.version = "0.3.11".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "allowed_push_host" => "TODO: Set to 'http://mygemserver.com'" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Peter Clark".freeze]
   s.bindir = "exe".freeze
-  s.date = "2025-02-18"
+  s.date = "2025-06-24"
   s.description = "REDCap is a mature, secure web application for building and managing online surveys and databases. The redcap ruby gem allows programmatic access to a REDCap installation via the API using the ruby programming language.".freeze
   s.email = ["peter@5clarks.net".freeze]
   s.files = [".env.sample".freeze, ".gitignore".freeze, ".travis.yml".freeze, "Gemfile".freeze, "LICENSE".freeze, "LICENSE.txt".freeze, "README.md".freeze, "Rakefile".freeze, "bin/console".freeze, "bin/setup".freeze, "lib/redcap.rb".freeze, "lib/redcap/configuration.rb".freeze, "lib/redcap/record.rb".freeze, "lib/redcap/version.rb".freeze, "redcap.gemspec".freeze]
   s.homepage = "https://github.com/peterclark/redcap".freeze
   s.licenses = ["MIT".freeze]
-  s.rubygems_version = "3.5.22".freeze
+  s.rubygems_version = "3.6.2".freeze
   s.summary = "A Ruby gem for interacting with the REDCap API".freeze
 
-  s.installed_by_version = "3.5.22".freeze
+  s.installed_by_version = "3.6.2".freeze
 
   s.specification_version = 4
 
