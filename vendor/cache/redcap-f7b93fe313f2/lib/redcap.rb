@@ -225,10 +225,12 @@ module Redcap
       post payload
     end
 
-    def file(record_id, field_name)
-      payload = build_payload content: :file,
+    def file(record_id, field_name, event: nil)
+      request_options = { field: field_name, record: record_id }
+      request_options[:event] = event if event
+      payload = build_payload(content: :file,
                               action: :export,
-                              request_options: { field: field_name, record: record_id }
+                              request_options:)
       post_file_request payload
     end
 
