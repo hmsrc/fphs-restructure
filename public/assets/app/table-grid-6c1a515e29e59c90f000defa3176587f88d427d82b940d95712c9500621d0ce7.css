@@ -227,6 +227,10 @@ table.import-grid .report-item-edit .report-el-edit-cell,
 table.table.report-table .report-item-edit .report-el-edit-cell {
   padding: 0px 4px;
 }
+table.import-grid .report-item-edit .report-el-edit-id-field-cell,
+table.table.report-table .report-item-edit .report-el-edit-id-field-cell {
+  padding: 8px 6px;
+}
 table.import-grid .report-el.report-el-object-id,
 table.table.report-table .report-el.report-el-object-id {
   padding: 8px 6px;
