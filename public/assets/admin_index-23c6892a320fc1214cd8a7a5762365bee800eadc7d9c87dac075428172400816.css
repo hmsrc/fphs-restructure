@@ -850,6 +850,15 @@ ul.admin-tag-list li {
   font-family: monospace;
   font-size: 12px;
 }
+ul.activity-list ul.activity-list-activity-references li,
+ul.admin-tag-list ul.activity-list-activity-references li {
+  border: 0;
+  display: block;
+}
+ul.activity-list ul.activity-list-activity-references li em.al-ref-this,
+ul.admin-tag-list ul.activity-list-activity-references li em.al-ref-this {
+  color: gray;
+}
 ul.activity-list li.activity-list-name,
 ul.admin-tag-list li.activity-list-name {
   background-color: rgb(221, 221, 221);
@@ -857,6 +866,10 @@ ul.admin-tag-list li.activity-list-name {
 ul.activity-list li.activity-list-name:hover,
 ul.admin-tag-list li.activity-list-name:hover {
   cursor: pointer;
+}
+ul.activity-list li.activity-list-name.al-name-selected,
+ul.admin-tag-list li.activity-list-name.al-name-selected {
+  background-color: #f4f498 !important;
 }
 
 ul.activity-list li.activity-list-name {
@@ -986,6 +999,7 @@ span.activity-list-name:hover {
   min-width: 300px;
   width: auto;
   margin: 6px;
+  margin-bottom: 36px;
 }
 
 .admin-options-ref-block {
