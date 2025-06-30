@@ -1,0 +1,13 @@
+.page-embedded-block .result-target-resource:not(.keep-activity-sublist-log-controls) .sublist-controls {
+  display: none;
+}
+.page-embedded-block .result-target-resource:not(.keep-activity-log-section-panel-header) .section-panel-header {
+  display: none;
+}
+.page-embedded-block .result-target-resource:not(.keep-activity-log-header) .activity-logs-header .list-group-item-heading {
+  display: none;
+}
+.page-embedded-block .result-target-resource:not(.keep-activity-log-action-controls) .activity-logs-header .action-buttons,
+.page-embedded-block .result-target-resource:not(.keep-activity-log-action-controls) .new-blocks-container {
+  display: none;
+}
