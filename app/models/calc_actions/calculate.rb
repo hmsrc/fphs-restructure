@@ -125,7 +125,7 @@ module CalcActions
     # @param bool [String] value 'AND' or 'OR' used to replace the BoolTypeString placeholder
     # @return [ActiveQuery::Relation] the final @condition_scope
     def gen_condition_scope(conditions, extra_conditions = [], bool = 'AND')
-      @condition_scope = if conditions.first && conditions.first.last&.empty?
+      @condition_scope = if conditions.first&.last&.empty?
                            # If no conditions are specified for this table, don't apply it as a where clause
                            # since it always invalidates the query
                            # This typically happens as a result of extra_conditions being
@@ -322,7 +322,7 @@ module CalcActions
         from_items = ca.get_this_val
         unless from_items.present?
           raise FphsException,
-                'ids_referencing from items was not found - '\
+                'ids_referencing from items was not found - ' \
                 'ensure return: return_all_results is specified and at least one result is returned'
         end
 
@@ -547,9 +547,7 @@ module CalcActions
 
         rightop = "#{table_name}.#{field_name}#{veca_extra_args}"
         if vc.end_with?(' REV')
-          ro = rightop
-          rightop = leftop
-          leftop = ro
+          rightop, leftop = leftop, rightop
           vc = vc.sub(' REV', '')
         end
 
@@ -723,8 +721,8 @@ module CalcActions
     def setup_no_masters
       # Specify `no_masters: {}` at the top level to directly query the record, rather than doing
       # an inner join on the masters table
-      return unless @condition_config.respond_to?(:key?) &&
-                    @condition_config.key?(:no_masters) ||
+      return unless (@condition_config.respond_to?(:key?) &&
+                    @condition_config.key?(:no_masters)) ||
                     @condition_config.map(&:first).include?(:no_masters)
 
       # Use the first specified table as the base, not joining on masters table
@@ -744,7 +742,7 @@ module CalcActions
     # set of masters specified. `{}` indicates any master, or use standard conditions to specify a list of ids,
     # such as { id: [1,2,3] }
     def limit_to_masters
-      if @condition_config.respond_to?(:key?) && @condition_config.key?(:masters) ||
+      if (@condition_config.respond_to?(:key?) && @condition_config.key?(:masters)) ||
          @condition_config.map(&:first).include?(:masters)
         # Use the full masters table as the base, allowing the configuration to limit the masters records if needed
         @base_query = Master.all
@@ -1021,8 +1019,8 @@ module CalcActions
         details << '*************************************************************************'
         details << "original condition type: #{@orig_cond_type}"
         details << "this instance: #{@current_instance.id}"
-        details << "@condition_type: #{@condition_type} - @loop_res: #{@loop_res} - @cond_res: #{@cond_res}" \
-                           " - @orig_loop_res: #{@orig_loop_res}"
+        details << "@condition_type: #{@condition_type} - @loop_res: #{@loop_res} - @cond_res: #{@cond_res} " \
+                   "- @orig_loop_res: #{@orig_loop_res}"
         details << "current user: #{current_user&.email} - " \
                    "in app type: #{current_user&.app_type&.name}"
         details << 'condition_config:'
@@ -1052,8 +1050,8 @@ module CalcActions
         details << '*******************************************************************************************'
         Rails.logger.send log_level, details.join("\n") if log_level
       rescue StandardError => e
-        details << "@condition_type: #{@condition_type} - @loop_res: #{@loop_res} - @cond_res: #{@cond_res}" \
-                          " - @orig_loop_res: #{@orig_loop_res}"
+        details << "@condition_type: #{@condition_type} - @loop_res: #{@loop_res} - @cond_res: #{@cond_res} " \
+                   "- @orig_loop_res: #{@orig_loop_res}"
         details << @condition_config
         details << @join_tables
         details << JSON.pretty_generate(@action_conf)
