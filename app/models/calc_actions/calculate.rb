@@ -146,7 +146,10 @@ module CalcActions
 
       if @and_latest_matches
         tname = @and_latest_matches.first.first
-        latest_id = @condition_scope.select("#{tname}.id and_match_res_id").order(and_match_res_id: :desc).first&.and_match_res_id
+        latest_id = @condition_scope.select("#{tname}.id and_match_res_id")
+                                    .order(and_match_res_id: :desc)
+                                    .first
+                                    &.and_match_res_id
         @and_latest_matches[tname][:id] = latest_id
         @condition_scope = @base_query.where(@and_latest_matches)
       else
