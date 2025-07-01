@@ -30,7 +30,8 @@ module CalcActions
     include Common
 
     # We won't use a query join when referring to tables based on these keys
-    NonJoinTableNames = %i[this parent embedded_item referring_record top_referring_record this_references parent_references
+    NonJoinTableNames = %i[this parent embedded_item referring_record top_referring_record this_references
+                           parent_references
                            parent_or_this_references user master condition value hide_error invalid_error_message
                            role_name reference ids_referencing and_latest_matches].freeze
 
@@ -124,7 +125,7 @@ module CalcActions
     # @param bool [String] value 'AND' or 'OR' used to replace the BoolTypeString placeholder
     # @return [ActiveQuery::Relation] the final @condition_scope
     def gen_condition_scope(conditions, extra_conditions = [], bool = 'AND')
-      @condition_scope = if conditions.first && conditions.first.last&.length == 0
+      @condition_scope = if conditions.first && conditions.first.last&.empty?
                            # If no conditions are specified for this table, don't apply it as a where clause
                            # since it always invalidates the query
                            # This typically happens as a result of extra_conditions being
@@ -438,7 +439,6 @@ module CalcActions
                              "#{@current_instance.class.name} #{@current_instance.id}"
       else
         # Now go ahead and get the possible values to use in the condition
-        val = []
         # Ensure we only get results from an active (not disabled) model reference, and don't recalculate
         # showable filter since this might recurse infinitely
         model_refs = from_instance.model_references(active_only: true, showable_only: false)
