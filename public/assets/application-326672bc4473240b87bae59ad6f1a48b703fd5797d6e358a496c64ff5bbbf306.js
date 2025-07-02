@@ -112961,7 +112961,12 @@ _fpa.postprocessors_reports = {
       window.setTimeout(function () {
         const $target_block = $(`#${target_block}`);
         _fpa.form_utils.resize_labels($target_block, null, true)
-        _fpa.secure_view.setup_links($target_block, 'a.redcap-file-use-secure-view');
+
+        // Ensure that the viewer is set up with the user's capabilities to view and download
+        var sv_opt = { allow_actions: null };
+        sv_opt.allow_actions = _fpa.state.user_can;
+
+        _fpa.secure_view.setup_links($target_block, 'a.redcap-file-use-secure-view', sv_opt);
       }, 500);
     }, 500);
   },
@@ -114570,8 +114575,9 @@ _fpa.form_utils = {
     var sv_opt = { allow_actions: null };
     sv_opt.allow_actions = _fpa.state.user_can;
 
-    _fpa.secure_view.setup_links(block, 'a.use-secure-view', sv_opt);
-    block.on('click', 'a.use-secure-view', function (ev) {
+    var sv_sel = 'a.use-secure-view, a.redcap-file-use-secure-view';
+    _fpa.secure_view.setup_links(block, sv_sel, sv_opt);
+    block.on('click', sv_sel, function (ev) {
       ev.preventDefault();
     });
   },
@@ -120657,7 +120663,11 @@ _fpa.reports = {
       $(this).html(new_html);
 
       if (orig_action.trim() == 'view file') {
-        _fpa.secure_view.setup_links($(this), 'a.' + dctaus);
+        // Ensure that the viewer is set up with the user's capabilities to view and download
+        var sv_opt = { allow_actions: null };
+        sv_opt.allow_actions = _fpa.state.user_can;
+
+        _fpa.secure_view.setup_links($(this), 'a.' + dctaus, sv_opt);
         $('a.' + dctaus).on('click', function (ev) {
           ev.preventDefault();
         });
