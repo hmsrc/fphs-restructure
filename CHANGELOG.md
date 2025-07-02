@@ -14,6 +14,10 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+### From FPHS - PR #594 - 2025-07-02
+
+- [Added] evaluation of active_values field option, much like preset_value does, but repeats evaluation even if the instance has been persisted - resolves #593
+
 ### From FPHS - PR #588 - 2025-06-30
 
 - [Added] a mechanism to copy all the sub_process, protocol_event tree from one protocol to another - resolves #578
