@@ -14,6 +14,20 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.21.4] - 2025-07-02
+
+- [Fixed] secure view not being set up correctly
+- [Fixed] download_field_file not finding the correct project if there are duplicates
+- [Added] redcap_event_name to the substitution list not to titleize
+- [Added] the ability to bypass container access check for a container in the admin master (-2) if the user has the appropriate role
+- [Fixed] redcap api calls to get survey_links and import records, plus added better logging if there's a failure
+- [Changed] model reference filter_by to allow hash lookup of values and triple curly substitutions
+- [Fixed] failed json edit field causing infinite recursion
+- [Added] more information logged when there is a failed extract of archived files
+- [Added] better error reporting if the run_jobs_as_user setting in redcap project admin configuration is not found
+- [Added] better error for missing settings in Encryption
+- [Added] check during initialization for encryption settings
+
 ## [9.21.3] - 2025-06-30
 
 ### From FPHS - PR #588 - 2025-06-30
