@@ -127,16 +127,26 @@ module Redcap
       return unless am
 
       @has_integer_survey_identifier = true
-      return unless external_id_fkey_name == integer_survey_identifier_field_name
+      unless external_id_fkey_name == integer_survey_identifier_field_name
+        Rails.logger.warn "Redcap::DataRecords: external_id_fkey_name (#{external_id_fkey_name}) " \
+                          "!+ integer_survey_identifier_field_name (#{integer_survey_identifier_field_name})"
+        return
+      end
 
       si_name = survey_identifier_field_name
       integer_si_name = integer_survey_identifier_field_name
 
-      return unless records.first.has_key?(si_name)
+      unless records.first.key?(si_name)
+        Rails.logger.warn "Redcap::DataRecords: records do not have survey identifier field: #{si_name}"
+        return
+      end
 
       records.each do |rec|
         val = rec[si_name]
-        val = nil if val.blank?
+        if val.blank?
+          val = nil
+          Rails.logger.warn "Redcap::DataRecords: record #{rec[record_id_field]} survey identifier field is blank"
+        end
         rec[integer_si_name] = val&.to_i
       end
     end
