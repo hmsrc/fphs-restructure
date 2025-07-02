@@ -8,6 +8,11 @@ _definitions___extra_options_standard_option_definitions___:
     never: true
 
   # Usage:
+  # any_option: *always
+  any_option_never: &always
+    always: true
+
+  # Usage:
   #   extra_option_name:
   #     <<: *never_creatable
   creatable_if_never: &never_creatable
