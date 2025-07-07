@@ -99,43 +99,43 @@ module Formatter
     end
 
     def capitalize(res, _orig_val)
-      res.capitalize
+      res.capitalize if res.respond_to? :capitalize
     end
 
     def titleize(res, _orig_val)
-      res.captionize
+      res.captionize if res.respond_to? :captionize
     end
 
     def uppercase(res, _orig_val)
-      res.upcase
+      res.upcase if res.respond_to? :upcase
     end
 
     def lowercase(res, _orig_val)
-      res.downcase
+      res.downcase if res.respond_to? :downcase
     end
 
     def underscore(res, _orig_val)
-      res.underscore
+      res.underscore if res.respond_to? :underscore
     end
 
     def hyphenate(res, _orig_val)
-      res.hyphenate
+      res.hyphenate if res.respond_to? :hyphenate
     end
 
     def id_hyphenate(res, _orig_val)
-      res.id_hyphenate
+      res.id_hyphenate if res.respond_to? :id_hyphenate
     end
 
     def id_underscore(res, _orig_val)
-      res.id_underscore
+      res.id_underscore if res.respond_to? :id_underscore
     end
 
     def initial(res, _orig_val)
-      res.first&.upcase
+      res.first&.upcase if res.respond_to? :first
     end
 
     def first(res, _orig_val)
-      res.first
+      res.first if res.respond_to? :first
     end
 
     def age(_res, orig_val)
@@ -228,7 +228,7 @@ module Formatter
     end
 
     def iso8601_datetime(_res, orig_val)
-      orig_val.iso8601
+      orig_val.iso8601 if orig_val.respond_to? :iso8601
     end
 
     def join_with_space(res, _orig_val)
@@ -307,39 +307,39 @@ module Formatter
     end
 
     def strip(res, _orig_val)
-      res.strip
+      res.strip if res.is_a? String
     end
 
     def split_lines(res, _orig_val)
-      res.split("\n")
+      res.split("\n") if res.is_a? String
     end
 
     def split_comma(res, _orig_val)
-      res.split(',')
+      res.split(',') if res.is_a? String
     end
 
     def split_csv(res, _orig_val)
-      CSV.parse_line(res)
+      CSV.parse_line(res) if res.is_a? String
     end
 
     def split_semicolon(res, _orig_val)
-      res.split(';')
+      res.split(';') if res.is_a? String
     end
 
     def split_pipe(res, _orig_val)
-      res.split('|')
+      res.split('|') if res.is_a? String
     end
 
     def split_dot(res, _orig_val)
-      res.split('.')
+      res.split('.') if res.is_a? String
     end
 
     def split_at(res, _orig_val)
-      res.split('@')
+      res.split('@') if res.is_a? String
     end
 
     def split_slash(res, _orig_val)
-      res.split('/')
+      res.split('/') if res.is_a? String
     end
 
     def markup(res, _orig_val)
@@ -359,7 +359,7 @@ module Formatter
     end
 
     def last(res, _orig_val)
-      res.last
+      res.last if res.respond_to? :last
     end
 
     #
