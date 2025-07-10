@@ -24,7 +24,6 @@ class Admin
     # @return [Array] an array on [app_type, results]
     def self.import_config(config_text, admin,
                            name: nil, format: :json, force_update: nil, dry_run: nil, skip_fail: nil)
-
       importer = new(config_text, admin,
                      name:,
                      format:,
@@ -67,10 +66,27 @@ class Admin
       results = { 'failures' => import_failures, 'updates / creations' => import_results }
 
       begin
-        if skip_fail
-          import_set
+        find_or_create
+
+        if skip_fail && !dry_run
+          # We can't skip failures if a dry run has been requested, since a transaction is
+          # required for the dry run rollback.
+
+          # Run this skip-fail import in a transaction so the lock can be held.
+          # Just ignore any exceptions raised, committing the transaction.
+          # requires_new ensures that any outer transactions are not rolled back.
+          Admin::AppType.transaction(requires_new: true) do
+            lock_app_types_table
+            import_set
+          rescue StandardError, ActiveRecord::Rollback => e
+            # Log error but continue
+            Rails.logger.warn("App type import error - skip fail and not dry run - : #{e.message}")
+          end
+  
         else
+          # Fail on first error and rollback, or if a dry run always rollback
           Admin::AppType.transaction do
+            lock_app_types_table
             import_set
           end
         end
@@ -93,22 +109,10 @@ class Admin
     end
 
     def import_set
-      a_conf = app_type_config.slice('name', 'label', 'default_schema_name')
-
-      # override the name if specified
-      a_conf[:current_admin] = admin
-      a_conf['name'] = name if name
-
-      dsn = a_conf['default_schema_name']
-      unless dsn.nil? || Admin::MigrationGenerator.current_search_paths&.include?(dsn)
-        raise FphsException, 'Import of the app requires the FPHS_POSTGRESQL_SCHEMA environment variable ' \
-                             "to include the default schema name of the app: #{dsn}"
-      end
-
-      self.app_type = find_or_create_with_config(a_conf)
-
       # set the app type to allow automatic migrations to work
       admin.matching_user_app_type = app_type
+      # Save, to ensure the default _app_ user access controls are created in the correct app
+      admin.matching_user&.save!
       app_type.setup_migrations
       force_report_short_names
 
@@ -165,9 +169,6 @@ class Admin
       app_type.reload
       self.new_id = app_type.id
 
-      # Reset the app type to allow the actual value to be used
-      admin.matching_user_app_type = nil
-
       # Rollback if a dry run was requested
       raise ActiveRecord::Rollback if dry_run
 
@@ -208,10 +209,44 @@ class Admin
     end
 
     #
+    # Use within a transation to add an exclusive update lock on the app_types table.
+    # Will return immediately with an exception if another transaction has locked the table.
+    def lock_app_types_table
+      Admin::AppType.connection.execute("LOCK TABLE app_types IN SHARE UPDATE EXCLUSIVE MODE NOWAIT")
+    rescue ActiveRecord::LockWaitTimeout => e
+      raise FphsException, "Cannot import app type - another import is currently in progress"      
+    end  
+
+    #
     # Find or create an app type based on a configuration,
     # matching on the name
     def find_or_create_with_config(a_conf)
       Admin::AppType.find_by(name: a_conf['name']) || Admin::AppType.create!(a_conf)
+    end
+
+    def find_or_create
+      a_conf = app_type_config.slice('name', 'label', 'default_schema_name')
+
+      # override the name if specified
+      a_conf[:current_admin] = admin
+      a_conf['name'] = name if name
+
+      dsn = a_conf['default_schema_name']
+      unless dsn.nil? || Admin::MigrationGenerator.current_search_paths&.include?(dsn)
+        raise FphsException, 'Import of the app requires the FPHS_POSTGRESQL_SCHEMA environment variable ' \
+                             "to include the default schema name of the app: #{dsn}"
+      end
+
+      self.app_type = find_or_create_with_config(a_conf)
+
+      olat = Settings::OnlyLoadAppTypes
+      if olat && !olat.include?(app_type.id)
+        raise FphsException, 'Import of the app requires the FPHS_LOAD_APP_TYPES environment variable ' \
+                             "to include the new app type ID: #{app_type.id}: " \
+                             "FPHS_LOAD_APP_TYPES=#{Settings::OnlyLoadAppTypes.join(',')},#{app_type.id}"
+      end
+
+      app_type
     end
 
     #
@@ -441,11 +476,11 @@ class Admin
     # @param [Hash] item_identifiers
     # @return [Hash] of changes
     def updated_hash(orig_obj, item_identifiers)
-      # If we have saved any changes, and either we changed more than one attribute or
-      # the attribute changed wasn't just update_at,
+      # If we have saved any changes, and
+      # the attributes changed weren't just updated_at and admin_id,
       # then return the details.
       unless orig_obj.saved_changes? &&
-             (orig_obj.previous_changes.length > 1 || orig_obj.previous_changes['updated_at'])
+             (orig_obj.previous_changes.keys - %w[updated_at admin_id]).present?
         # Nothing was saved or we only changed the updated_at attribute, so just return
         return
       end

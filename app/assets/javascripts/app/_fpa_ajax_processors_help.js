@@ -85,6 +85,24 @@ _fpa.postprocessors_help = {
         $(target).removeClass('expanded');
       });
 
+
+    const $a_cl = block.find('a:contains("CONTENTS_LIST")')
+    if ($a_cl.length) {
+      var ul = '';
+      const tagtype = $a_cl.attr('href');
+      block.find(`#help-doc-content ${tagtype}, .help-embedded-content ${tagtype}`).each(function () {
+        const orighash = `#${$(this).attr('id')}`;
+        const tagname = $(this)[0].tagName;
+        ul = `${ul}<li class="sidebar-contents-list-item--${tagname}"><a href="${orighash}" data-orig-href="${orighash}">${$(this).text()}</a></li>`;
+      });
+
+      ul = `<ul class="sidebar-contents-list">${ul}</ul>`;
+
+      const scroll_loc = '.help-embedded-content'
+      // ul = `${ul}<span id="sidebar-contents-scroll-to-top"><a href="#help-doc-content" data-orig-href="${scroll_loc}" class="btn btn-primary help-sb-scroll-to-top">back to top</a></span>`
+      $a_cl.replaceWith(ul)
+    }
+
     const to_url = $('#help-sidebar').attr('data-to-url');
     if (to_url) {
       var hash_pos = to_url.indexOf('#');

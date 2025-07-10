@@ -12,6 +12,7 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
       SetupHelper.setup_al_gen_tests AlNameGenTestCr, 'elt_save_test', 'player_contact'
       create_user
       @master = create_master
+      @player_contact_prev = @master.player_contacts.create! data: '(617)123-1234 prev', rec_type: :phone, rank: 5, source: 'nflpa2'
       @player_contact = @master.player_contacts.create! data: '(617)123-1234 b', rec_type: :phone, rank: 10
       @al = create_item master: @master
       add_reference_def_to(@al, [player_contacts: { from: 'this', add: 'many' }])
@@ -230,9 +231,71 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
       expect(mr.from_record_master_id).to eq pc.master_id
       expect(mr.from_record_id).to eq al_alt.id
     end
+
+    it 'creates a reference in a specific record with attributes from multiple items' do
+      pn = @player_contact.data
+      pn_prev = @player_contact_prev.data
+
+      config = {
+        if: { always: true }
+      }
+
+      al_alt = create_item master: @master
+
+      config = {
+        player_contact: {
+          in: {
+            specific_record: {
+              activity_log__player_contact_phones: {
+                id: al_alt.id,
+                return: 'return_result'
+              }
+            }
+          },
+          with_result: [
+            {
+              from: {
+                player_contacts: {
+                  id: @player_contact.id,
+                  return: 'return_result'
+                }
+              },
+              attributes: {
+                data: '{{data}} new',
+                rec_type: 'rec_type'
+              }
+            },
+            {
+              from: {
+                player_contacts: {
+                  id: @player_contact_prev.id,
+                  return: 'return_result'
+                }
+              },
+              attributes: {
+                source: 'source'
+              }
+            }
+          ],
+          with: { rank: 5 }
+        }
+      }
+      @trigger = SaveTriggers::CreateReference.new(config, @al)
+      @trigger.perform
+
+      pc = PlayerContact.find_by(data: "#{pn} new", rank: 5, rec_type: 'phone', source: 'nflpa2')
+      expect(pc).not_to be nil
+      expect(pc.master_id).to eq @al.master.id
+
+      mr = ModelReference.last&.reload
+      expect(mr.to_record_id).to eq pc.id
+      expect(mr.to_record_master_id).to eq pc.master_id
+      expect(mr.from_record_master_id).to eq pc.master_id
+      expect(mr.from_record_id).to eq al_alt.id
+    end
   end
 
-  describe 'creating a referenceed activity log from an activity log' do
+  describe 'creating a referenced activity log from an activity log' do
     before :context do
       SetupHelper.setup_al_gen_tests 'Gen Test ELT', 'elt', 'player_contact'
     end
@@ -244,9 +307,9 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
       create_user
       @master = create_master
 
-      setup_access :player_contacts
-      setup_access :addresses
-      setup_access :activity_log__player_contact_phones
+      setup_access :player_contacts, user: @user
+      setup_access :addresses, user: @user
+      setup_access :activity_log__player_contact_phones, user: @user
 
       @activity_log = al = ActivityLog.active.where(name: al_name).first
       @working_data = '(111)222-3333 ext 12312312'
@@ -375,8 +438,16 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
                                                 select_who: 'abc',
                                                 master: @master)
       al_pc.save!
-      al_pc.create_embedded_item(pc_hash)
-      pc = PlayerContact.find_by(pc_hash)
+
+      expect(@master.current_user).to eq @user
+      @master.player_contacts.create!(rec_type: 'email', data: 'test@test.tst', rank: -1)
+      expect(al_pc.master).to eq @master
+      expect(@master.current_user).to eq al_pc.current_user
+      expect(al_pc.current_user.has_access_to?(:create, :table, :player_contacts)).to be_truthy
+      ei = al_pc.create_embedded_item(pc_hash)
+      expect(ei).to be_a PlayerContact
+
+      pc = PlayerContact.all.reload.find_by(pc_hash)
       expect(pc).not_to be nil
 
       al_pc.clear_embedded_item_memo
@@ -396,9 +467,10 @@ RSpec.describe SaveTriggers::CreateReference, type: :model do
       ei.clear_model_reference_memo
       expect(ei.extra_log_type).to eq :mr_ref_pc
 
-      pc2 = PlayerContact.find_by(pc_hash_1)
+      pc2 = PlayerContact.where(pc_hash_1).last
       expect(pc2).not_to be nil
-      expect(ei.embedded_item).to eq pc2
+      eiei = ei.embedded_item(embed_action_type: :viewing, force_reload: true)
+      expect(eiei).to eq pc2
 
       # Now create the activity log with create_reference with_result defined
       @master.player_contacts.create!(pc_hash_2)

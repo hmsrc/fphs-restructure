@@ -26,11 +26,13 @@ Rails.application.routes.draw do
     resources :external_identifiers, except: %i[show destroy]
     get :external_identifier_details, to: 'external_identifiers#details'
     resources :reports, except: %i[show destroy]
+    get :report_search_attr_definer, to: 'reports#search_attr_definer'
     resources :config_libraries, except: %i[show destroy]
     resources :external_identifier_details, except: [:destroy]
     resources :dynamic_models, except: %i[show destroy] do
       member do
         post :update_config_from_table
+        get :versions
       end
     end
     resources :user_access_controls, except: %i[show destroy]
@@ -73,6 +75,8 @@ Rails.application.routes.draw do
         resources :protocol_events, except: %i[show destroy]
       end
     end
+    post 'protocols/copy_sub_processes', to: 'protocols#copy_sub_processes'
+
     resources :protocol_events, except: %i[show destroy]
     resources :sub_processes, except: %i[show destroy]
 
@@ -124,6 +128,7 @@ Rails.application.routes.draw do
         post :request_records
         post :request_archive
         post :request_users
+        get 'download_field_file/:field_name/:record_id', to: 'download_field_file'
       end
     end
   end

@@ -196,6 +196,24 @@ textarea.admin-clean-sql {
   }
 }
 
+#protocols-list span {
+  font-size: 80%;
+}
+
+#protocols-list {
+  .protocols-list--protocol span:before {
+    content: 'protocol: '
+  }
+  
+  .protocols-list--sub-process span:before {
+    content: 'sub process: '
+  }
+  
+  .protocols-list--event span:before {
+    content: 'event: '
+  }
+}
+
 .ref-table-item {
   list-style: none;
   a {
@@ -255,6 +273,12 @@ textarea.admin-clean-sql {
 
 th.has-comment {
   min-width: 185px;
+}
+
+.admin-report-info-block {
+  text-align: left;
+  height: auto;
+  min-height: 80vh;
 }
 
 .admin-report-info-block .tab-content {

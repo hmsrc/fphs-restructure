@@ -23,7 +23,7 @@ module AdminHelper
     return if no_edit
 
     if options[:copy]
-      path = new_path(copy_with_id: options[:copy]&.id)
+      path = new_path(copy_with_id: options[:copy]&.id, filter: filter_params_permitted)
       link_to '', path, remote: true, class: 'edit-entity glyphicon glyphicon-copy copy-icon'
     else
       path = edit_path(id, filter: filter_params_permitted)
@@ -96,12 +96,17 @@ module AdminHelper
     res.html_safe
   end
 
+  def admin_app_type
+    @app_type ||= current_user&.app_type || current_admin.matching_user&.app_type || Admin::AppType.active.first
+  end
+
   def show_admin_heading(alt_title = nil)
     alt_title ||= title
     res = <<~END_HTML
       <div class="panel panel-default admin-action-page">
-        <div class="panel-heading">#{' '}
-          <h1 class="admin-title">#{alt_title}
+        <div class="panel-heading">
+          #{render partial: 'admin/common_templates/app_components_dropdown'}
+          <h1 class="admin-title">#{alt_title} <small>#{sub_title}</small>
             #{ link_to(
               '',
               help_page_path(
@@ -117,7 +122,7 @@ module AdminHelper
                       'working-target': '#help-sidebar-body' }
             ) }
             #{render partial: 'admin_handler/status_bar'}
-          </h1>
+            </h1>
         </div>
       </div>
     END_HTML
@@ -139,6 +144,16 @@ module AdminHelper
     res = <<~END_HTML
       <span class="hidden">#{list_item.updated_at}</span>
       <span class="glyphicon glyphicon-info-sign" data-toggle="tooltip"  title="last updated by: #{list_item.admin_email} at #{list_item.updated_at}"></span>
+    END_HTML
+
+    res.html_safe
+  end
+
+  def admin_submit_and_cancel(form)
+    res = <<~END_HTML
+      #{hidden_field_tag :updated_at, object_instance.updated_at}
+      #{form.submit class: 'btn btn-primary'}
+      #{admin_edit_cancel}
     END_HTML
 
     res.html_safe

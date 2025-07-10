@@ -12,6 +12,18 @@
     return Object.prototype.toString.call(value) === '[object Array]';
   };
 
+  var includes = function (obj, inc) {
+    if (!obj) return;
+
+    if (isArray(obj)) {
+      var res = obj.indexOf(inc);
+      return (res !== -1);
+    }
+
+    var re = new RegExp(inc);
+    return obj.search(re) !== -1;
+  }
+
   var ExpressionRegistry = function () {
     this.expressions = [];
   };
@@ -68,9 +80,10 @@
     return right.indexOf(left) === -1;
   });
   eR.add('includes', function (left, right) {
-    if (!left) return;
-    var re = new RegExp(right);
-    return left.search(right) !== -1;
+    return includes(left, right);
+  });
+  eR.add('!includes', function (left, right) {
+    return !includes(left, right);
   });
   eR.add('typeof', function (left, right) {
     if (!right) return;
@@ -127,6 +140,14 @@
     for (var i in obj) {
       res += '<' + el + '>' + obj[i] + '</' + el + '>';
     }
+    return res;
+  });
+
+  Handlebars.registerHelper('split_lines', function (obj) {
+    var res = '';
+    if (!obj) return res;
+
+    res = obj.replaceAll("\r\n", "\n").split("\n");
     return res;
   });
 
@@ -243,9 +264,7 @@
 
 
   Handlebars.registerHelper('includes', function (obj, inc) {
-    if (!obj) return;
-    var re = new RegExp(inc);
-    return obj.search(inc) !== -1;
+    return includes(obj, inc);
   });
 
   Handlebars.registerHelper('with_content', function (name, type, context, options) {
@@ -265,7 +284,8 @@
   });
 
   Handlebars.registerHelper('nl2br', function (text) {
-    return _fpa.utils.nl2br(text);
+    var nl2br = _fpa.utils.nl2br(text);
+    return new Handlebars.SafeString(nl2br)
   });
 
   Handlebars.registerHelper('quoteattr', function (text) {
@@ -457,7 +477,8 @@
 
   Handlebars.registerHelper('pretty_string', function (stre, options) {
     if (options && !options.hash) options.hash = {};
-    return _fpa.utils.pretty_print(stre, options.hash);
+    stre = _fpa.utils.pretty_print(stre, options.hash);
+    return new Handlebars.SafeString(stre)
   });
 
 

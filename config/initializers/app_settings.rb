@@ -4,6 +4,8 @@ class Settings
   LogLevel = DefaultSettings::LogLevel
   DefaultMigrationSchema = DefaultSettings::DefaultMigrationSchema
   DefaultSchemaOwner = ENV['FPHS_DEFAULT_SCHEMA_OWNER'].presence || DefaultSettings::DefaultSchemaOwner
+  MigrationTimeoutSec = 120
+  MaxPostgresIdentifierLength = 63
 
   # Does not set the prefix, just specifies what we search by in jobs
   GlobalIdPrefix = DefaultSettings::GlobalIdPrefix
@@ -212,6 +214,9 @@ class Settings
   EncryptionSecretKeyBase = ENV['FPHS_ENC_SECRET_KEY_BASE'].presence || (Rails.env.production? ? nil : 'test')
   EncryptionSalt = ENV['FPHS_ENC_SALT'].presence || (Rails.env.production? ? nil : 'test-salt')
 
+  # From ENV['SECRET_KEY_BASE'] in production, or the default config/credentials.yml file
+  SecretKeyBase = Rails.application.config.secret_key_base
+
   # Dynamic models create their own migrations during configuration, if this is set
   AllowDynamicMigrations = ENV['FPHS_ALLOW_DYN_MIGRATIONS'] == 'true' || Rails.env.development?
 
@@ -281,7 +286,7 @@ class Settings
     OnlyLoadAppTypes
     DefaultMigrationSchema DefaultSchemaOwner StartYearRange EndYearRange AgeRange CareerYearsRange
     UserTimeout AdminTimeout OsWordsFile PasswordConfig
-    NotificationsFromEmail AdminEmail BatchUserEmail FailureNotificationsToEmail
+    NotificationsFromEmail AdminEmail BatchUserEmail FailureNotificationsToEmail RedcapJobUserEmail
     TwoFactorAuthDisabledForUser TwoFactorAuthDisabledForAdmin TwoFactorAuthIssuer TwoFactorAuthDrift
     CheckPrevPasswords PasswordAgeLimit PasswordReminderDays PasswordMaxAttempts PasswordUnlockStrategy
     LoginIssuesUrl LoginMessage

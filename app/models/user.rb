@@ -17,10 +17,12 @@ class User < ActiveRecord::Base
   if two_factor_auth_disabled
     supported_modules << :database_authenticatable
   else
-    supported_modules += [:two_factor_authenticatable, { otp_secret_encryption_key: otp_enc_key }]
+    supported_modules += [:two_factor_authenticatable]
   end
 
   devise(*supported_modules)
+
+  include StandardAuthenticationLegacyOtp
 
   belongs_to :admin
   has_one :contact_info, class_name: 'Users::ContactInfo', foreign_key: :user_id
@@ -58,7 +60,7 @@ class User < ActiveRecord::Base
   # country_code and terms_of_use are enforced if user self registration is enabled
   validates :country_code,
             presence: {
-              if: -> { required_for_self_registration? },
+              if: -> { required_for_self_registration? && !disabled && not_self_registration? },
               message: 'must be selected'
             },
             length: {
@@ -69,14 +71,14 @@ class User < ActiveRecord::Base
 
   validates :terms_of_use,
             acceptance: {
-              if: -> { required_for_self_registration? }
+              if: -> { required_for_self_registration? && !disabled && not_self_registration? }
             }
 
   # The validations error is not shown to the user since the terms_of_use acceptance error is sufficient.
   # See notes app/views/devise/shared/_error_messages.html.erb
   validates :terms_of_use_accepted,
             presence: {
-              if: -> { required_for_self_registration? },
+              if: -> { required_for_self_registration? && !disabled && not_self_registration? },
               message: ApplicationHelper::DoNotDisplayErrorMessage
             }
 

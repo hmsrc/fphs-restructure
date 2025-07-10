@@ -7,8 +7,9 @@ _fpa.preprocessors = {
     _fpa.form_utils.on_form_submit(block);
 
     // Mark the block a form was within, to make scrolling more reliable
+    // Allow class force-form-block to be specified to handle specific embedded forms
     if (block.is('form')) {
-      var b = block.parents('.common-template-item, .new-block').not('.no-processed-scroll').first();
+      var b = block.parents('.common-template-item, .new-block, .force-form-block').not('.no-processed-scroll').first();
       if (b.hasClass('new-block')) {
         var cti = b.parents('.common-template-item').first();
         if (cti.length) {
@@ -367,7 +368,7 @@ _fpa.postprocessors = {
   },
 
   show_external_links: function (block, data) {
-    block.find('.external-links').each(function () {
+    block.find('.external-links').not('.handled-elinks').each(function () {
       var id = $(this).attr('data-master-id');
       var master;
       if (data.player_info) master = { player_infos: [data.player_info] };
@@ -376,8 +377,9 @@ _fpa.postprocessors = {
         var pi = master.player_infos[0];
         var html = _fpa.templates['external-links-template'](pi);
         $(this).html(html);
+        $(this).addClass('in');
       }
-    });
+    }).addClass('handled-elinks');
   },
 
   extras_panel_handler: function (block) {

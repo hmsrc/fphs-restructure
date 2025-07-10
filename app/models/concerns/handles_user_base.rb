@@ -48,6 +48,11 @@ module HandlesUserBase
     # Used primarily by #model_references to calculate ConditionalAction#calc_reference_if
     attr_accessor :reference, :embedded_item
 
+    # Prevent preset_value handling from running if true
+    attr_accessor :skip_presets
+
+    NotPermittedParams = %i[user_id created_at updated_at tracker_id tracker_history_id admin_id disabled].freeze
+
     # Setup alternative id field methods
     Master.setup_resource_alternative_id_fields self unless no_master_association
 
@@ -80,7 +85,7 @@ module HandlesUserBase
     end
 
     def external_identifier?
-      false
+      (self < Dynamic::ExternalIdentifierBase)
     end
 
     #
@@ -89,6 +94,14 @@ module HandlesUserBase
     # configurations
     def no_master_association
       false
+    end
+
+    #
+    # No master association or if this is an external identifier, masters may be nil
+    # until they are assigned to a participant
+    # @return [true|false]
+    def no_master_or_optional?
+      !!(no_master_association || external_identifier?)
     end
 
     #
@@ -178,8 +191,7 @@ module HandlesUserBase
     # configured attributes, minus some standard fields. They are then refined
     # to access arrays if needed
     def permitted_params
-      res = attribute_names.map(&:to_sym) - %i[disabled user_id created_at updated_at tracker_id tracker_history_id
-                                               admin_id]
+      res = attribute_names.map(&:to_sym) - NotPermittedParams
       refine_permitted_params res
     end
 
@@ -353,7 +365,7 @@ module HandlesUserBase
   def def_version; end
 
   def master_user
-    return current_user if self.class.no_master_association
+    return current_user if allow_no_master_and_not_set?
 
     if respond_to?(:master) && master
       master.current_user
@@ -410,7 +422,7 @@ module HandlesUserBase
   end
 
   def allows_current_user_access_to?(perform, _with_options = nil)
-    no_ma = self.class.no_master_association
+    no_ma = allow_no_master_and_not_set?
     curr_user = if no_ma
                   current_user
                 else
@@ -625,7 +637,7 @@ module HandlesUserBase
   # field in Master through a DB trigger after the ProInfo record has been persisted. Checking
   # the crosswalk field would fail, because the master record has not been updated at this point.
   def check_crosswalk
-    return if self.class.no_master_association
+    return if allow_no_master_and_not_set?
 
     check_attrs = Master.crosswalk_attrs - (self.class.prevent_crosswalk_check || [])
     check_attrs.each do |attr|
@@ -642,7 +654,7 @@ module HandlesUserBase
         raise "#{attr} set (#{ext_id_val}), but it does not match a master record #{master_id}" unless found_master
 
         self.master_id = found_master.id
-      elsif ext_id_val && master_id && found_master&.id != master_id
+      elsif ext_id_val && master_id && found_master&.id && found_master&.id != master_id
         # An external id has been provided, and so has a master_id
         # but the master record found for the external id does not match
         # the master_id
@@ -662,17 +674,30 @@ module HandlesUserBase
       (self.class.no_master_association && !respond_to?(:current_user))
   end
 
+  def no_user_id
+    !respond_to?(:user_id)
+  end
+
+  #
+  # Return true if there is no master association, or if the master is optional
+  # i.e. this is an external identifier that has not yet been assigned to a participant
+  # @return [true|false] <description>
+  def allow_no_master_and_not_set?
+    !!(self.class.no_master_association || self.class.external_identifier? && !master)
+  end
+
   #
   # Typically the user_id is not written to directly, and has been overriden to avoid
   # accidental changes. This method allows the model to write the user_id based on the
   # current user for the master that this object belongs to.
   def force_write_user
-    return true if no_user_validation
+    return true if no_user_validation || no_user_id
 
-    # Special handling for editable reports and dynamic models with no_master_association set
-    if respond_to?(:user_id) && respond_to?(:current_user) && (
-      !self.class.respond_to?(:no_master_association) || self.class.no_master_association
-    )
+    # Special handling for editable reports and dynamic models with no_master_association or
+    # external identifiers that have not been assigned a master.
+    if respond_to?(:user_id) && respond_to?(:current_user) && allow_no_master_and_not_set?
+      raise FphsException, 'current_user must be set' unless current_user
+
       return write_attribute :user_id, current_user.id
     end
 
@@ -697,9 +722,8 @@ module HandlesUserBase
     return true if attributes['created_by_user_id']
 
     # Special handling for editable reports and dynamic models with no_master_association set
-    if respond_to?(:user_id) && respond_to?(:current_user) && (
-      !self.class.respond_to?(:no_master_association) || self.class.no_master_association
-    )
+    # or external identifiers that have not been assigned a master
+    if respond_to?(:user_id) && respond_to?(:current_user) && allow_no_master_and_not_set?
       return unless current_user
 
       cuid = if current_user.is_a? Integer
@@ -724,7 +748,7 @@ module HandlesUserBase
 
   # A validation method for if the user has been set
   def user_set
-    return true if no_user_validation
+    return true if no_user_validation || no_user_id
 
     unless user
       errors.add :user, 'must be authenticated and set'
@@ -771,12 +795,8 @@ module HandlesUserBase
   # Check if the record can be saved (based on editable and creatable rules) and if not, raise an exception
   def check_can_save
     if persisted? && !can_edit?
-      msg = if Rails.env.test?
-              "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}" \
-              " - #{current_user.email} - #{current_user.app_type&.name}"
-            else
-              "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}"
-            end
+      msg = "This item is not editable (#{respond_to?(:human_name) ? human_name : self.class.name}) #{id}" \
+            " - #{current_user.email} - #{current_user.app_type&.name}"
       raise FphsException, msg
     end
 
@@ -900,9 +920,7 @@ module HandlesUserBase
   def valid_embedded_item
     return unless embedded_item && !embedded_item.errors.empty?
 
-    embedded_item.errors.each do |k, v|
-      errors.add k, v
-    end
+    errors.merge!(embedded_item.errors)
   end
 
   #

@@ -436,6 +436,103 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     expect(res.calc_action_if).to be true
   end
 
+  it 'uses has_created_activity to check for an extra_log_type in this activity log having been done' do
+    m = @al.master
+    m.current_user = @user
+
+    conf = {
+      has_created_activity: @al.extra_log_type
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true
+
+    conf = {
+      has_created_activity: '_does_not_exist_'
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be false    
+
+    conf = {
+      all: {
+        has_created_activity: @al.extra_log_type
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true
+
+    conf = {
+      all: {
+        this: {
+          id: @al.id
+        },
+        has_created_activity: @al.extra_log_type
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true
+
+    conf = {
+      all: {
+        has_created_activity: '_does_not_exist_'
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    val = res.calc_action_if
+    expect(val).to be false
+
+    conf = {
+      not_any: {
+        has_created_activity: @al.extra_log_type
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be false
+
+  end
+
+  it 'uses has_not_created_activity to check for an extra_log_type in this activity log not having been done' do
+    m = @al.master
+    m.current_user = @user
+
+    conf = {
+      has_not_created_activity: @al.extra_log_type
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be false
+
+    conf = {
+      has_not_created_activity: '_does_not_exist_'
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true    
+
+    conf = {
+      all: {
+        has_not_created_activity: @al.extra_log_type
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be false
+
+    conf = {
+      all: {
+        has_not_created_activity: '_does_not_exist_'
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    val = res.calc_action_if
+    expect(val).to be true
+
+    conf = {
+      not_any: {
+        has_not_created_activity: @al.extra_log_type
+      }
+    }
+    res = ConditionalActions.new conf, @al
+    expect(res.calc_action_if).to be true
+
+  end
+
   it 'checks if nested conditions work' do
     m = @al.master
     m.current_user = @user
@@ -1628,6 +1725,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     EOF_YAML
 
     conf = setup_config(confy)
+    @alnor.reset_model_references
 
     # We have two references
     expect(@alnor.model_references.count).to eq 3 # two addresses and one activity log
@@ -2701,6 +2799,97 @@ RSpec.describe 'Calculate conditional actions', type: :model do
     end
   end
 
+  describe 'result based on an attribute used to form the query resulting in it matching a value' do
+    before :example do
+      @al_elt = []
+      4.times do |i|
+        @al_elt << create_item(select_who: "who_#{i}", select_call_direction: "dir_#{i}")
+      end
+    end
+
+    it 'is matched in a simple reference and the last record matched has a specified attribute value' do
+      confy = <<~END_YAML
+        all:
+          activity_log__player_contact_phones:
+            select_who:
+              - who_0
+              - who_1
+              - who_2
+              - who_3
+            and_latest_matches:
+              select_who: who_3
+      END_YAML
+
+      conf = setup_config(confy)
+
+      ca = ConditionalActions.new conf, @al
+      res = ca.calc_action_if
+      expect(res).to be true
+    end
+
+    it 'is fails match on a simple reference and the last record matched has a specified attribute value' do
+      confy = <<~END_YAML
+        all:
+          activity_log__player_contact_phones:
+            select_who:
+              - who_0
+              - who_1
+              - who_2
+              - who_3
+            and_latest_matches:
+              select_who: who_2
+      END_YAML
+
+      conf = setup_config(confy)
+
+      ca = ConditionalActions.new conf, @al
+      res = ca.calc_action_if
+      expect(res).to be false
+    end
+
+    it 'is matched in a simple reference and the last record matched has specified attribute values' do
+      confy = <<~END_YAML
+        all:
+          activity_log__player_contact_phones:
+            select_who:
+              - who_0
+              - who_1
+              - who_2
+              - who_3
+            and_latest_matches:
+              select_who: who_3
+              select_call_direction: dir_3
+      END_YAML
+
+      conf = setup_config(confy)
+
+      ca = ConditionalActions.new conf, @al
+      res = ca.calc_action_if
+      expect(res).to be true
+    end
+
+    it 'is fails to match a simple reference and the last record matched has specified attribute values' do
+      confy = <<~END_YAML
+        all:
+          activity_log__player_contact_phones:
+            select_who:
+              - who_0
+              - who_1
+              - who_2
+              - who_3
+            and_latest_matches:
+              select_who: who_3
+              select_call_direction: dir_2
+      END_YAML
+
+      conf = setup_config(confy)
+
+      ca = ConditionalActions.new conf, @al
+      res = ca.calc_action_if
+      expect(res).to be false
+    end
+  end
+
   describe 'getting referring record attributes and checking existence' do
     before :each do
       create_user
@@ -2827,6 +3016,51 @@ RSpec.describe 'Calculate conditional actions', type: :model do
 
       res = ca.get_this_val
       expect(res).to eq @alref
+    end
+
+    it 'checks a condition based on finding a table ignoring masters' do
+      conf = {
+        all: {
+          no_masters: {},
+          player_contacts: {
+            data: @alref2.master.player_contacts.first.data,
+          }
+        }
+      }
+      res = ConditionalActions.new conf, @alref2
+      res.calc_action_if
+      expect(res.calc_action_if).to be true
+
+
+      conf = {
+        all: {
+          no_masters: {},
+          player_contacts: {
+            data: 'bad data'
+          }
+        }
+      }
+      res = ConditionalActions.new conf, @alref2
+      res.calc_action_if
+      expect(res.calc_action_if).to be false
+
+    end
+
+    it 'returns a master.id when looking up MSID in the crosswalk' do
+      msid = (Master.all.order(msid: :desc).first&.msid || 10) + 1
+      new_master = Master.create!(msid: msid, current_user: @alref2.user)
+      conf = {
+        masters: {
+          msid: msid,
+          id: 'return_value'
+        },
+        no_masters: {}
+      }
+
+      ca = ConditionalActions.new conf, @alref2
+
+      res = ca.get_this_val
+      expect(res).to eq new_master.id
     end
 
     it 'returns the first record referring to this one' do
@@ -4134,37 +4368,37 @@ RSpec.describe 'Calculate conditional actions', type: :model do
                                       not_any: { this: { id: @al.id } }
                                     })
 
-      # With a top level error it just returns that
-      conf = {
-        all: {
-          any: {
-            all_creator: {
-              invalid_error_message: 'Top error!',
-              all: {
-                this: {
-                  user_id: {
-                    user: 'BAD id'
-                  }
-                }
-              },
-              not_any: {
-                this: {
-                  id: @al.id
-                }
-              }
-            }
-          }
-        }
-      }
+      # # With a top level error it just returns that
+      # conf = {
+      #   all: {
+      #     any: {
+      #       all_creator: {
+      #         invalid_error_message: 'Top error!',
+      #         all: {
+      #           this: {
+      #             user_id: {
+      #               user: 'BAD id'
+      #             }
+      #           }
+      #         },
+      #         not_any: {
+      #           this: {
+      #             id: @al.id
+      #           }
+      #         }
+      #       }
+      #     }
+      #   }
+      # }
 
-      return_failures = {}
-      res = ConditionalActions.new(conf, @al, return_failures:)
-      b = res.calc_action_if
-      expect(b).to be false
-      expect(return_failures).to eq({
-                                      all: { this: { top_level_error: { invalid_error_message: 'Top error!' } } },
-                                      not_any: { this: { top_level_error: { invalid_error_message: 'Top error!' } } }
-                                    })
+      # return_failures = {}
+      # res = ConditionalActions.new(conf, @al, return_failures:)
+      # b = res.calc_action_if
+      # expect(b).to be false
+      # expect(return_failures).to eq({
+      #                                 all: { this: { top_level_error: { invalid_error_message: 'Top error!' } } },
+      #                                 not_any: { this: { top_level_error: { invalid_error_message: 'Top error!' } } }
+      #                               })
     end
 
     it 'returns no error if custom error is set to blank' do

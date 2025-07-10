@@ -1,4 +1,4 @@
-@import "../app_vars";
+@use "../app_vars" as *;
 
 html {
   min-height: 100%;
@@ -368,6 +368,12 @@ a.glyphicon.glyphicon-remove-sign {
   transform: rotate(180deg);
 }
 
+.caret.caret-large {
+      border-top: 8px dashed;      
+      border-right: 8px solid transparent;
+      border-left: 8px solid transparent;
+}
+
 .nav.nav-pills {
   li {
     > a {
@@ -637,12 +643,16 @@ div.popover {
   min-height: 2em;
 }
 
-.common-template-item {
+.common-template-item, .admin-edit-form {
   .expandable {
     max-height: 174px;
     // padding-bottom: 20px;
     margin-bottom: 0px;
-    border-bottom: 2px dotted gray;
+    
+    &:not(.expanded) {
+      border-bottom: 2px dotted gray;
+    }
+    
     display: block;
     overflow: hidden;
 
@@ -665,7 +675,8 @@ div.popover {
   }
   .expanded {
     max-height: none;
-    border-bottom: 0;
+    border-bottom-width: 0px;
+    border-bottom-style: solid;
 
     &.expandable-target:hover,
     .expandable-target:hover {

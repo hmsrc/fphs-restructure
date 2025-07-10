@@ -39,7 +39,7 @@ module Messaging
     scope :unhandled, -> { where status: nil }
     scope :limited_index, -> { limit 50 }
 
-    attr_accessor :generated_text, :disabled, :admin_id, :for_item, :on_complete_config
+    attr_accessor :generated_text, :disabled, :admin_id, :for_item, :on_complete_config, :ignore_no_recipients
     attr_writer :extra_substitutions_data, :batch_user
 
     #
@@ -78,12 +78,14 @@ module Messaging
     def generate(ignore_missing: false)
       data = self.data
       if data.blank?
-        raise FphsException, 'Data is blank and item_type / item_id does not return an item' unless item
-
-        data = Formatter::Substitution.setup_data item, for_item
+        if item          
+          data = Formatter::Substitution.setup_data item, for_item
+        else
+          Rails.logger.warn 'MessageNotification#generate data is blank and item_type / item_id does not return an item' 
+          data = {}
+        end
         data[:_subject] = subject
         data[:extra_substitutions] = extra_substitutions_data
-
       end
 
       raise FphsException, "Layout template #{layout_template_name} was not found" unless layout_template
@@ -94,10 +96,18 @@ module Messaging
         raise FphsException, 'Content template name or text must be set'
       end
 
-      self.generated_text = layout_template.generate content_template_name: content_template_name,
-                                                     content_template_text: content_template_text,
-                                                     data: data,
-                                                     ignore_missing: ignore_missing
+      # We need to prevent conversion to html for all SMS
+      markdown_to_html = if sms?
+                           false
+                         else
+                           :force_markdown_to_html
+                         end
+
+      self.generated_text = layout_template.generate(content_template_name:,
+                                                     content_template_text:,
+                                                     data:,
+                                                     ignore_missing:,
+                                                     markdown_to_html:)
 
       self.generated_content = generated_text
       save!
@@ -112,7 +122,7 @@ module Messaging
     def generate_view(ignore_missing: false)
       return generated_content if generated_content.present?
 
-      generate(ignore_missing: ignore_missing)
+      generate(ignore_missing:)
     rescue FphsException => e
       "EXCEPTION: #{e}"
     end
@@ -205,10 +215,12 @@ module Messaging
     # @param [Logger] logger - logger to use from the background job, or the default Rails logger
     # @param [UserBase] for_item - typically an activity log item
     # @param [Hash] on_complete_config - the on_complete configuration from the activity log definition
-    def handle_notification_now(logger: Rails.logger, for_item: nil, on_complete_config: {}, alt_batch_user: nil)
+    def handle_notification_now(logger: Rails.logger, for_item: nil, on_complete_config: {}, alt_batch_user: nil,
+                                ignore_no_recipients: nil)
       logger.info "Handling item #{id}"
       update! status: StatusInProgress
 
+      self.ignore_no_recipients ||= ignore_no_recipients
       self.for_item ||= for_item
       self.on_complete_config ||= on_complete_config
       self.batch_user ||= alt_batch_user
@@ -242,8 +254,8 @@ module Messaging
         NotificationMailer.send_message_notification(self).deliver_now
       elsif sms?
         sms = Messaging::NotificationSms.new
-        sms.send_now(self, recipient_sms_numbers: recipient_sms_numbers, generated_text: generated_text,
-                           importance: importance, logger: logger)
+        sms.send_now(self, recipient_sms_numbers:, generated_text:, ignore_no_recipients:,
+                           importance:, logger:)
       else
         raise FphsException, "No recognized message type for message notification: #{message_type}"
       end
@@ -335,7 +347,7 @@ module Messaging
                                        default_country_code: rec[:default_country_code]
           recipient_sms_numbers = [pn]
           # Generate and send to this specific phone number with the data for this item
-          resp = generate_and_send recipient_sms_numbers: recipient_sms_numbers
+          resp = generate_and_send(recipient_sms_numbers:)
 
           list_item.set_response list_item.user, resp
           # Add the phone number to the recipient data hash

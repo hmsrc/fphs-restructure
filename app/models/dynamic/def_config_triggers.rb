@@ -31,13 +31,15 @@ module Dynamic
       return if dynamic_def.disabled? || !dynamic_def.ready_to_generate?
 
       inst = new(dynamic_def)
+      return unless inst.app_type
+      
       inst.handle_all_option_configs
 
       dynamic_def.force_option_config_parse
     end
 
     def handle_all_option_configs
-      option_configs.each do |option_config|
+      option_configs.each do |option_config|        
         create_defaults(option_config)
         create_configs(option_config)
       end
@@ -50,19 +52,35 @@ module Dynamic
 
     private
 
-    def create_defaults(option_config)
+    def on_defines(option_config)
       config_trigger = option_config&.config_trigger
-      return unless config_trigger
+        return [] unless config_trigger
 
-      config = config_trigger.dig(:on_define, :create_defaults)
-      return unless config
-
-      setup config
-      create_role_for_admin_matching_user(config, option_config)
-      create_default_user_access_controls(config, option_config)
-      create_default_embed(config, option_config)
-      create_activity_log_page_layout(config, option_config)
+        config_trigger[:on_define]
     end
+
+    def create_defaults(option_config)
+      on_defines(option_config).each do |on_define|
+        config = on_define[:create_defaults]
+        next unless config
+
+        setup config
+        create_role_for_admin_matching_user(config, option_config)
+        create_default_user_access_controls(config, option_config)
+        create_default_embed(config, option_config)
+        create_activity_log_page_layout(config, option_config)
+      end
+    end
+
+    def create_configs(option_config)      
+      on_defines(option_config).each do |on_define|
+        config = on_define[:create_configs]
+        next unless config
+
+        create_config(config, option_config)
+      end      
+    end
+
 
     def setup(config)
       uac = config[:user_access_control] || {}
@@ -111,7 +129,19 @@ module Dynamic
       return unless config.has_key?(:embed) && dynamic_def_type == :activity_log
 
       # Create the corresponding dynamic model for embedding in the activity log
-      embed = config[:embed] || {}
+      embed = config[:embed].dup || {}
+      allow_reconfiguration = embed.delete(:allow_reconfiguration)
+      prefix_config_libraries = embed.delete(:prefix_config_libraries)
+      prefix_config_libraries = [prefix_config_libraries] if prefix_config_libraries.is_a?(String)
+
+      pl_text = ''
+      prefix_config_libraries&.each do |pl|
+        pl_text = "#{pl_text}\n# @library #{pl}"
+      end
+
+      options = <<~END_TEXT
+        #{pl_text}
+      END_TEXT
 
       return if option_config.name.in?(%w[primary blank_log])
 
@@ -140,7 +170,10 @@ module Dynamic
       )
 
       if exists
-        # Update if anything is specified in the embed config, otherwise skip
+        return unless allow_reconfiguration
+
+        # Update if reconfiguration is allowed and anything is specified in the embed config, otherwise skip
+        emb_cond[:options] = options unless exists.options.present?
         exists.update!(emb_cond) unless embed.empty? || attributes_equal(exists, emb_cond)
       else
         exists = DynamicModel.create!(emb_cond)
@@ -188,11 +221,7 @@ module Dynamic
       Admin::PageLayout.create! cond
     end
 
-    def create_configs(option_config)
-      config_trigger = option_config&.config_trigger
-      return unless config_trigger
-
-      config = config_trigger.dig(:on_define, :create_configs)
+    def create_config(config, option_config)
       return nil unless config
 
       subdata = if dynamic_def_type == :activity_log
@@ -222,8 +251,16 @@ module Dynamic
                                          format: :raw)
     end
 
+    #
+    # Create a missing user access control, ignoring the access type
+    # so that we don't attempt to create duplicates that will fail validation.
+    # If the access on an existing UAC needs to change, get the result from
+    # this method then update access manually.
+    # @param [Hash] uac_cond
+    # @return [Admin::UserAccessControl]
     def create_missing_user_access_control(uac_cond)
-      exists = Admin::UserAccessControl.active.find_by(uac_cond)
+      find_cond = uac_cond.except(:access, 'access')
+      exists = Admin::UserAccessControl.active.find_by(find_cond)
       return if exists
 
       uac_cond[:current_admin] = current_admin

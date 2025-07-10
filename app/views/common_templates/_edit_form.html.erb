@@ -257,7 +257,8 @@
           <% end %>
 
 
-          <li class="list-group-item edit-field-container column_type_<%= column_type %> <%= showed_caption_before ? 'showed-caption-before' : ''%> <%=form_object_item_type_us.hyphenate%>-<%=field_name_sym%> <%=field_name.start_with?('placeholder_') ? 'placeholder-field-item' : ''%>">
+          <li class="list-group-item edit-field-container column_type_<%= column_type %> <%= showed_caption_before ? 'showed-caption-before' : ''%> <%=form_object_item_type_us.hyphenate%>-<%=field_name_sym%> <%=field_name.start_with?('placeholder_') ? 'placeholder-field-item' : ''%>"
+              data-edit-field-name="<%= field_name_sym %>">
             <%= edit_form_field(**local_vars) %>
           </li>
 
@@ -269,6 +270,13 @@
 
         <% end # item_list.each %>
 
+        <%
+          if form_object_instance.respond_to? :user_id
+        %>
+          <%= form.hidden_field :user_id, data: { attr_name: :user_id, object_name: form_object_item_type_us } %>
+        <%
+          end
+        %>
         <% unless embedded %>
           <% unless view_options[:show_embedded_at_top]  %>
           <%= render partial: 'common_templates/edit_form_references', locals: {embedded: embedded, form_embed: form_embed} %>
@@ -294,6 +302,9 @@
           </li>
           <% end %>
         <% end %>
+<% unless embedded %>
+    <%= render partial: 'common_templates/edit_form_filestore', locals: {} %>
+<% end %>
       </ul>
       <% if disabled_form %></fieldset><% end %>
       <% end %>
@@ -308,7 +319,6 @@
       <% end %>
 
 <% unless embedded %>
-    <%= render partial: 'common_templates/edit_form_filestore', locals: {} %>
   </div>
 </div>
 <% end %>

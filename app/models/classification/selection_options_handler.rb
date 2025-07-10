@@ -8,6 +8,8 @@
 class Classification::SelectionOptionsHandler
   attr_accessor :user_base_object, :table_name
 
+  CacheKeySelectorWithConfigOverrides = 'selector_with_config_overrides'
+
   #
   # Get the selection option label for a field value in a user base object, if there is one
   # This does not benefit from memoization, so it is generally recommended to instantiate
@@ -241,6 +243,13 @@ class Classification::SelectionOptionsHandler
     fndefs
   end
 
+  def self.selector_with_config_overrides(conditions = nil)
+    cname = "#{CacheKeySelectorWithConfigOverrides}--#{conditions}"
+    @cache_keys_list ||= []
+    @cache_keys_list << cname
+    Rails.cache.fetch(cname) { selector_with_config_overrides_processing(conditions) }
+  end
+
   #
   # Get all the general selection configurations and override them with the form_options.edit_as.alt_options
   # This is only used by UI requests to the DefinitionsController to get and cache general selections
@@ -272,7 +281,7 @@ class Classification::SelectionOptionsHandler
   #
   # @param [Hash] conditions any conditions to be passed to retrieve the appropriate general selections
   # @return [Array{Hash}] serializable array of general_selection and alt_options overrides
-  def self.selector_with_config_overrides(conditions = nil)
+  def self.selector_with_config_overrides_processing(conditions = nil)
     if conditions.is_a? Hash
       extra_log_type = conditions[:extra_log_type]
       item_type = conditions[:item_type]
@@ -294,7 +303,7 @@ class Classification::SelectionOptionsHandler
     impl_classes.select! { |ic| !ic.respond_to?(:definition) || ic.definition.ready_to_generate? }
 
     impl_classes.each do |impl_class|
-      dyn_object = impl_class.new
+      dyn_object = impl_class.new(skip_presets: true)
 
       # If an extra log type was specified, use it, since the alt_options are specified at that level
       dyn_object.extra_log_type = extra_log_type if extra_log_type && dyn_object.respond_to?(:extra_log_type)
@@ -367,6 +376,10 @@ class Classification::SelectionOptionsHandler
   #
   # Reset memoized items
   def self.reset!
+    @cache_keys_list&.each do |cname|
+      Rails.cache.delete(cname)
+    end
+    @cache_keys_list = []
     @implementation_classes = nil
   end
 

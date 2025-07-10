@@ -21,7 +21,8 @@ module MasterHandler
     before_action :check_creatable?, only: %i[new create]
     before_action :capture_ref_item, only: %i[create update]
 
-    helper_method :primary_model, :permitted_params, :edit_form_helper_prefix, :item_type_id, :object_name
+    helper_method :primary_model, :permitted_params, :edit_form_helper_prefix, :item_type_id, :object_name,
+                  :current_admin_sample
   end
 
   # Get the index JSON results from cache if the :cache_result param is set,
@@ -104,7 +105,7 @@ module MasterHandler
       if object_instance.update(secure_params)
         reload_objects
         handle_additional_updates :update
-        if object_instance.has_multiple_results
+        if object_instance.has_multiple_results && !@assigning_master_to_existing_instance
           @master_objects = object_instance.multiple_results
           index
         else
@@ -234,12 +235,14 @@ module MasterHandler
     if dopt
       cb = dopt.caption_before
       l = dopt.labels
+      db = dopt.dialog_before
     end
 
     {
       caption: object_instance.human_name,
       caption_before: cb,
-      labels: l
+      labels: l,
+      dialog_before: db
     }
   end
 
@@ -305,6 +308,7 @@ module MasterHandler
     handle_option_type_config if action_name == 'new' && respond_to?(:handle_option_type_config, true)
     return if current_admin_sample || object_instance.allows_current_user_access_to?(:create)
 
+    Rails.logger.warn "This item is not creatable: #{object_instance.class.name} - #{object_instance&.attributes}"
     not_creatable
     nil
   end
@@ -344,6 +348,10 @@ module MasterHandler
       @master = Master.find(params[:master_id]) unless primary_model.no_master_association && !params[:master_id]
     else
       object = primary_model.find(params[:id])
+      unless primary_model.no_master_association || object.master_id
+        @assigning_master_to_existing_instance = true
+        object.master = Master.find(params[:master_id])
+      end
       set_object_instance object
       @master = object.master unless primary_model.no_master_association
       @id = object.id
@@ -394,7 +402,13 @@ module MasterHandler
     id = params[:id]
     found_inst = primary_model.find_by_id_or_secondary_key(id)
     set_object_instance found_inst
-    object_instance.master.current_user = current_user unless primary_model.no_master_association
+    if primary_model.no_master_association
+      object_instance.current_user = current_user 
+    elsif object_instance.master.nil?
+      raise FphsException, "No master set for item"
+    else
+      object_instance.master.current_user = current_user 
+    end
     @id = object_instance.id
   end
 
@@ -445,7 +459,10 @@ module MasterHandler
       build_with = secure_params
     rescue StandardError => e
       logger.warn("set_instance_from_build: #{e}")
+      build_with = {}
     end
+    build_with[:skip_presets] = 'preset_fields' if action_name != 'new'
+    build_with[:current_admin_sample] = true if current_admin_sample
     set_object_instance @master_objects.build(build_with)
 
     if set_master_on_build

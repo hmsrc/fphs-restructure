@@ -37,11 +37,31 @@ module Dynamic
       attr_writer :allow_migrations
 
       before_validation :init_schema_name
-
+      validate :schema_name_ok
+      validate :table_name_ok
       after_create :generate_create_migration, if: -> { !disabled }
 
       after_save :generate_migration, if: -> { !disabled }
       after_save :run_migration, if: -> { @do_migration }
+    end
+
+    class_methods do
+      def default_schema_name(app_type: nil, category: nil)
+        dsn = app_type&.default_schema_name
+        return dsn if dsn.present?
+
+        res = category.split('-').first if category.present?
+        res = nil unless Admin::MigrationGenerator.current_search_paths.include?(res)
+        res ||= Settings::DefaultMigrationSchema
+        return res if res.present?
+
+        # Default to the first in the search path if nothing else works
+        Admin::MigrationGenerator.current_search_paths.first
+      end
+
+      def default_category(app_type: nil)
+        app_type&.name&.id_underscore
+      end
     end
 
     #
@@ -135,7 +155,7 @@ module Dynamic
 
       mode = 'update'
       gs = migration_generator.generator_script(self.class, mode)
-      fn = migration_generator.write_db_migration gs, table_name, migration_generator.migration_version, mode: mode
+      fn = migration_generator.write_db_migration(gs, table_name, migration_generator.migration_version, mode:)
       @do_migration = fn
     end
 
@@ -150,7 +170,7 @@ module Dynamic
       mg.app_type_name = app_type_name
       mode = 'create_or_update'
       gs = mg.generator_script(self.class, mode)
-      mg.write_db_migration(gs, table_name, mg.migration_version, mode: mode, export_type: export_type)
+      mg.write_db_migration(gs, table_name, mg.migration_version, mode:, export_type:)
     end
 
     #
@@ -168,15 +188,14 @@ module Dynamic
       return schema_name if respond_to?(:schema_name) && schema_name.present?
 
       current_user_app_type = current_admin.matching_user_app_type
-      dsn = current_user_app_type&.default_schema_name
-      return dsn if dsn
 
-      res = category.split('-').first if category.present?
-      res ||= Settings::DefaultMigrationSchema
-      return res if res.present?
+      unless current_user_app_type
+        Rails.logger.warn "#{self.class.human_name} migration doesn't specify a schema_name and there is no matching user " \
+                          "for the current admin '#{current_admin.email}' or no app type is set '#{current_user_app_type}'"
+      end
 
-      # Default to the first in the search path if nothing else works
-      Admin::MigrationGenerator.current_search_paths.first
+      Rails.logger.warn "#{self.class.human_name} doesn't specify a schema_name - using the app type default, category or first in search path"
+      self.class.default_schema_name(app_type: current_user_app_type, category:)
     end
 
     #
@@ -211,12 +230,13 @@ module Dynamic
       @migration_generator =
         Admin::MigrationGenerator.new(
           db_migration_schema,
-          table_name: table_name,
+          table_name:,
           class_name: full_implementation_class_name,
           dynamic_def: self,
           all_implementation_fields: all_implementation_fields(ignore_errors: false),
-          table_comments: table_comments,
+          table_comments:,
           no_master_association: implementation_no_master_association,
+          no_user_id: implementation_no_user_id,
           prev_table_name: table_name_before_last_save,
           belongs_to_model: btm,
           db_configs: db_columns,
@@ -224,7 +244,7 @@ module Dynamic
           view_sql_changed: view_sql_changed?,
           all_referenced_tables: art,
           resource_type: self.class.name.underscore.to_sym,
-          allow_migrations: allow_migrations
+          allow_migrations:
         )
     end
 
@@ -233,9 +253,26 @@ module Dynamic
     # or the default for server
     # @return [String] new schema_name
     def init_schema_name
-      return if disabled?
+      return if disabled? || schema_name.present?
 
-      self.schema_name = db_migration_schema
+      self.schema_name = if persisted?
+                           schema_name_in_db
+                         else
+                           db_migration_schema
+                         end
+    end
+
+    def table_name_ok
+      return true if disabled? || table_name.blank? || table_name.id_underscore == table_name
+
+      errors.add :table_name, "must only include characters acceptable to the database: #{table_name}"
+    end
+
+    def schema_name_ok
+      return true if disabled? || Admin::MigrationGenerator.current_search_paths.include?(schema_name)
+
+      errors.add :schema_name, "(#{schema_name}) not in current search_path for #{table_name} - " \
+                           "#{Admin::MigrationGenerator.current_search_paths}\#{nattributes}"
     end
   end
 end

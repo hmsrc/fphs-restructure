@@ -42,16 +42,35 @@ if [ -z "${cl_ur}" ]; then
   exit 2
 fi
 
-cl_not_ok=$(grep -Pzl '## Unreleased\n+## ' CHANGELOG.md)
-if [ "${cl_not_ok}" ]; then
-  echo "CHANGELOG.md does not have anything entered for the Unreleased section. Edit and retry."
-  exit 2
+if [ -z "${ALLOW_EMPTY_UNRELEASED}" ]; then
+  cl_not_ok=$(grep -Pzl '## Unreleased\n+## ' CHANGELOG.md)
+  if [ "${cl_not_ok}" ]; then
+    echo "CHANGELOG.md does not have anything entered for the Unreleased section. Will populate it from git log"
+    oldifs=$IFS
+    IFS=$'\n'
+    for line in $(git log --format=%s --no-merges new-master..HEAD) ; do 
+      [[ $line =~ ^([a-zA-Z]+)\ (.+) ]]
+      res="$(echo "- [${BASH_REMATCH[1]}] ${BASH_REMATCH[2]}")"
+      sed -i -E "s/## Unreleased/## Unreleased\n${res}/" CHANGELOG.md
+    done
+    IFS=$oldifs
+    sed -i -E "s/## Unreleased/## Unreleased\n/" CHANGELOG.md
+    git commit CHANGELOG.md -m "Updated CHANGELOG.md with git commits" && \
+    git push
+  fi
+
+  cl_not_ok=$(grep -Pzl '## Unreleased\n+## ' CHANGELOG.md)
+  if [ "${cl_not_ok}" ]; then
+    echo "CHANGELOG.md still does not have anything entered for the Unreleased section. Please edit it and retry."
+    exit 3
+  fi  
 fi
 
-head -32 CHANGELOG.md | tail -13
+grep -A 12 '## Unreleased' CHANGELOG.md
 
 echo "Clean up assets before we start"
-FPHS_LOAD_APP_TYPES=1 bundle exec rake assets:clobber
+# FPHS_LOAD_APP_TYPES=1 bundle exec rake assets:clobber
+rm -rf public/assets
 git commit public/assets -m "Cleanup"
 git push
 
@@ -64,7 +83,10 @@ CURRVER=${CURRVERINFILE}
 
 if [ "${CURRVERINFILE}" != "${LASTTAG}" ]; then
   echo "Latest version file version ${CURRVER} and latest tag ${LASTTAG} do not match"
-  read -p 'Use latest file version (1), latest tag version (2) or manual entry for latest version (3)? ' USEVER
+  
+  if [ -z "${USEVER}" ]; then
+    read -p 'Use latest file version (1), latest tag version (2) or manual entry for latest version (3)? ' USEVER
+  fi
 
   if [ "$USEVER" == '1' ]; then
     LASTTAG=${CURRVER}
@@ -99,6 +121,10 @@ echo "Current version: ${CURRVER}"
 echo "Next version: ${NEWVER}"
 
 source ../restructure-build/shared/build-vars.sh
+if [ -z "${RUBY_V}" ]; then
+  RUBY_V="$(cat .ruby-version)"
+fi
+
 if [ "$(cat .ruby-version)" != ${RUBY_V} ]; then
   echo "Ruby versions don't match: $(cat .ruby-version) != ${RUBY_V}"
   exit 7
@@ -111,24 +137,26 @@ if [ "${RELEASESTARTED}" ]; then
 fi
 
 if [ -z "${SKIP_BRAKEMAN}" ]; then
+  tmpfile=$(mktemp /tmp/fphs-brakeman-summary.txt.XXXXXX)
   echo "Checking brakeman and bundle-audit before we go through the whole process"
-  bin/brakeman -q --summary > /tmp/fphs-brakeman-summary.txt
+  bin/brakeman -q --summary > ${tmpfile}
   if [ "$?" == 0 ]; then
     echo "Brakeman OK"
   else
-    cat /tmp/fphs-brakeman-summary.txt
-    echo "Brakeman Failed"
+    cat ${tmpfile}
+    echo "Brakeman Failed - see ${tmpfile}"
     exit 1
   fi
 
+  tmpfile=$(mktemp /tmp/bundle-audit-output.md.XXXXXX)
   bundle exec bundle-audit update 2>&1
-  bundle exec bundle-audit check 2>&1 > /tmp/bundle-audit-output.md
+  bundle exec bundle-audit check 2>&1 > ${tmpfile}
   RES=$?
   if [ "${RES}" == 0 ]; then
     echo "bundle-audit OK"
   else
-    echo "bundle-audit Failed: ${RES}"
-    cat /tmp/bundle-audit-output.md
+    cat ${tmpfile}
+    echo "bundle-audit Failed: ${RES} - see ${tmpfile}"
     exit 1
   fi
 fi
@@ -175,7 +203,7 @@ fi
 
 echo "Starting build container"
 cd ../restructure-build
-./build.sh ${build_arg}
+./build.sh ${build_arg} ${UPVLEVEL}
 if [ $? != 0 ]; then
   echo "***** build.sh failed with exit code $? *****"
   exit 101

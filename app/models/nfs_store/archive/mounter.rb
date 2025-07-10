@@ -319,7 +319,17 @@ module NfsStore
       # @return [Boolean] result true if all the archived files were extracted and stored
       def extract_archived_files
         unless Rails.env.test?
-          puts "Start to extract files? (archive not extracted? #{!archive_extracted?}) to DB for #{mounted_path}"
+          msg = "Start to extract files? (archive not extracted? #{!archive_extracted?}) to DB for #{mounted_path}"
+          puts msg
+
+          unless mounted_path
+            Rails.logger.warn msg
+            Rails.logger.warn "extract_archived_files: mounted_path is nil for #{stored_file}" \
+                              "role names: #{stored_file&.current_user_role_names} " \
+                              "container: #{stored_file&.container&.id}" \
+                              "current_user: #{stored_file&.container&.current_user&.email}"
+            return false
+          end
         end
 
         result = true
@@ -340,6 +350,10 @@ module NfsStore
           puts "Starting extract_archived_files of #{files.length} files" unless Rails.env.test?
 
           container = stored_file.container
+
+          unless stored_file.current_role_name
+            Rails.logger.warn 'stored_file.current_role_name is nil - the following operations may fail'
+          end
 
           all_afs = []
           files.each do |f|
@@ -365,7 +379,8 @@ module NfsStore
                 all_afs << af
               rescue StandardError => e
                 failures += 1
-                Rails.logger.warn "Failure (#{failures}) during extract_archived_files. #{e}\n#{e.backtrace.join("\n")}"
+                Rails.logger.warn "Failure (#{failures}) during extract_archived_files. #{e}"
+                Rails.logger.warn e.short_string_backtrace
                 # Continue on to the next one.
               end
             end

@@ -8,6 +8,7 @@ class Master < ActiveRecord::Base
   # within this functionality to operate, just like an association to any other table
   TemporaryMasterIds = [-1, -2].freeze
   Resources::Models.add(Master, resource_name: :temporary_master)
+  Resources::Models.add(Master, resource_name: :masters)
   has_many :temporary_master, -> { Master.temporary_master }, class_name: 'Master', foreign_key: 'id'
 
   MasterNestedAttribs = [
@@ -691,6 +692,7 @@ class Master < ActiveRecord::Base
     extras.merge!(include: included_tables)
     extras[:methods] << :header_prefix
     extras[:methods] << :header_title
+    extras[:methods] << :open_panels
     extras[:methods] << :trackers_length
 
     show_ids_in_results.each do |id_attr|
@@ -743,6 +745,14 @@ class Master < ActiveRecord::Base
   def header_title
     template = Admin::AppConfiguration.value_for(:master_header_title, current_user)
     header_substitutions template
+  end
+
+  def open_panels
+    res = Admin::AppConfiguration.value_for(:open_panels, current_user)
+    res = Formatter::Substitution.substitute res, data: self, tag_subs: nil, ignore_missing: true
+    return unless res
+
+    res.gsub(',', "\n").gsub("\r\n", "\n").gsub("\n\n", "\n").strip
   end
 
   #

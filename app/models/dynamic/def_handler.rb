@@ -5,6 +5,7 @@ module Dynamic
     extend ActiveSupport::Concern
 
     included do
+      before_save :clean_options_yaml
       after_save :force_option_config_parse
       after_save :handle_batch_schedule
       attr_accessor :configurations, :data_dictionary, :options_constants, :foreign_key_through_external_id
@@ -280,14 +281,16 @@ module Dynamic
       # Look up user based on a snippet of the configuration
       def user_for_conf_snippet(config)
         user = config[:user]
-        if user.to_i > 0
-          user = User.active.find(user)
-        elsif user.is_a? String
-          user = User.active.find_by_email(user)
+        app_type = config[:app_type]
+        app_type = Admin::AppType.find_active_by_name_or_id(app_type) if app_type
+        if user
+          user = User.find_active_by_email_or_id(user)
+          user.app_type = app_type if app_type
+          user.save
+        elsif app_type
+          user = User.use_batch_user(app_type)
         end
 
-        app_type = config[:app_type]
-        user = User.use_batch_user(app_type) if user.nil? && app_type
         user
       end
       # End of class_methods
@@ -420,6 +423,17 @@ module Dynamic
       option_configs force: true, raise_bad_configs: true
     end
 
+    def clean_options_yaml
+      alt_option_config_attr ||= self.class.option_configs_attr
+      return unless alt_option_config_attr && respond_to?(alt_option_config_attr)
+
+      val = send(alt_option_config_attr)
+      return if val.blank?
+      
+      val = val.dup&.gsub("\r\n", "\n")
+      send("#{alt_option_config_attr}=", val)
+    end
+
     #
     # If batch_trigger specifies a schedule, set it up now. Called by after_save callback
     def handle_batch_schedule
@@ -527,6 +541,10 @@ module Dynamic
       defined?(foreign_key_name) && foreign_key_name.blank?
     end
 
+    def implementation_no_user_id
+      configurations && configurations[:no_user_id]
+    end
+
     def prefix_class
       klass = Object
       klass = "::#{self.class.implementation_prefix}".constantize if self.class.implementation_prefix.present?
@@ -546,10 +564,27 @@ module Dynamic
     end
 
     #
+    # Get the schema name for the current table_name
+    # Particularly useful if the schema_name is not set
+    # @return [String|nil]
+    def schema_name_in_db
+      Admin::MigrationGenerator.tables_and_views_reset!
+      Admin::MigrationGenerator.table_schema_hash[table_name]
+    end
+
+    def estimated_record_count_ckey
+      "estimated_record_count--#{self.class.name}-#{id}-#{created_at}-#{updated_at}"
+    end
+
+    def reset_estimated_record_count!
+      Rails.cache.delete(estimated_record_count_ckey)
+    end
+
+    #
     # Get an estimated count of records in the table. Cached for 15 minutes
     # @return [Integer]
     def estimated_record_count
-      ckey = "estimated_record_count--#{self.class.name}-#{id}-#{created_at}-#{updated_at}"
+      ckey = estimated_record_count_ckey
       Rails.cache.fetch(ckey, expires_in: 15.minutes) do
         implementation_class.count
       rescue StandardError => e

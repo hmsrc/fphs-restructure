@@ -12,7 +12,9 @@ module Redcap
                   :created_ids, :updated_ids, :unchanged_ids, :disabled_ids, :storage_stage,
                   :current_admin, :retrieved_files, :upserted_records, :imported_files,
                   :step_count, :job, :done,
-                  :integer_survey_identifier_field_name, :survey_identifier_field_name, :set_master_id_using_association
+                  :integer_survey_identifier_field_name, :survey_identifier_field_name, :set_master_id_using_association,
+                  :skip_store_if_no_survey_identifier, :skipped_ids,
+                  :external_id_fkey_name
 
     def initialize(project_admin, class_name)
       super()
@@ -23,6 +25,7 @@ module Redcap
       self.created_ids = []
       self.unchanged_ids = []
       self.disabled_ids = []
+      self.skipped_ids = []
       self.errors = []
       self.current_admin = project_admin.admin
       self.project_admin.current_admin = current_admin
@@ -32,7 +35,9 @@ module Redcap
       self.step_count = UpdateJobRequestEvery
       self.survey_identifier_field_name = project_admin.survey_identifier_field.to_sym
       self.integer_survey_identifier_field_name = project_admin.integer_survey_identifier_field.to_sym
+      self.external_id_fkey_name = project_admin.associate_master_through_external_id_fkey_name&.to_sym
       self.set_master_id_using_association = project_admin.data_options.set_master_id_using_association
+      self.skip_store_if_no_survey_identifier = project_admin.data_options.skip_store_if_no_survey_identifier
     end
 
     #
@@ -121,16 +126,19 @@ module Redcap
       am = project_admin.data_options.associate_master_through_external_identifer
       return unless am
 
+      @has_integer_survey_identifier = true
+      return unless external_id_fkey_name == integer_survey_identifier_field_name
+
       si_name = survey_identifier_field_name
       integer_si_name = integer_survey_identifier_field_name
 
       return unless records.first.has_key?(si_name)
 
       records.each do |rec|
-        rec[integer_si_name] = rec[si_name]&.to_i
+        val = rec[si_name]
+        val = nil if val.blank?
+        rec[integer_si_name] = val&.to_i
       end
-
-      @has_integer_survey_identifier = true
     end
 
     #
@@ -138,8 +146,8 @@ module Redcap
     # specific record. The most recent request is stored to the
     # retrieved_files Hash.
     # @return [Hash{Symbol => File}] <description>
-    def retrieve_file(record_id, field_name)
-      retrieved_files[field_name] = project_admin.api_client.file record_id, field_name
+    def retrieve_file(record_id, field_name, event: nil)
+      retrieved_files[field_name] = project_admin.api_client.file record_id, field_name, event:
     end
 
     #
@@ -389,16 +397,36 @@ module Redcap
     # If the project has the option set_master_id_using_association, update
     # the new/update record master_id value with the master_id returned from the
     # external id association.
+    # @return [Integer | nil] - master_id if it was set, -1 if we don't handle setting the master id,
+    #                           or nil if the record is to be skipped
     def handle_setting_master_id(update_record, retrieved_record)
-      return unless do_handle_setting_master_id
+      return -1 unless do_handle_setting_master_id
 
-      # Start by setting the integer survey identifier field, so the association can get the master with the new value
-      update_record[integer_survey_identifier_field_name] = retrieved_record[integer_survey_identifier_field_name]
+      isi = retrieved_record[external_id_fkey_name]
+      recid = retrieved_record.first.last
+      if !isi && !skip_store_if_no_survey_identifier
+        raise FphsException,
+              "Integer survey identifier field is empty, can't set master id, for record #{recid}"
+      elsif isi
+        # Start by setting the integer survey identifier field, so the association can get the master with the new value
+        update_record[external_id_fkey_name] = isi
+      elsif skip_store_if_no_survey_identifier
+        # No survey identifier is returned and the project option skip_store_if_no_survey_identifier is set, so
+        # just return with no result, indicating a skip.
+        return
+      end
 
       # Retrieve the master_id from the record (which goes through the association), then set the value returned
       # on the actual underlying attribute. Although this looks like it is assigning the same value, this is not
       # actually what is happening.
-      update_record.master_id = update_record.master_id
+      res = update_record.master_id = update_record.master_id
+
+      unless res
+        raise FphsException,
+              "Redcap pull failed to get master id through association, for record #{recid} with survey identifier #{isi}"
+      end
+
+      res
     end
 
     #
@@ -418,7 +446,11 @@ module Redcap
       existing_record = model.where(rec_ids).first
       if existing_record
         existing_record.no_track = true if existing_record.respond_to? :no_track
-        existing_record.current_user = current_user if existing_record.respond_to? :current_user=
+        if existing_record.respond_to? :current_user=
+          existing_record.current_user = current_user
+        else
+          Rails.logger.warn "Redcap::DataRecords#create_or_update: existing record #{model} doesn't respond to current_user"
+        end
 
         # Check if there is an exact match for the record. If so, we are done
         if record_matches_retrieved(existing_record, retrieved_record)
@@ -426,7 +458,12 @@ module Redcap
           return false
         end
 
-        handle_setting_master_id(existing_record, retrieved_record)
+        res = handle_setting_master_id(existing_record, retrieved_record)
+        # No valid result, but no exception, so just skip this one
+        unless res
+          skipped_ids << rec_ids
+          return
+        end
 
         existing_record.force_save!
         if existing_record.update(retrieved_record)
@@ -441,9 +478,17 @@ module Redcap
       else
         new_record = model.new(retrieved_record)
         new_record.no_track = true if new_record.respond_to? :no_track
-        new_record.current_user = current_user if new_record.respond_to? :current_user=
+        if new_record.respond_to? :current_user=
+          new_record.current_user = current_user
+        else
+          Rails.logger.warn "Redcap::DataRecords#create_or_update: new record #{model} doesn't respond to current_user"
+        end
 
-        handle_setting_master_id(new_record, retrieved_record)
+        res = handle_setting_master_id(new_record, retrieved_record)
+        unless res
+          skipped_ids << rec_ids
+          return
+        end
 
         new_record.force_save!
         if new_record.save
@@ -479,7 +524,12 @@ module Redcap
 
         record_id = record[record_id_field]
         begin
-          temp_file = retrieve_file(record_id, field_name)
+          # In order to retrieve files from longitudinal records (within events),
+          # we need to pass the event name as well.
+          # This is not required for classic instruments, since they do not have events, and will just be ignored.
+          event = record[:redcap_event_name]
+
+          temp_file = retrieve_file(record_id, field_name, event:)
           # We must change the permissions now, since the final NFS store
           # requires the group to have read-write.
           path = "#{project_admin.dynamic_model_table}/file-fields/#{record_id}"
@@ -493,11 +543,12 @@ module Redcap
                                              path:,
                                              replace: true)
           imported_files << res if res
-        rescue Exception => e # rubocop:disable Lint/RescueException
+        rescue Exception => e
           # We rescue Exception rather than StandardError, since file errors inherit from Exception
           msg = "Failed to retrieve or import REDCap file for record: #{record_id} - field name: #{field_name} - with user: #{current_user.email}.\n#{e}"
           Rails.logger.warn msg
           errors << { id: record_id, errors: { capture_files: msg }, action: :capture_files }
+          record.update_column(field_name, nil)
           raise
         ensure
           temp_file&.close
@@ -561,6 +612,7 @@ module Redcap
         count_updated_ids: updated_ids&.length,
         count_unchanged_ids: unchanged_ids&.length,
         count_disabled_ids: disabled_ids&.length,
+        count_skipped_ids: skipped_ids&.length,
         count_processed: done,
         table: project_admin.dynamic_model_table,
         errors:,

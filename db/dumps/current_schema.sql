@@ -3,8 +3,8 @@ begin;
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.6
--- Dumped by pg_dump version 15.6
+-- Dumped from database version 15.12
+-- Dumped by pg_dump version 15.12
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1806,7 +1806,7 @@ CREATE FUNCTION ml_app.datadic_choice_history_upd() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  INSERT INTO ref_data.datadic_choice_history (
+  INSERT INTO datadic_choice_history (
     source_name, source_type, form_name, field_name, value, label, redcap_data_dictionary_id,
     disabled,
     admin_id,
@@ -2140,9 +2140,6 @@ CREATE TABLE ml_app.users (
     admin_id integer,
     app_type_id integer,
     authentication_token character varying(30),
-    encrypted_otp_secret character varying,
-    encrypted_otp_secret_iv character varying,
-    encrypted_otp_secret_salt character varying,
     consumed_timestep integer,
     otp_required_for_login boolean,
     password_updated_at timestamp without time zone,
@@ -2153,7 +2150,8 @@ CREATE TABLE ml_app.users (
     confirmed_at timestamp without time zone,
     confirmation_sent_at timestamp without time zone,
     country_code character varying,
-    terms_of_use_accepted character varying
+    terms_of_use_accepted character varying,
+    otp_secret character varying
 );
 
 
@@ -3397,15 +3395,16 @@ CREATE FUNCTION ml_app.log_admin_update() RETURNS trigger
         unlock_token,
         locked_at,
         disabled,
-        encrypted_otp_secret,
-        encrypted_otp_secret_iv,
-        encrypted_otp_secret_salt,
         consumed_timestep,
         otp_required_for_login,
         reset_password_sent_at,
         password_updated_at,
-        updated_by_admin_id
-
+        updated_by_admin_id,
+        first_name,
+        last_name,
+        do_not_email,
+        capabilities,
+        otp_secret
       )
       SELECT
         NEW.id,
@@ -3422,14 +3421,16 @@ CREATE FUNCTION ml_app.log_admin_update() RETURNS trigger
         NEW.unlock_token,
         NEW.locked_at,
         NEW.disabled,
-        NEW.encrypted_otp_secret,
-        NEW.encrypted_otp_secret_iv,
-        NEW.encrypted_otp_secret_salt,
         NEW.consumed_timestep,
         NEW.otp_required_for_login,
         NEW.reset_password_sent_at,
         NEW.password_updated_at,
-        NEW.admin_id
+        NEW.admin_id,
+        NEW.first_name,
+        NEW.last_name,
+        NEW.do_not_email,
+        NEW.capabilities,
+        NEW.otp_secret
         ;
         RETURN NEW;
     END;
@@ -6621,18 +6622,15 @@ BEGIN
       last_sign_in_at,
       current_sign_in_ip ,
       last_sign_in_ip ,
-      created_at ,
+      created_at,
       updated_at,
       failed_attempts,
       unlock_token,
       locked_at,
-      disabled ,
+      disabled,
       admin_id,
       app_type_id,
       authentication_token,
-      encrypted_otp_secret,
-      encrypted_otp_secret_iv,
-      encrypted_otp_secret_salt,
       consumed_timestep,
       otp_required_for_login,
       password_updated_at,
@@ -6640,7 +6638,11 @@ BEGIN
       last_name,
       confirmation_token,
       confirmed_at,
-      confirmation_sent_at
+      confirmation_sent_at,
+      do_not_email,
+      country_code,
+      terms_of_use_accepted,
+      otp_secret
   )
   SELECT
     NEW.id,
@@ -6663,9 +6665,6 @@ BEGIN
     NEW.admin_id,
     NEW.app_type_id,
     NEW.authentication_token,
-    NEW.encrypted_otp_secret,
-    NEW.encrypted_otp_secret_iv,
-    NEW.encrypted_otp_secret_salt,
     NEW.consumed_timestep,
     NEW.otp_required_for_login,
     NEW.password_updated_at,
@@ -6673,7 +6672,11 @@ BEGIN
     NEW.last_name,
     NEW.confirmation_token,
     NEW.confirmed_at,
-    NEW.confirmation_sent_at
+    NEW.confirmation_sent_at,
+    NEW.do_not_email,
+    NEW.country_code,
+    NEW.terms_of_use_accepted,
+    NEW.otp_secret
   ;
   RETURN NEW;
   END;
@@ -7619,6 +7622,60 @@ $_$;
 
 
 --
+-- Name: log_data_variable_package_vars_update(); Type: FUNCTION; Schema: ref_data; Owner: -
+--
+
+CREATE FUNCTION ref_data.log_data_variable_package_vars_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO data_variable_package_var_history (
+    
+    data_variable_package_id, domain, record_id, variable_name, record_type, disabled,
+    user_id,
+    created_at,
+    updated_at,
+    data_variable_package_var_id)
+  SELECT
+    
+    NEW.data_variable_package_id, NEW.domain, NEW.record_id, NEW.variable_name, NEW.record_type, NEW.disabled,
+    NEW.user_id,
+    NEW.created_at,
+    NEW.updated_at,
+    NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: log_data_variable_packages_update(); Type: FUNCTION; Schema: ref_data; Owner: -
+--
+
+CREATE FUNCTION ref_data.log_data_variable_packages_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO data_variable_package_history (
+    
+    name, tag_select_health_categories, package_type, storage_type, db_or_fs, schema_or_path, table_or_file, is_static, sourced_from_packages, n_for_timepoints, contact_email, key_fields, description, info_url, disabled,
+    user_id,
+    created_at,
+    updated_at,
+    data_variable_package_id)
+  SELECT
+    
+    NEW.name, NEW.tag_select_health_categories, NEW.package_type, NEW.storage_type, NEW.db_or_fs, NEW.schema_or_path, NEW.table_or_file, NEW.is_static, NEW.sourced_from_packages, NEW.n_for_timepoints, NEW.contact_email, NEW.key_fields, NEW.description, NEW.info_url, NEW.disabled,
+    NEW.user_id,
+    NEW.created_at,
+    NEW.updated_at,
+    NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: log_datadic_variables_update(); Type: FUNCTION; Schema: ref_data; Owner: -
 --
 
@@ -8495,14 +8552,16 @@ CREATE TABLE ml_app.admin_history (
     updated_at timestamp without time zone,
     disabled boolean,
     admin_id integer,
-    encrypted_otp_secret character varying,
-    encrypted_otp_secret_iv character varying,
-    encrypted_otp_secret_salt character varying,
     consumed_timestep integer,
     otp_required_for_login boolean,
     reset_password_sent_at timestamp without time zone,
     password_updated_at timestamp without time zone,
-    updated_by_admin_id integer
+    updated_by_admin_id integer,
+    first_name character varying,
+    last_name character varying,
+    do_not_email boolean,
+    capabilities character varying[],
+    otp_secret character varying
 );
 
 
@@ -8544,9 +8603,6 @@ CREATE TABLE ml_app.admins (
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     disabled boolean,
-    encrypted_otp_secret character varying,
-    encrypted_otp_secret_iv character varying,
-    encrypted_otp_secret_salt character varying,
     consumed_timestep integer,
     otp_required_for_login boolean,
     reset_password_sent_at timestamp without time zone,
@@ -8555,7 +8611,8 @@ CREATE TABLE ml_app.admins (
     last_name character varying,
     do_not_email boolean DEFAULT false,
     admin_id bigint,
-    capabilities character varying[]
+    capabilities character varying[],
+    otp_secret character varying
 );
 
 
@@ -12699,9 +12756,6 @@ CREATE TABLE ml_app.user_history (
     user_id integer,
     app_type_id integer,
     authentication_token character varying,
-    encrypted_otp_secret character varying,
-    encrypted_otp_secret_iv character varying,
-    encrypted_otp_secret_salt character varying,
     consumed_timestep integer,
     otp_required_for_login boolean,
     password_updated_at timestamp without time zone,
@@ -12709,7 +12763,11 @@ CREATE TABLE ml_app.user_history (
     last_name character varying,
     confirmation_token character varying,
     confirmed_at timestamp without time zone,
-    confirmation_sent_at timestamp without time zone
+    confirmation_sent_at timestamp without time zone,
+    do_not_email boolean,
+    otp_secret character varying,
+    country_code character varying,
+    terms_of_use_accepted character varying
 );
 
 
@@ -13758,7 +13816,10 @@ CREATE MATERIALIZED VIEW ref_data.datadic_stats AS
             var.sub_section_id,
             var.title,
             var.storage_varname,
-            var.user_id
+            var.user_id,
+            var.contributor_type,
+            var.n_for_timepoints,
+            var.notes
            FROM ref_data.datadic_variables var
           WHERE ((NOT COALESCE(var.disabled, false)) AND ((var.variable_name)::text <> 'participant_id'::text) AND (NULLIF((var.storage_varname)::text, ''::text) IS NOT NULL))
         )
@@ -13865,8 +13926,8 @@ CREATE TABLE ref_data.datadic_variable_history (
     sub_section_id integer,
     title character varying,
     storage_varname character varying,
-    user_id bigint,
     contributor_type character varying,
+    user_id bigint,
     n_for_timepoints jsonb,
     notes character varying
 );
@@ -13911,7 +13972,7 @@ COMMENT ON COLUMN ref_data.datadic_variable_history.form_name IS 'Form name (if 
 -- Name: COLUMN datadic_variable_history.variable_name; Type: COMMENT; Schema: ref_data; Owner: -
 --
 
-COMMENT ON COLUMN ref_data.datadic_variable_history.variable_name IS 'Variable name';
+COMMENT ON COLUMN ref_data.datadic_variable_history.variable_name IS 'Variable name (as stored)';
 
 
 --
@@ -14184,110 +14245,155 @@ ALTER SEQUENCE ref_data.datadic_variables_id_seq OWNED BY ref_data.datadic_varia
 
 
 --
--- Name: mv_datadic_stats; Type: MATERIALIZED VIEW; Schema: ref_data; Owner: -
+-- Name: domain_mapping_history; Type: TABLE; Schema: ref_data; Owner: -
 --
 
-CREATE MATERIALIZED VIEW ref_data.mv_datadic_stats AS
- WITH vars AS (
-         SELECT var.id,
-            var.study,
-            var.source_name,
-            var.source_type,
-            var.domain,
-            var.form_name,
-            var.variable_name,
-            var.variable_type,
-            var.presentation_type,
-            var.label,
-            var.label_note,
-            var.annotation,
-            var.is_required,
-            var.valid_type,
-            var.valid_min,
-            var.valid_max,
-            var.multi_valid_choices,
-            var.is_identifier,
-            var.is_derived_var,
-            var.multi_derived_from_id,
-            var.doc_url,
-            var.target_type,
-            var.owner_email,
-            var.classification,
-            var.other_classification,
-            var.multi_timepoints,
-            var.equivalent_to_id,
-            var.storage_type,
-            var.db_or_fs,
-            var.schema_or_path,
-            var.table_or_file,
-            var.disabled,
-            var.admin_id,
-            var.redcap_data_dictionary_id,
-            var.created_at,
-            var.updated_at,
-            var."position",
-            var.section_id,
-            var.sub_section_id,
-            var.title,
-            var.storage_varname,
-            var.user_id
-           FROM ref_data.datadic_variables var
-          WHERE ((NOT COALESCE(var.disabled, false)) AND ((var.variable_name)::text <> 'participant_id'::text) AND (NULLIF((var.storage_varname)::text, ''::text) IS NOT NULL))
-        )
- SELECT var.id AS variable_id,
-    stats.variable AS variable_name,
-    var.label AS variable_label,
-    stats.results,
-    stats.labels,
-    stats.mean,
-    stats.stddev,
-    stats.min,
-    stats.med,
-    stats.max,
-    NULL::character varying AS choices,
-    stats.distincts,
-    stats.completed,
-    stats.total_recs
-   FROM (vars var
-     JOIN LATERAL ref_data.calc_var_stats_for_numeric(var.id) stats(variable_id, variable, results, labels, min, med, max, mean, stddev, distincts, completed, total_recs, "chart:") ON ((stats.variable IS NOT NULL)))
-  WHERE ((var.table_or_file IS NOT NULL) AND ((var.variable_type)::text = ANY (ARRAY[('numeric'::character varying)::text, ('calculated'::character varying)::text])))
-UNION
- SELECT var.id AS variable_id,
-    stats.variable AS variable_name,
-    var.label AS variable_label,
-    stats.results,
-    stats.labels,
-    NULL::numeric AS mean,
-    NULL::numeric AS stddev,
-    NULL::numeric AS min,
-    NULL::numeric AS med,
-    NULL::numeric AS max,
-    (to_json(var.multi_valid_choices))::character varying AS choices,
-    stats.distincts,
-    stats.completed,
-    stats.total_recs
-   FROM (vars var
-     JOIN LATERAL ref_data.calc_var_stats_for_categorical(var.id) stats(variable_id, variable, results, labels, cat_counts, distincts, completed, total_recs, "chart:") ON ((stats.variable IS NOT NULL)))
-  WHERE ((var.table_or_file IS NOT NULL) AND ((var.variable_type)::text = 'categorical'::text))
-UNION
- SELECT var.id AS variable_id,
-    stats.variable AS variable_name,
-    var.label AS variable_label,
-    stats.results,
-    stats.labels,
-    NULL::numeric AS mean,
-    NULL::numeric AS stddev,
-    NULL::numeric AS min,
-    NULL::numeric AS med,
-    NULL::numeric AS max,
-    NULL::character varying AS choices,
-    stats.distincts,
-    stats.completed,
-    stats.total_recs
-   FROM (vars var
-     JOIN LATERAL ref_data.calc_var_stats_for_boolean(var.id) stats(variable_id, variable, results, labels, cat_counts, distincts, completed, total_recs, "chart:") ON ((stats.variable IS NOT NULL)))
-  WHERE ((var.table_or_file IS NOT NULL) AND ((var.variable_type)::text = 'dichotomous'::text))
-  WITH NO DATA;
+CREATE TABLE ref_data.domain_mapping_history (
+    id bigint NOT NULL,
+    domain character varying,
+    domain_title character varying,
+    tag_select_health_categories character varying[],
+    notes character varying,
+    hide_from_datadic boolean,
+    disabled boolean DEFAULT false,
+    user_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    domain_mapping_id bigint
+);
+
+
+--
+-- Name: COLUMN domain_mapping_history.domain; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mapping_history.domain IS 'Domain';
+
+
+--
+-- Name: COLUMN domain_mapping_history.domain_title; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mapping_history.domain_title IS 'Title';
+
+
+--
+-- Name: COLUMN domain_mapping_history.tag_select_health_categories; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mapping_history.tag_select_health_categories IS 'Health Categories';
+
+
+--
+-- Name: COLUMN domain_mapping_history.notes; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mapping_history.notes IS 'Notes';
+
+
+--
+-- Name: COLUMN domain_mapping_history.hide_from_datadic; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mapping_history.hide_from_datadic IS 'Hide from Data Dictionary';
+
+
+--
+-- Name: domain_mapping_history_id_seq; Type: SEQUENCE; Schema: ref_data; Owner: -
+--
+
+CREATE SEQUENCE ref_data.domain_mapping_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: domain_mapping_history_id_seq; Type: SEQUENCE OWNED BY; Schema: ref_data; Owner: -
+--
+
+ALTER SEQUENCE ref_data.domain_mapping_history_id_seq OWNED BY ref_data.domain_mapping_history.id;
+
+
+--
+-- Name: domain_mappings; Type: TABLE; Schema: ref_data; Owner: -
+--
+
+CREATE TABLE ref_data.domain_mappings (
+    id bigint NOT NULL,
+    domain character varying,
+    domain_title character varying,
+    tag_select_health_categories character varying[],
+    notes character varying,
+    hide_from_datadic boolean,
+    disabled boolean DEFAULT false,
+    user_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE domain_mappings; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON TABLE ref_data.domain_mappings IS 'Dynamicmodel: Domain Mapping';
+
+
+--
+-- Name: COLUMN domain_mappings.domain; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mappings.domain IS 'Domain';
+
+
+--
+-- Name: COLUMN domain_mappings.domain_title; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mappings.domain_title IS 'Title';
+
+
+--
+-- Name: COLUMN domain_mappings.tag_select_health_categories; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mappings.tag_select_health_categories IS 'Health Categories';
+
+
+--
+-- Name: COLUMN domain_mappings.notes; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mappings.notes IS 'Notes';
+
+
+--
+-- Name: COLUMN domain_mappings.hide_from_datadic; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON COLUMN ref_data.domain_mappings.hide_from_datadic IS 'Hide from Data Dictionary';
+
+
+--
+-- Name: domain_mappings_id_seq; Type: SEQUENCE; Schema: ref_data; Owner: -
+--
+
+CREATE SEQUENCE ref_data.domain_mappings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: domain_mappings_id_seq; Type: SEQUENCE OWNED BY; Schema: ref_data; Owner: -
+--
+
+ALTER SEQUENCE ref_data.domain_mappings_id_seq OWNED BY ref_data.domain_mappings.id;
 
 
 --
@@ -14838,6 +14944,25 @@ COMMENT ON VIEW ref_data.view_datadic_studies IS 'Dynamicmodel: View Data Dictio
 
 
 --
+-- Name: view_domain_health_categories; Type: VIEW; Schema: ref_data; Owner: -
+--
+
+CREATE VIEW ref_data.view_domain_health_categories AS
+ SELECT t.category
+   FROM ( SELECT DISTINCT unnest(dm.tag_select_health_categories) AS category
+           FROM ref_data.domain_mappings dm) t
+  WHERE ((COALESCE(t.category, ''::character varying))::text <> ''::text)
+  ORDER BY t.category;
+
+
+--
+-- Name: VIEW view_domain_health_categories; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON VIEW ref_data.view_domain_health_categories IS 'Dynamicmodel: Domain Health Categories';
+
+
+--
 -- Name: view_redcap_project_details; Type: MATERIALIZED VIEW; Schema: ref_data; Owner: -
 --
 
@@ -14896,6 +15021,26 @@ CREATE VIEW ref_data.view_redcap_ipa_completers AS
   WHERE ((sc.colval = 2) AND ((rd.name)::text ~ '^ipa_'::text))
   GROUP BY sc.colname, sc.tablename, rd.name
   ORDER BY sc.tablename, sc.colname;
+
+
+--
+-- Name: view_searchable_domains; Type: VIEW; Schema: ref_data; Owner: -
+--
+
+CREATE VIEW ref_data.view_searchable_domains AS
+ SELECT DISTINCT dm.domain_title,
+    dv.domain
+   FROM (ref_data.datadic_variables dv
+     LEFT JOIN ref_data.domain_mappings dm ON ((((dv.domain)::text = (dm.domain)::text) AND (NOT COALESCE(dm.disabled, false)))))
+  WHERE ((NOT COALESCE(dv.disabled, false)) AND (NOT COALESCE(dm.hide_from_datadic, false)))
+  ORDER BY dm.domain_title;
+
+
+--
+-- Name: VIEW view_searchable_domains; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON VIEW ref_data.view_searchable_domains IS 'Dynamicmodel: View Searchable Domains';
 
 
 --
@@ -15941,6 +16086,20 @@ ALTER TABLE ONLY ref_data.datadic_variable_history ALTER COLUMN id SET DEFAULT n
 --
 
 ALTER TABLE ONLY ref_data.datadic_variables ALTER COLUMN id SET DEFAULT nextval('ref_data.datadic_variables_id_seq'::regclass);
+
+
+--
+-- Name: domain_mapping_history id; Type: DEFAULT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mapping_history ALTER COLUMN id SET DEFAULT nextval('ref_data.domain_mapping_history_id_seq'::regclass);
+
+
+--
+-- Name: domain_mappings id; Type: DEFAULT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mappings ALTER COLUMN id SET DEFAULT nextval('ref_data.domain_mappings_id_seq'::regclass);
 
 
 --
@@ -17130,6 +17289,22 @@ ALTER TABLE ONLY ref_data.datadic_variable_history
 
 ALTER TABLE ONLY ref_data.datadic_variables
     ADD CONSTRAINT datadic_variables_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: domain_mapping_history domain_mapping_history_pkey; Type: CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mapping_history
+    ADD CONSTRAINT domain_mapping_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: domain_mappings domain_mappings_pkey; Type: CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mappings
+    ADD CONSTRAINT domain_mappings_pkey PRIMARY KEY (id);
 
 
 --
@@ -18754,6 +18929,258 @@ CREATE INDEX index_sub_processes_on_protocol_id ON ml_app.sub_processes USING bt
 
 
 --
+-- Name: index_test1_history_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1_history_on_admin_id ON ml_app.test1_history USING btree (admin_id);
+
+
+--
+-- Name: index_test1_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1_history_on_master_id ON ml_app.test1_history USING btree (master_id);
+
+
+--
+-- Name: index_test1_history_on_test1_table_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1_history_on_test1_table_id ON ml_app.test1_history USING btree (test1_table_id);
+
+
+--
+-- Name: index_test1_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1_history_on_user_id ON ml_app.test1_history USING btree (user_id);
+
+
+--
+-- Name: index_test1s_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1s_on_admin_id ON ml_app.test1s USING btree (admin_id);
+
+
+--
+-- Name: index_test1s_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1s_on_master_id ON ml_app.test1s USING btree (master_id);
+
+
+--
+-- Name: index_test1s_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test1s_on_user_id ON ml_app.test1s USING btree (user_id);
+
+
+--
+-- Name: index_test2_history_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2_history_on_admin_id ON ml_app.test2_history USING btree (admin_id);
+
+
+--
+-- Name: index_test2_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2_history_on_master_id ON ml_app.test2_history USING btree (master_id);
+
+
+--
+-- Name: index_test2_history_on_test2_table_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2_history_on_test2_table_id ON ml_app.test2_history USING btree (test2_table_id);
+
+
+--
+-- Name: index_test2_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2_history_on_user_id ON ml_app.test2_history USING btree (user_id);
+
+
+--
+-- Name: index_test2s_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2s_on_admin_id ON ml_app.test2s USING btree (admin_id);
+
+
+--
+-- Name: index_test2s_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2s_on_master_id ON ml_app.test2s USING btree (master_id);
+
+
+--
+-- Name: index_test2s_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test2s_on_user_id ON ml_app.test2s USING btree (user_id);
+
+
+--
+-- Name: index_test_2_history_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2_history_on_admin_id ON ml_app.test_2_history USING btree (admin_id);
+
+
+--
+-- Name: index_test_2_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2_history_on_master_id ON ml_app.test_2_history USING btree (master_id);
+
+
+--
+-- Name: index_test_2_history_on_test_2_table_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2_history_on_test_2_table_id ON ml_app.test_2_history USING btree (test_2_table_id);
+
+
+--
+-- Name: index_test_2_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2_history_on_user_id ON ml_app.test_2_history USING btree (user_id);
+
+
+--
+-- Name: index_test_2s_on_admin_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2s_on_admin_id ON ml_app.test_2s USING btree (admin_id);
+
+
+--
+-- Name: index_test_2s_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2s_on_master_id ON ml_app.test_2s USING btree (master_id);
+
+
+--
+-- Name: index_test_2s_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_2s_on_user_id ON ml_app.test_2s USING btree (user_id);
+
+
+--
+-- Name: index_test_ext2_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext2_history_on_master_id ON ml_app.test_ext2_history USING btree (master_id);
+
+
+--
+-- Name: index_test_ext2_history_on_test_ext2_table_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext2_history_on_test_ext2_table_id ON ml_app.test_ext2_history USING btree (test_ext2_table_id);
+
+
+--
+-- Name: index_test_ext2_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext2_history_on_user_id ON ml_app.test_ext2_history USING btree (user_id);
+
+
+--
+-- Name: index_test_ext2s_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext2s_on_master_id ON ml_app.test_ext2s USING btree (master_id);
+
+
+--
+-- Name: index_test_ext2s_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext2s_on_user_id ON ml_app.test_ext2s USING btree (user_id);
+
+
+--
+-- Name: index_test_ext_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext_history_on_master_id ON ml_app.test_ext_history USING btree (master_id);
+
+
+--
+-- Name: index_test_ext_history_on_test_ext_table_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext_history_on_test_ext_table_id ON ml_app.test_ext_history USING btree (test_ext_table_id);
+
+
+--
+-- Name: index_test_ext_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_ext_history_on_user_id ON ml_app.test_ext_history USING btree (user_id);
+
+
+--
+-- Name: index_test_exts_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_exts_on_master_id ON ml_app.test_exts USING btree (master_id);
+
+
+--
+-- Name: index_test_exts_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_exts_on_user_id ON ml_app.test_exts USING btree (user_id);
+
+
+--
+-- Name: index_test_item_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_item_history_on_master_id ON ml_app.test_item_history USING btree (master_id);
+
+
+--
+-- Name: index_test_item_history_on_test_item_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_item_history_on_test_item_id ON ml_app.test_item_history USING btree (test_item_id);
+
+
+--
+-- Name: index_test_item_history_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_item_history_on_user_id ON ml_app.test_item_history USING btree (user_id);
+
+
+--
+-- Name: index_test_items_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_items_on_master_id ON ml_app.test_items USING btree (master_id);
+
+
+--
+-- Name: index_test_items_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_test_items_on_user_id ON ml_app.test_items USING btree (user_id);
+
+
+--
 -- Name: index_tracker_history_on_item_type_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
@@ -19076,6 +19503,20 @@ CREATE INDEX d0aaf0ef_user_idx ON ref_data.data_variable_package_history USING b
 
 
 --
+-- Name: f8d33562_id_idx; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX f8d33562_id_idx ON ref_data.domain_mapping_history USING btree (domain_mapping_id);
+
+
+--
+-- Name: f8d33562_user_idx; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX f8d33562_user_idx ON ref_data.domain_mapping_history USING btree (user_id);
+
+
+--
 -- Name: idx_dch_on_redcap_dd_id; Type: INDEX; Schema: ref_data; Owner: -
 --
 
@@ -19248,6 +19689,13 @@ CREATE INDEX "index_ref_data.datadic_variables_on_admin_id" ON ref_data.datadic_
 --
 
 CREATE INDEX "index_ref_data.datadic_variables_on_redcap_data_dictionary_id" ON ref_data.datadic_variables USING btree (redcap_data_dictionary_id);
+
+
+--
+-- Name: index_ref_data.domain_mappings_on_user_id; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX "index_ref_data.domain_mappings_on_user_id" ON ref_data.domain_mappings USING btree (user_id);
 
 
 --
@@ -20154,6 +20602,34 @@ CREATE TRIGGER user_role_history_update AFTER UPDATE ON ml_app.user_roles FOR EA
 
 
 --
+-- Name: data_variable_packages log_data_variable_package_history_insert; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_data_variable_package_history_insert AFTER INSERT ON ref_data.data_variable_packages FOR EACH ROW EXECUTE FUNCTION ref_data.log_data_variable_packages_update();
+
+
+--
+-- Name: data_variable_packages log_data_variable_package_history_update; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_data_variable_package_history_update AFTER UPDATE ON ref_data.data_variable_packages FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_data_variable_packages_update();
+
+
+--
+-- Name: data_variable_package_vars log_data_variable_package_var_history_insert; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_data_variable_package_var_history_insert AFTER INSERT ON ref_data.data_variable_package_vars FOR EACH ROW EXECUTE FUNCTION ref_data.log_data_variable_package_vars_update();
+
+
+--
+-- Name: data_variable_package_vars log_data_variable_package_var_history_update; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_data_variable_package_var_history_update AFTER UPDATE ON ref_data.data_variable_package_vars FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_data_variable_package_vars_update();
+
+
+--
 -- Name: datadic_choices log_datadic_choice_history_insert; Type: TRIGGER; Schema: ref_data; Owner: -
 --
 
@@ -20179,6 +20655,20 @@ CREATE TRIGGER log_datadic_variable_history_insert AFTER INSERT ON ref_data.data
 --
 
 CREATE TRIGGER log_datadic_variable_history_update AFTER UPDATE ON ref_data.datadic_variables FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_datadic_variables_update();
+
+
+--
+-- Name: domain_mappings log_domain_mapping_history_insert; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_domain_mapping_history_insert AFTER INSERT ON ref_data.domain_mappings FOR EACH ROW EXECUTE FUNCTION ref_data.log_domain_mappings_update();
+
+
+--
+-- Name: domain_mappings log_domain_mapping_history_update; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_domain_mapping_history_update AFTER UPDATE ON ref_data.domain_mappings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_domain_mappings_update();
 
 
 --
@@ -22524,6 +23014,14 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 
 
 --
+-- Name: domain_mappings fk_rails_27e301a846; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mappings
+    ADD CONSTRAINT fk_rails_27e301a846 FOREIGN KEY (user_id) REFERENCES ml_app.users(id);
+
+
+--
 -- Name: redcap_data_collection_instruments fk_rails_2aa7bf926a; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
 --
 
@@ -22620,6 +23118,14 @@ ALTER TABLE ONLY ref_data.datadic_variables
 
 
 --
+-- Name: domain_mapping_history fk_rails_622af264e4; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mapping_history
+    ADD CONSTRAINT fk_rails_622af264e4 FOREIGN KEY (domain_mapping_id) REFERENCES ref_data.domain_mappings(id);
+
+
+--
 -- Name: datadic_choice_history fk_rails_63103b7cf7; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
 --
 
@@ -22657,6 +23163,14 @@ ALTER TABLE ONLY ref_data.redcap_data_collection_instrument_history
 
 ALTER TABLE ONLY ref_data.redcap_project_user_history
     ADD CONSTRAINT fk_rails_7ba2e90d7d FOREIGN KEY (redcap_project_user_id) REFERENCES ref_data.redcap_project_users(id);
+
+
+--
+-- Name: domain_mapping_history fk_rails_7c6956e2d4; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.domain_mapping_history
+    ADD CONSTRAINT fk_rails_7c6956e2d4 FOREIGN KEY (user_id) REFERENCES ml_app.users(id);
 
 
 --

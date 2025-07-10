@@ -116,7 +116,9 @@
       include_blank: |
         true or false to force a drop down field to include a selectable
         blank
-      pattern: provide a mask for a text field
+      pattern: '.+\\d{3}-\\D{1-4}.*'
+        # provide a mask for a text field using basic regex
+        # This example accepts one or more characters of any type, 3 digits, a hyphen, 1 to 4 letters and any number of final characters
       value: |
         default value | now() | today() 
         
@@ -130,13 +132,21 @@
       preset_value: |
         default value | now() | today() | \{\{substitutions\}\}
         
-        NOTE this is set when building the instances and may be used to drive logic like an embed_resource_name field
+        NOTE this is set when building the instances and may be used to drive logic like an embed_resource_name field.
+        It is not applied to persisted instances.
       blank_preset_value: |
         default value | now() | today() | \{\{substitutions\}\}
         
         NOTE this is set only if the attribute is blank when building the instances 
-        and may be used to drive logic like an embed_resource_name field
-
+        and may be used to drive logic like an embed_resource_name field.
+        It is not applied to persisted instances.
+      active_value: |
+        default value | now() | today() | \{\{substitutions\}\}
+        
+        NOTE this is set whenever an instance is initialized. It allows for live UI substitutions that wouldn't otherwise
+        have access to attributes in other models. The data generated will be persisted to the database whenever the item is saved.
+        On re-accessing the item, the value will be re-evaluated. If not saved, the live value will be lost and will be
+        re-evaluated on the next access.
       no_downcase: true - to prevent downcasing of the attribute when stored to the database
       view_original_case: true - to prevent the UI capitalizing downcased fields
       view_with_formats: |
@@ -169,6 +179,47 @@
       use_app_type: |
         use the specified app type id or name instead of the user's current app type
         to filter protocol (and in the future other) selections
+  
+  # Add preset values to a mass of fields on initialization of new items, or before
+  # creating a reference.
+  # `field_options.<field_name>.preset_value` and `field_options.<field_name>.blank_preset_value` are
+  # evalutated after this, and may override any settings here.
+  preset_fields:
+    with_result: 
+    # Map attributes from a related item to the target item.
+    # NOTE: with: fields override any specified here
+    # from: may also just take a simple String such as `from: embedded_item` to
+    # as shorthand for the following full calculation
+      from:
+        embedded_item:
+          return: return_result
+      attributes:
+        receipt_date: event_date
+        receipt_time: event_time
+        received_by: received_by
+        select_facility: 'Lab: {{select_lab}}'
+        # Substitutions use data only from the "from:" item                
+        embedded_item:
+          rank: rank
+          rec_type: rec_type
+          data: '{{select_lab}}'
+    with: 
+      field_name: 'now()'
+      field_name_2: 'literal value'
+      field_name_3: 
+        this: 
+          field_name: return_value
+      field_name_4: 
+        reference_name:
+          field_name: return_value
+      field_name_5: '\{\{curly_tag\}\} - \{\{curly_tag2\}\}'
+      field_name_6: '\{\{\{data.data_structure\}\}\}' # Get a data structure as original object, for JSON fields etc                  
+      embedded_item:
+        field_name: 'literal value'
+        field_name_2: 
+          reference_name:
+            field_name: return_value
+  
   dialog_before:
     field_name:
       name: message template name
@@ -213,8 +264,13 @@
       on_create:                  
       on_update:
 
-  # embed can be defined in one of two styles:
-  embed: default_embed_resource # simply embeds the dynamic model matching the default_embed_resource_name for this activity
+  # embed can be defined in one of three styles:
+  embed: default_embed_resource 
+    # Simply embeds the dynamic model matching the default_embed_resource_name for this activity
+    # Must include a field acting as a foreign key onto the parent `<singularized parent table name>_id`
+
+  embed: resource name for the item to be embedded
+    # Must include a field acting as a foreign key onto the parent `<singularized parent table name>_id`
 
   embed(form 2):
     resource_name: resource name for the item to embed
@@ -314,6 +370,9 @@
 
       - pull_external_data: 
 #!defs(save_triggers_pull_external_data_options_defs.yaml)
+
+      - redcap_request: 
+#!defs(save_triggers_redcap_request_options_defs.yaml)
 
       - set_item_flags:
 #!defs(save_triggers_set_item_flags_options_defs.yaml)

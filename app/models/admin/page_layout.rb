@@ -16,7 +16,8 @@ class Admin::PageLayout < Admin::AdminBase
 
   validates :layout_name, presence: { scope: :active, message: "can't be blank" }
   validates :panel_name, presence: { scope: :active, message: "can't be blank" },
-                         uniqueness: { scope: %i[app_type_id layout_name], message: "can't be already present" }
+                         uniqueness: { scope: %i[app_type_id layout_name], message: "can't be already present" },
+                         if: :enabled?
   validates :panel_label, presence: { scope: :active, message: "can't be blank" }
 
   # @attr [String] layout_name - the role of the definition
@@ -67,7 +68,7 @@ class Admin::PageLayout < Admin::AdminBase
   #   initial_show: initially open up a panel
   #   find_with: the alternative id (crosswalk or external id) to search for the master record with for standalone pages
   configure :view_options,
-            with: %i[initial_show orientation add_item_label limit find_with hide_sublist_controls
+            with: %i[initial_show orientation add_item_label limit find_with hide_sublist_controls default_expander
                      hide_activity_logs_header close_others
                      show_for_single_master_only show_for_multi_master_only filter_items]
 

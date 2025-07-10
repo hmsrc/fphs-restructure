@@ -10,11 +10,12 @@ module Dynamic
 
       after_save :add_master_association, if: -> { @regenerate }
       after_save :add_user_access_controls, if: -> { @regenerate }
-      after_save :reset_active_model_configurations!
+      after_save :routes_load, if: -> { @regenerate }
+      after_save :reset_active_model_configurations!, if: -> { @regenerate || disabled }
       after_save :handle_config_triggers
 
       # This double reset is intentional
-      after_commit :reset_active_model_configurations!
+      after_commit :reset_active_model_configurations!, if: -> { @regenerate || disabled }
 
       after_commit :update_tracker_events, if: -> { @regenerate }
       after_commit :clean_schema, if: -> { @regenerate }
@@ -55,9 +56,7 @@ module Dynamic
 
       # Reload routes when a definition is regenerated
       def routes_reload
-        return unless @regenerate
-
-        Rails.application.reload_routes!
+        # Rails.application.reload_routes!
         Rails.application.routes_reloader.reload!
       end
 
@@ -162,6 +161,12 @@ module Dynamic
     end
 
     #
+    # Handle reloading of routes on regeneration
+    def routes_load
+      self.class.routes_load
+    end
+
+    #
     # Simple test to see if the controller associated with the implementation model is defined
     # @param [Module | Class] parent_class is the parent for the controller, to handle namespacing issues
     # @return [Boolean]
@@ -213,7 +218,8 @@ module Dynamic
         opt[:fail_without_exception_newable_result]
       end
     rescue NameError => e
-      logger.warn e
+      err = "Failed to get the class #{icn} in parent #{parent_class}: #{e}"
+      logger.warn err
       false
     end
 
@@ -502,14 +508,7 @@ module Dynamic
       res = []
 
       option_configs.map(&:references).compact.each do |act_refs|
-        act_refs.each do |ref_name, outer_config|
-          outer_config.each do |full_name, ref_config|
-            details = ref_config.slice(:to_table_name, :to_schema_name, :to_model_class_name, :to_class_type,
-                                       :from, :without_reference, :no_master_association)
-            details.merge! reference_name: ref_name, full_ref_name: full_name
-            res << details
-          end
-        end
+        res += referenced_table_def(act_refs)
       end
 
       res
@@ -518,6 +517,19 @@ module Dynamic
         Failed to use the extra log options. It is likely that the 'references:' attribute of one of
         activities is not formatted as expected, or a @library inclusion has an error. #{e}
       END_TEXT
+    end
+
+    def referenced_table_def(act_refs)
+      res = []
+      act_refs.each do |ref_name, outer_config|
+        outer_config.each do |full_name, ref_config|
+          details = ref_config.slice(:to_table_name, :to_schema_name, :to_model_class_name, :to_class_type,
+                                     :from, :without_reference, :no_master_association, :label)
+          details.merge! reference_name: ref_name, full_ref_name: full_name
+          res << details
+        end
+      end
+      res
     end
   end
 end

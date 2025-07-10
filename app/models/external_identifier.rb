@@ -73,13 +73,18 @@ class ExternalIdentifier < ActiveRecord::Base
       m = active_model_configurations
       return if m.empty?
 
-      Rails.application.routes.draw do
+      routes = Rails.application.routes
+      routes.disable_clear_and_finalize = true
+      routes.draw do
         resources :masters, only: %i[show index new create] do
           m.each do |pg|
             mn = pg
             pg_name = mn.base_route_segments
 
-            Rails.logger.info "Setting up routes for #{mn}"
+            next if routes.url_helpers.respond_to?("master_#{pg_name}_path")
+
+            Rails.logger.info "Setting up routes for external identifer: #{pg_name}"
+
             resources pg_name, except: [:destroy]
             get "#{pg_name}/:id/template_config", to: "#{pg_name}#template_config"
           end
@@ -90,6 +95,9 @@ class ExternalIdentifier < ActiveRecord::Base
     rescue FphsException => e
       logger.warn "Not loading activity log routes. There is possibly an error in an extra log type configuration. Table #{mn} has probably not been created yet. #{e.backtrace.join("\n")}"
     end
+  ensure
+    routes ||= Rails.application.routes
+    routes.disable_clear_and_finalize = false
   end
 
   def external_id_range
@@ -105,11 +113,14 @@ class ExternalIdentifier < ActiveRecord::Base
   # @param [String] rep_type - one of the possible external ID report types
   # @param [String] item_type - optional item_type to find
   # @return [Report | nil]
-  def usage_report(rep_type, item_type = ReportItemType)
+  def usage_report(rep_type, item_type = ReportItemType, as_alt_resource_name: nil)
     rep_name = usage_report_name(rep_type)
     short_name = Report.gen_short_name(rep_name)
     arn = Report.alt_resource_name(item_type, short_name)
-    Report.active.find_by_alt_resource_name(arn, true)
+    res = Report.active.find_by_alt_resource_name(arn, true)
+    return res unless as_alt_resource_name
+
+    res&.alt_resource_name
   end
 
   def usage_report_name(rep_type)

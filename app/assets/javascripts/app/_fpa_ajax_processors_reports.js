@@ -47,12 +47,20 @@ _fpa.postprocessors_reports = {
       _fpa.hide_modal(1);
       return;
     }
+    block.removeClass('sv-added-setup-links')
     _fpa.show_modal(html, null, true, 'embedded-dynamic-block', 1)
     window.setTimeout(function () {
       $(block).contents().appendTo(`#${target_block}`)
       $(block).html('');
       window.setTimeout(function () {
-        _fpa.form_utils.resize_labels($(`#${target_block}`), null, true)
+        const $target_block = $(`#${target_block}`);
+        _fpa.form_utils.resize_labels($target_block, null, true)
+
+        // Ensure that the viewer is set up with the user's capabilities to view and download
+        var sv_opt = { allow_actions: null };
+        sv_opt.allow_actions = _fpa.state.user_can;
+
+        _fpa.secure_view.setup_links($target_block, 'a.redcap-file-use-secure-view', sv_opt);
       }, 500);
     }, 500);
   },
@@ -75,7 +83,7 @@ _fpa.postprocessors_reports = {
 
       if (_fpa.templates['search-count-template']) {
         var h = _fpa.templates['search-count-template'](data);
-        block.find('.search_count_reports').html(h);
+        $('[data-report-count]').html(h);
       }
     }
 
@@ -270,7 +278,9 @@ _fpa.postprocessors_reports = {
         if ($edit_cell.length) return;
 
         const $newel = $this.clone();
-        $newel.appendTo($edit_row);
+
+        var $replace_cell = $edit_row.find(`td.report-el-edit-disabled-cell-${dct}`)
+        $replace_cell.replaceWith($newel);
 
         // If the field contains a canvas element, make sure it is set up
         const $canvas = $newel.find('canvas');

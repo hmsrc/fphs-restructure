@@ -4,7 +4,7 @@ class Admin::DynamicModelsController < AdminController
   helper_method :permitted_params, :objects_instance, :human_name
   before_action :set_defaults
   helper_method :view_folder
-  after_action :routes_reload, only: %i[update create]
+  # after_action :routes_reload, only: %i[update create]
 
   def update_config_from_table
     set_instance_from_id
@@ -14,7 +14,22 @@ class Admin::DynamicModelsController < AdminController
     edit
   end
 
+  def versions
+    set_instance_from_id
+    object_instance.current_admin = current_admin
+    @all_versions = object_instance.all_versions_query
+    render partial: 'admin/common_templates/def_versions'
+  end
+
   protected
+
+  def before_send_processor
+    'dynamic_models_admin_form'
+  end
+
+  def encode_options_fields
+    { options: :base64 }
+  end
 
   def routes_reload
     DynamicModel.routes_reload
@@ -61,11 +76,6 @@ class Admin::DynamicModelsController < AdminController
   # Override to specify attributes to initialize a definition with
   # @return [Hash]
   def init_new_with_attrs
-    {
-      options: <<~END_CONFIG
-        _configurations:
-          use_current_version: true
-      END_CONFIG
-    }
+    initial_attrs_config_for(:default_options_dynamic_model)
   end
 end

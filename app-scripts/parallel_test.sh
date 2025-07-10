@@ -9,12 +9,15 @@ unset RUBY_DEBUG_OPEN
 
 if [ ! "${USE_PG_HOST}" ] && [ "${NO_CLEAN_DB}" != 'true' ]; then
   echo "sudo is required to clean the database. Enter your password if prompted"
-  sudo whoami
+  if ! sudo whoami; then
+    echo "Failed to get sudo"
+    exit 101
+  fi
 fi
 
 # Ensure the tests run cleanly
 export DISABLE_SPRING=1
-spring stop
+bundle exec spring stop
 
 # First, run brakeman
 if [ "${NO_BRAKEMAN}" != 'true' ] && [ "${SKIP_BRAKEMAN}" != 'true' ]; then
@@ -47,10 +50,6 @@ fi
 # Run the rspec tests in parallel. Use the first arg to define the path if needed
 export PARALLEL_TEST_PROCESSORS=${PARALLEL_TEST_PROCESSORS:=$(nproc)}
 
-# Clean up the temporary nfs_store directories
-rm -rf /var/tmp/nfs_store_tmp*
-rm -rf /var/tmp/nfs_store_test*
-
 if [ -z "$@" ]; then
   specs='spec/models spec/controllers spec/features spec/r.*'
 else
@@ -65,6 +64,8 @@ echo "Requested specs: ${specs}"
 pwd
 echo "========================================================================"
 
+rm -f tmp/parallel_specs_failed.txt
+
 for spec in ${specs}; do
   echo "========================================================================"
   echo "==>>>> Running parallel specs for '${spec}'"
@@ -73,7 +74,11 @@ for spec in ${specs}; do
   echo "==>>>> Running parallel specs for '${spec}'" >> tmp/working_failing_specs.log
   echo "==>>>> $(date)" >> tmp/working_failing_specs.log
   echo "========================================================================" >> tmp/working_failing_specs.log
-  RAILS_ENV=test bundle exec rake parallel:spec["${spec}"] &
+  # Clean up the temporary nfs_store directories
+  rm -rf /var/tmp/nfs_store_tmp*
+  rm -rf /var/tmp/nfs_store_test*
+
+  RAILS_ENV=test bundle exec rake parallel:spec["${spec}"] || echo 'failed' > tmp/parallel_specs_failed.txt &
   while ! pgrep -f 'ruby bin/rspec' > /dev/null; do
     sleep 5
   done
@@ -102,3 +107,28 @@ mv tmp/working_failing_specs.log tmp/failing_specs.log
 
 echo "Started at  ${start_date}" >> tmp/failing_specs.log
 echo "Finished at $(date)" >> tmp/failing_specs.log
+
+if [ -f tmp/parallel_specs_failed.txt ]; then
+  echo "Parallel specs failed. Check tmp/failing_specs.log for details."
+  echo "Retesting failed specs"
+  old_ifs=$IFS
+  IFS=$'\n'
+  for line in $(grep -P '\e\[[0-9]+mrspec ' tmp/failing_specs.log) ; do 
+    [[ $line =~ rspec\ ([^\:]+) ]]; retest="${retest} $(echo ${BASH_REMATCH[1]})"
+  done 
+  IFS=$old_ifs
+  rspec $retest
+  res=$?
+  if [ $res != 0 ]; then
+    echo "Retest of failed specs did not pass."
+    exit $res
+  else
+    echo "Retest of failed specs passed."
+    exit 0
+  fi
+else
+  echo "All parallel specs passed."
+  exit 0
+fi
+
+

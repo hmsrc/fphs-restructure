@@ -8,6 +8,8 @@ module Redcap
     CacheExpiresIn = 60.seconds
     ExpectedKeys = %i[server_url api_key name current_admin].freeze
 
+    OverwriteBehaviorOptions = %w[normal overwrite].freeze
+
     attr_accessor :project_admin,
                   :records_request_options,
                   :metadata_request_options,
@@ -88,6 +90,30 @@ module Redcap
     end
 
     #
+    # Get the project arms results (for longitudinal projects)
+    # @return [Array{Hash}] hash with symbolized keys
+    def arms(request_options: nil)
+      request_options ||= metadata_request_options
+      request :arm, request_options: request_options
+    end
+
+    #
+    # Get the project events results (for longitudinal projects)
+    # @return [Array{Hash}] hash with symbolized keys
+    def events(request_options: nil)
+      request_options ||= metadata_request_options
+      request :event, request_options: request_options
+    end
+
+    #
+    # Get the project events results (for longitudinal projects)
+    # @return [Array{Hash}] hash with symbolized keys
+    def repeating_forms_events(request_options: nil)
+      request_options ||= metadata_request_options
+      request :repeating_forms_events, request_options: request_options
+    end
+
+    #
     # Get the data records for the project
     # @return [Array{Hash}] hash with symbolized keys
     def records(request_options: nil)
@@ -96,14 +122,74 @@ module Redcap
     end
 
     #
+    # Get survey link for an instrument and specific record
+    # @param [String] instrument - name of instrument to retrieve link for
+    # @param [Integer] record_id - record ID to retrieve link for
+    # @param [String] event - optional event name for longitudinal projects
+    # @return [Array{Hash}] hash with symbolized keys
+    def survey_link(instrument:, record_id:, event: nil)
+      request_options = {
+        instrument:,
+        record: record_id.to_s,
+        returnFormat: 'json'
+      }
+
+      request_options[:event] = event if event.present?
+      request :survey_link, request_options: request_options
+    end
+
+    #
+    # Get survey participants for all records in an instrument
+    # @param [String] instrument - name of instrument to retrieve link for
+    # @param [String] event - optional event name for longitudinal projects
+    # @return [Array{Hash}] hash with symbolized keys
+    def survey_participants(instrument:, event: nil)
+      request_options = {
+        instrument:,
+        event:,
+        returnFormat: 'json'
+      }
+      request :participant_list, request_options: request_options
+    end
+
+    #
+    # Get survey participants for all records in an instrument
+    # @param [String] instrument - name of instrument to retrieve link for
+    # @return [Array{Hash}] hash with symbolized keys
+    def import_records(data:, force_auto_number: true, overwrite_behavior: 'normal')
+      unless overwrite_behavior&.in?(OverwriteBehaviorOptions)
+        raise FphsException,
+              "Invalid import_records overwrite_behavior '#{overwrite_behavior}' - " \
+              "must be one of #{OverwriteBehaviorOptions}"
+      end
+
+      unless data.is_a?(Array) && data.first.is_a?(Hash)
+        raise FphsException, 'Invalid import_records data format - must be an array of hashes'
+      end
+
+      data = data.to_json
+      return_content = force_auto_number ? 'auto_ids' : 'ids'
+
+      request_options = {
+        data:,
+        forceAutoNumber: force_auto_number,
+        overwriteBehavior: overwrite_behavior,
+        returnContent: return_content,
+        returnFormat: 'json'
+      }
+      request :create, request_options: request_options
+    end
+
+    #
     # Get a file from a file field.
     # Don't record the file field retrievals in ClientRequest
     # since it will flood them with useless logs
     # @param [String | Integer] record_id
     # @param [String | Symbol] field_name
+    # @param [String] event - optional event name for longitudinal projects
     # @return [File] - temp file result
-    def file(record_id, field_name)
-      tempfile = redcap.file record_id, field_name
+    def file(record_id, field_name, event: nil)
+      tempfile = redcap.file(record_id, field_name, event:)
       FileUtils.chmod 0o660, tempfile
       tempfile
     end
@@ -147,6 +233,10 @@ module Redcap
       res
     end
 
+    def response_code
+      redcap.response_code
+    end
+
     private
 
     #
@@ -169,6 +259,11 @@ module Redcap
         project_admin.record_job_request action, result: { retrieved_from: retrieved_from, count: res&.length }
       end
       res
+    rescue StandardError => e
+      Rails.logger.error "Redcap::ApiClient request failed for action '#{action}' - #{e} - " \
+                         "code: #{e.response.code} - body: #{e.response.body} - " \
+                         "with request options: #{request_options}"
+      raise
     end
 
     def cache_key(action, request_options = nil)

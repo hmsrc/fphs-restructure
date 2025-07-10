@@ -110,6 +110,8 @@ RSpec.describe SaveTriggers::SaveTriggersBase, type: :model do
           field_options:
             select_who:
               blank_preset_value: 'a,b,c'
+            bad_field_name_test_preset_value:
+              blank_preset_value: 'should not break'
 
           save_trigger:
             on_update:

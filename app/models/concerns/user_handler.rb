@@ -5,7 +5,7 @@ module UserHandler
   include GeneralDataConcerns
 
   included do
-    attr_accessor :no_track
+    attr_accessor :no_track, :current_admin_sample
 
     scope :active, lambda {
       if attribute_names.include?('disabled')
@@ -99,8 +99,9 @@ module UserHandler
       r = { inverse_of: assoc_inverse }
       r[:foreign_key] = foreign_key_name if foreign_key_name && foreign_key_name != :master_id
       r[:primary_key] = primary_key_name if primary_key_name && primary_key_name != :id
-      r[:optional] = true if defined?(no_master_association) && no_master_association
-
+      if defined?(no_master_association) && no_master_association || (self < Dynamic::ExternalIdentifierBase)
+        r[:optional] = true
+      end
       r
     end
 
@@ -210,7 +211,7 @@ module UserHandler
   end
 
   def current_user
-    if self.class.no_master_association
+    if self.class.no_master_association || !respond_to?(:master)
       @current_user
     else
       master&.current_user
@@ -218,7 +219,7 @@ module UserHandler
   end
 
   def current_user=(cu)
-    if self.class.no_master_association
+    if self.class.no_master_association || !respond_to?(:master)
       @current_user = cu
     elsif master
       master.current_user = cu

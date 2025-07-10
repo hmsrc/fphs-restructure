@@ -16,7 +16,8 @@ module OptionConfigs
                              add_tracker
                              change_user_roles
                              pull_external_data
-                             set_item_flags].freeze
+                             set_item_flags
+                             redcap_request].freeze
 
       class_methods do
         #
@@ -113,7 +114,7 @@ module OptionConfigs
                           [nil]
                         end
 
-          raise FphsException, 'No iterator values were found for save trigger each' unless iter_values
+          raise FphsException, "No iterator values were found for save trigger each: #{iter_configs}" unless iter_values
 
           iter_values.each_with_index do |iter_value, iter_index|
             obj.save_trigger_results['iterator_index'] = iter_index

@@ -4,6 +4,11 @@ def put_now(msg)
   puts "#{Time.now} #{msg}"
 end
 
+def put_to_saved_log(msg)
+  msg = "#{Time.now} #{msg}\n"
+  File.write('tmp/test_saved.log', msg, mode: 'a')
+end
+
 # Provide a method to change app settings without a warning
 def change_setting(name, value)
   silence_warnings { Settings.const_set(name, value) }
@@ -238,7 +243,7 @@ RSpec.configure do |config|
 
   put_now 'Fixtures'
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
-  config.fixture_path = "#{::Rails.root}/spec/fixtures"
+  config.fixture_paths = ["#{::Rails.root}/spec/fixtures"]
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false

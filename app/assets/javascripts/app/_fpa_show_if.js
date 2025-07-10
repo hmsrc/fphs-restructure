@@ -11,6 +11,7 @@ _fpa.show_if.methods = {
 
     if (data.embedded_item) {
       data.embedded_item.current_user_roles = _fpa.state.current_user_roles;
+      data.embedded_item.current_mode = data.current_mode;
       _fpa.show_if.methods.show_items(block, data.embedded_item);
     }
 
@@ -32,6 +33,10 @@ _fpa.show_if.methods = {
         }
       }
     }
+
+    window.setTimeout(function () {
+      _fpa.form_utils.resize_labels(block, null, true);
+    })
 
     window.setTimeout(function () {
       _fpa.form_utils.setup_e_signature(block, true);
@@ -66,7 +71,8 @@ _fpa.show_if.methods = {
       '.list-group-item.result-notes-container' + show_field_class,
       '.list-group-item.edit-field-container' + show_edit_field_class,
       '.list-group-item.caption-before' + show_edit_field_class,
-      '.list-group-item.submit-action-container' + show_edit_field_class
+      '.list-group-item.submit-action-container' + show_edit_field_class,
+      '.list-group-item.dialog-before' + show_edit_field_class
       ];
       var sel = sels.join(', ');
       var els = block.find(sel);
@@ -136,6 +142,7 @@ _fpa.show_if.methods = {
         if (cond_def.hasOwnProperty(cond_field)) {
 
           var exp_value = cond_def[cond_field];
+          var orig_exp_value = exp_value;
 
           if (exp_value != null && typeof (exp_value) == 'object' && !Array.isArray(exp_value) && !exp_value.condition) {
             // If the condition definition is a hash and does not have a "condition" key, 
@@ -158,8 +165,13 @@ _fpa.show_if.methods = {
 
             // Expect field data
             var exp_field_value = data[cond_field];
+            var orig_field_value = exp_field_value;
             if (typeof exp_field_value == 'number') exp_field_value = exp_field_value.toString();
             if (typeof exp_field_value == 'undefined') exp_field_value = null;
+            if (exp_field_value === true || exp_field_value === false) {
+              if (exp_value === '1') exp_value = [true, 'yes', 1, '1'];
+              else if (exp_value === '0') exp_value = [false, 'no', 0, '0'];
+            }
 
             // to have value
 
@@ -169,19 +181,30 @@ _fpa.show_if.methods = {
 
             if (exp_value == null)
               exp_value = [exp_value];
-            else if (typeof exp_value == 'string')
+            else if (typeof exp_value == 'string') {
+              if (exp_value.indexOf('{{') >= 0)
+                exp_value = _fpa.substitution.substitute(exp_value, data)
               exp_value = [exp_value];
+            }
             else if (typeof exp_value == 'boolean') {
-              exp_value = [exp_value, (exp_value ? 'yes' : 'no')];
+              // Allow boolean fields to match on true/false, yes/no, '1'/'0' values
+              exp_value = [exp_value, (exp_value ? 'yes' : 'no'), (exp_value ? '1' : '0')];
             }
             else if (typeof exp_value == 'number') {
+              var orig_exp_value = exp_value;
               exp_value = [exp_value.toString()];
             }
             else if (typeof exp_value == 'object') {
               for (var i = 0; i < exp_value.length; i++) {
+                // Allow boolean fields to match on true/false, yes/no, '1'/'0' values
                 if (exp_value[i] === true && exp_value.indexOf('yes') == -1) exp_value.push('yes');
                 if (exp_value[i] === false && exp_value.indexOf('no') == -1) exp_value.push('no');
+                if (exp_value[i] === true && exp_value.indexOf('1') == -1) exp_value.push('1');
+                if (exp_value[i] === false && exp_value.indexOf('0') == -1) exp_value.push('0');
                 if (typeof exp_value[i] == 'number') exp_value[i] = exp_value[i].toString();
+                if (typeof exp_value[i] == 'string' && exp_value[i].indexOf('{{') >= 0) {
+                  exp_value[i] = _fpa.substitution.substitute(exp_value, data)
+                }
               }
             }
 
@@ -210,9 +233,51 @@ _fpa.show_if.methods = {
                 case '<>':
                   matches = (exp_field_value != exp_value);
                   break;
+                case 'in':
+                  matches = exp_value.indexOf(exp_field_value) >= 0;
+                case '!in':
+                  matches = exp_value.indexOf(exp_field_value) < 0;
+                case 'includes':
+                  matches = exp_field_value.indexOf(exp_value) >= 0;
+                case '!includes':
+                  matches = exp_field_value.indexOf(exp_value) < 0;
                 default:
                   console.log(`The specified 'condition' '${explicit_cond}' is not valid.`)
                   break;
+              }
+
+              if (isNaN(parseInt(orig_exp_value))) {
+                var exp = orig_exp_value;
+                switch (explicit_cond) {
+
+                  case '>=':
+                    matches = orig_field_value >= exp;
+                    break;
+                  case '&gt;=':
+                    matches = orig_field_value >= exp;
+                    break;
+                  case '<=':
+                    matches = orig_field_value <= exp;
+                    break;
+                  case '&lt;=':
+                    matches = orig_field_value <= exp;
+                    break;
+                  case '>':
+                    matches = orig_field_value > exp;
+                    break;
+                  case '&gt;':
+                    matches = orig_field_value > exp;
+                    break;
+                  case '<':
+                    matches = orig_field_value < exp;
+                    break;
+                  case '&lt;':
+                    matches = orig_field_value < exp;
+                    break;
+                  default:
+                    console.log(`The specified for integer #is condition '${explicit_cond}' is not valid.`)
+                    break;
+                }
               }
             }
             else if (exp_field_value && Array.isArray(exp_field_value)) {

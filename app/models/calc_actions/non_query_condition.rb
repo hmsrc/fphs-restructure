@@ -13,7 +13,7 @@ module CalcActions
 
     SimpleConditions = ['==', '=', '<', '>', '<>', '!=', '<=', '>=', '~*', '~', 'in?', 'include?'].freeze
 
-    ValidCalculateFunctions = %i[sum min max].freeze
+    ValidCalculateFunctions = %i[sum min max count_not_null mean].freeze
 
     attr_accessor :table, :field_name, :condition_def, :current_instance, :return_failures,
                   :conditions, :condition_config
@@ -316,7 +316,7 @@ module CalcActions
                              when :reference
                                current_instance.reference
                              when :embedded_item
-                               current_instance.embedded_item
+                               current_instance.embedded_item(embed_action_type: :viewing)
                              end
     end
 

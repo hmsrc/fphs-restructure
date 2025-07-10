@@ -37,6 +37,14 @@ RSpec.describe Messaging::MessageNotification, type: :model do
     t = '<html><head><style>body {font-family: sans-serif;}</style></head><body><h1>Test Email</h1><div>{{main_content}}</div></body></html>'
     @layout = Admin::MessageTemplate.create! name: 'test email layout', message_type: :email, template_type: :layout, template: t, current_admin: @admin
 
+    t = <<~END_TEXT
+      Test SMS
+
+      {{main_content}}
+    END_TEXT
+
+    @layout_sms = Admin::MessageTemplate.create! name: 'test sms layout', message_type: :sms, template_type: :layout, template: t, current_admin: @admin
+
     t = '<p>This is some content.</p><p>Related to master_id {{master_id}}. This is a name: {{select_who}}.</p>'
     @content = Admin::MessageTemplate.create! name: 'test email content', message_type: :email, template_type: :content, template: t, current_admin: @admin
 
@@ -52,11 +60,11 @@ RSpec.describe Messaging::MessageNotification, type: :model do
 
     expect do
       Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                             item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                             item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
     end.to raise_error ActiveRecord::RecordInvalid # for no content template
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_name: content.name, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                                content_template_name: content.name, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
 
     mn.generate
 
@@ -76,11 +84,11 @@ RSpec.describe Messaging::MessageNotification, type: :model do
 
     expect do
       Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                             item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                             item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
     end.to raise_error ActiveRecord::RecordInvalid # for no content template
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
 
     mn.generate
 
@@ -100,7 +108,7 @@ RSpec.describe Messaging::MessageNotification, type: :model do
     layout = @layout
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
 
     mn.handle_notification_now logger: Delayed::Worker.logger,
                                for_item: @activity_log,
@@ -200,13 +208,13 @@ RSpec.describe Messaging::MessageNotification, type: :model do
     layout = @layout
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email,
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email,
                                                 from_user_email: { address: 'test@testemail.test', display_name: 'Test Email' }
 
     expect(mn.from_user_email).to eq 'Test Email <test@testemail.test>'
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email,
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email,
                                                 from_user_email: 'test@testemail2.test'
 
     expect(mn.from_user_email).to eq 'test@testemail2.test'
@@ -219,12 +227,39 @@ RSpec.describe Messaging::MessageNotification, type: :model do
     layout = @layout
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email,
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email,
                                                 from_user_email: { address: 'test@testemail.test', display_name: 'Test Email' },
                                                 extra_substitutions: { data1: 'es-data-one', data2: 'es-data-two' }
     mn.generate
 
     expect(mn.generated_text).to eq "<html><head><style>body {font-family: sans-serif;}</style></head><body><h1>Test Email</h1><div><p>This is some new content in a text template.</p><p>Related to another master_id #{master.id}. This is a name: #{@activity_log.select_who}. Footer has es-data-one</p></div></body></html>"
+  end
+
+  it 'uses avoids producing HTML for SMS messages' do
+    t = <<~END_TEXT
+      This is some new content in a text template.
+
+      Related to another master_id {{master_id}}. This is a name: {{select_who}}.
+    END_TEXT
+
+    master = @activity_log.master
+    layout = @layout_sms
+
+    mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_user_ids: [@rec_user], layout_template_name: layout.name,
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :sms
+
+    mn.generate
+
+    exp_text = <<~END_TEXT
+      Test SMS
+
+      This is some new content in a text template.
+
+      Related to another master_id #{master.id}. This is a name: #{@activity_log.select_who}.
+
+    END_TEXT
+
+    expect(mn.generated_text).to eq exp_text
   end
 
   it 'sets up a notification to be sent with an array of JSON representing recipient data' do
@@ -257,7 +292,7 @@ RSpec.describe Messaging::MessageNotification, type: :model do
     expected_text = "<html><head><style>body {font-family: sans-serif;}</style></head><body><h1>Test Email</h1><div><p>This is some new content in a text template.</p><p>Related to another master_id #{master.id}. This is a data: #{data}.</p></div></body></html>"
 
     mn = Messaging::MessageNotification.create! app_type: @user.app_type, user: @user, recipient_data: rd, layout_template_name: layout.name,
-                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master: master, message_type: :email
+                                                content_template_text: t, item_type: @activity_log.class.name, item_id: @activity_log.id, master:, message_type: :email
 
     mn.handle_notification_now logger: Delayed::Worker.logger,
                                for_item: @activity_log,

@@ -11,12 +11,13 @@ gem 'aws-sdk-sns', '~> 1'
 gem 'bootsnap'
 gem 'country_select', '~> 8.0'
 gem 'crass', '~> 1.0.4'
+gem 'csv'
 gem 'daemons'
 gem 'dalli'
 gem 'delayed_job'
 gem 'delayed_job_active_record'
 gem 'delayed_job_recurring'
-gem 'devise', '>= 4.6.1'
+gem 'devise', '>= 4.9'
 gem 'devise-two-factor'
 gem 'dicom'
 gem 'jquery-fileupload-rails', '0.4.7'
@@ -36,22 +37,25 @@ gem 'pg', '~> 1.4', '>= 1.4.3'
 # For this to work, Procfile must call puma with `bundle exec`
 gem 'puma', '~> 6.0'
 
-gem 'rails', '~> 6.1', '>= 6.1.7'
+gem 'rails', '~> 7.0', '<7.3'
 
 gem 'redcap', git: 'https://github.com/consected/redcap.git'
 # for development, replace with with:
 # gem 'redcap', path: '../redcap'
+
 gem 'rqrcode'
 gem 'rubyzip', '~> 2.3.0'
 gem 'simple_token_authentication', '~> 1.0', git: 'https://github.com/philayres/simple_token_authentication.git'
+gem 'stringio', '>= 3.1.2'
 gem 'strong_password', '~> 0.0.5'
+gem 'syslog'
 gem 'syslog-logger'
 
 group :development do
   gem 'flog', '~> 4.6', '>= 4.6.4'
   gem 'listen', '~> 3.7', '>= 3.7.1'
-  gem 'memory_profiler'
-  gem 'rack-mini-profiler'
+  # gem 'memory_profiler'
+  # gem 'rack-mini-profiler'
   gem 'solargraph-rails', '~> 0.2.0'
   gem 'web-console'
 end
@@ -65,6 +69,7 @@ group :development, :test do
   gem 'parallel_tests' # , '3.8.1'
   gem 'rspec-rails'
   # gem 'ruby-debug-ide'
+  gem 'sassc-embedded'
   gem 'spring'
   # gem 'spring-commands-parallel-tests'
 end
@@ -73,7 +78,7 @@ group :test do
   gem 'capybara'
   gem 'database_cleaner'
   gem 'rails-controller-testing'
-  gem 'selenium-webdriver', '4.6.1'
+  gem 'selenium-webdriver', '4.28.0'
   gem 'shoulda-matchers', '~> 5.1'
   gem 'simplecov'
   gem 'simplecov-console'
@@ -83,6 +88,8 @@ end
 
 group :development, :assets do
   gem 'execjs'
-  gem 'sass-rails', '~> 5.1'
   gem 'terser'
 end
+
+gem 'sprockets', '~> 4.2'
+gem 'sprockets-rails', '~> 3.5'

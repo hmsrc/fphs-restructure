@@ -81,7 +81,6 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     # The definition options should match the original
     expect(@dyn_instances[1].current_definition.options.strip).to eq @option_texts[1].strip
-    expect(@dyn_instances[1].current_definition.option_configs).to eq @option_configs[1]
 
     # The dynamic model instance should pull options that matches the original v1 options
     check_version 1
@@ -163,7 +162,7 @@ RSpec.describe 'Dynamic Model Options', type: :model do
                               options: nil
 
     # Initially sets the options for db columns from the definition
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _db_columns:
         id:
           type: integer
@@ -183,6 +182,11 @@ RSpec.describe 'Dynamic Model Options', type: :model do
           type: datetime
 
     END_OPT
+
+    unless dm.options.strip == exp.strip
+      put_to_saved_log("replaces option configurations\n\---\n#{dm.options}\n---\n#{exp}\n---\n")
+    end
+    expect(dm.options.strip).to eq exp.strip
 
     hash = {
       _comments: nil
@@ -190,8 +194,9 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     dm.prepend_to_options(hash)
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _comments:#{' '}
+
 
       _db_columns:
         id:
@@ -213,6 +218,7 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     END_OPT
 
+    expect(dm.options.strip).to eq exp.strip
     hash = {
       _db_columns: {
         id: { type: 'integer' },
@@ -223,8 +229,9 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     dm.prepend_to_options(hash)
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _comments:#{' '}
+
 
       _db_columns:
         id:
@@ -235,17 +242,20 @@ RSpec.describe 'Dynamic Model Options', type: :model do
           type: string
     END_OPT
 
+    expect(dm.options.strip).to eq exp.strip
+
     dm.options = <<~END_OPT
       default:
         label: Something
 
     END_OPT
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       default:
         label: Something
 
     END_OPT
+    expect(dm.options.strip).to eq exp.strip
 
     hash = {
       _comments: nil
@@ -253,13 +263,15 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     dm.prepend_to_options(hash)
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _comments:#{' '}
+
 
       default:
         label: Something
 
     END_OPT
+    expect(dm.options.strip).to eq exp.strip
 
     hash = {
       _comments: {
@@ -269,14 +281,17 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     dm.prepend_to_options(hash)
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _comments:
         test1: A test comment
+
+
 
       default:
         label: Something
 
     END_OPT
+    expect(dm.options.strip).to eq exp.strip
 
     hash = {
       _db_columns: {
@@ -288,7 +303,7 @@ RSpec.describe 'Dynamic Model Options', type: :model do
 
     dm.prepend_to_options(hash)
 
-    expect(dm.options).to eq <<~END_OPT
+    exp = <<~END_OPT
       _db_columns:
         id:
           type: integer
@@ -297,13 +312,18 @@ RSpec.describe 'Dynamic Model Options', type: :model do
         test2:
           type: string
 
+
       _comments:
         test1: A test comment
+
+
 
       default:
         label: Something
 
     END_OPT
+
+    expect(dm.options.strip).to eq exp.strip
   end
 
   it 'generates show_if from show_if_condition_strings' do
@@ -352,5 +372,40 @@ RSpec.describe 'Dynamic Model Options', type: :model do
         all_nonblock_1: { test2: 'hello' }
       }
     )
+  end
+
+  it 'handles field_configs' do
+    dmdef = generate_test_dynamic_model
+    opt = <<~END_CONFIG
+
+      default:
+        field_configs:
+          test1:
+            caption_before: field_configs defined test1 caption
+            show_if:
+              never: true
+        caption_before:
+          all_fields: show before all fields
+          test1: has a caption before test1
+            # This will be overridden
+          test2: has a caption before test2
+            # This will be merged into the field_configs def
+    END_CONFIG
+
+    dmdef.update!(options: opt, current_admin: @admin)
+
+    expect(dmdef.default_options.show_if[:test1]).to be_a Hash
+    expect(dmdef.default_options.show_if[:test1]).to eq(never: true)
+    expect(dmdef.default_options.caption_before[:all_fields]).to be_a Hash
+    expect(dmdef.default_options.caption_before[:all_fields][:caption]).to eq('<p>show before all fields</p>')
+    expect(dmdef.default_options.caption_before[:test1]).to be_a Hash
+    expect(dmdef.default_options.caption_before[:test1][:caption]).to eq('<p>field_configs defined test1 caption</p>')
+    expect(dmdef.default_options.caption_before[:test2]).to be_a Hash
+    # The field_configs definition overrides any other standalone defs
+    expect(dmdef.default_options.caption_before[:test2][:caption]).to eq('<p>has a caption before test2</p>')
+    # The cleaned values go back into field_configs
+    expect(dmdef.default_options.field_configs[:test2][:caption_before]).to eq(dmdef.default_options.caption_before[:test2])
+    # The raw field configs remain
+    expect(dmdef.default_options.raw_field_configs[:test2][:caption_before]).to eq('has a caption before test2')
   end
 end

@@ -36,10 +36,21 @@ _fpa_admin.all.admin_edit_form = class {
 
 
   // Do some initial setup
-  admin_edit_form_setup() {
+  admin_edit_form_setup(no_scroll) {
     var block = this.block
-
-    _fpa.utils.scrollTo(block, 200, -50);
+    // Ensure we only scroll back to the form, not the top of the page
+    if (!no_scroll) {
+      $('.postprocessed-scroll-here').removeClass('postprocessed-scroll-here').addClass('prevent-scroll');
+      _fpa.utils.scrollTo(block, 200, -50);
+    }
+    // If the form is marked as having been saved, attempt to run the sample embedded report
+    var si = block.find('.saved-item');
+    if (si.length) {
+      si.removeClass('saved-item');
+      window.setTimeout(function () {
+        $('#report-form-submit-btn').click();
+      }, 150)
+    }
     $('tr.new-record').before($('tr.admin-list-item').first());
     $('.saved-row').removeClass('saved-row');
     $('.edit-as-custom-setup').removeClass('edit-as-custom-setup');
@@ -49,9 +60,12 @@ _fpa_admin.all.admin_edit_form = class {
       block.html('');
     });
 
+    var blocks = $('.shrinkable-block, .config-error-block')
+    _fpa.utils.make_readable_notes_expandable(blocks, 100);
+
     // Force some initial configuration of textarea blocks
     window.setTimeout(function () {
-      var el = $('.admin-edit-form textarea');
+      var el = $('.admin-edit-form textarea, .admin-edit-form .auto-click-link');
       el.click();
     }, 300);
 

@@ -2,7 +2,7 @@
 
 class Admin::ActivityLogsController < AdminController
   before_action :set_defaults
-  after_action :routes_reload, only: %i[update create]
+  # after_action :routes_reload, only: %i[update create]
 
   protected
 
@@ -45,11 +45,6 @@ class Admin::ActivityLogsController < AdminController
   # Override to specify attributes to initialize a definition with
   # @return [Hash]
   def init_new_with_attrs
-    {
-      extra_log_types: <<~END_CONFIG
-        _configurations:
-          use_current_version: true
-      END_CONFIG
-    }
+    initial_attrs_config_for(:default_options_activity_log)
   end
 end

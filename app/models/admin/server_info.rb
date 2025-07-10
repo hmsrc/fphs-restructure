@@ -13,6 +13,10 @@ class Admin::ServerInfo
     configuration_successful
   ].freeze
 
+  # Attempt to get the filename of the log from logger. If not, attempt to force it.
+  LogFilename = Rails.logger.instance_variable_get('@logdev')&.filename&.to_s ||
+                Rails.root.join('log', "#{Rails.env}.log").to_s
+
   attr_accessor :current_admin
 
   #
@@ -50,7 +54,7 @@ class Admin::ServerInfo
   # Get a hash of database settings based on the current database config
   # @return [Hash]
   def db_settings
-    cx = ActiveRecord::Base.connection_config.dup
+    cx = ActiveRecord::Base.connection_db_config.configuration_hash.dup
     cx[:password] = '(hidden)'
     {
       current_database: Admin::MigrationGenerator.current_database,
@@ -93,11 +97,11 @@ class Admin::ServerInfo
   end
 
   def rails_log(regex, max_count: 2000, tail_length: 10_000, trailing_context: 20)
-    logfilename = Rails.logger.instance_variable_get('@logdev')&.filename || 'none'
+    logfilename = LogFilename
     trailing_context = trailing_context.to_i
 
     cmds = [
-      ['tail', '-n', tail_length.to_s, logfilename],
+      ['tail', '-n', tail_length.to_s, logfilename.to_s],
       ['tac'],
       ['grep', '-m', max_count.to_s, "--before-context=#{trailing_context}", '-E', regex],
       ['tac']

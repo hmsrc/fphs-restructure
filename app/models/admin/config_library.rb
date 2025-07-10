@@ -17,7 +17,7 @@ class Admin::ConfigLibrary < Admin::AdminBase
   after_commit :refresh_dependencies
 
   def self.content_named(category, name, format: nil)
-    l = where(name: name, category: category, format: format).first
+    l = where(name:, category:, format:).first
 
     unless l
       raise FphsException, "No config library in category #{category} named #{name} with format #{format || '(nil)'}"
@@ -47,7 +47,7 @@ class Admin::ConfigLibrary < Admin::AdminBase
     while res
       category = res[1].strip
       name = res[2].strip
-      lib = Admin::ConfigLibrary.where(category: category, name: name, format: format).first
+      lib = Admin::ConfigLibrary.where(category:, name:, format:).first
       all_libs << lib
       if direct_sub
         text.gsub!(res[0], lib.options || '')
@@ -75,7 +75,7 @@ class Admin::ConfigLibrary < Admin::AdminBase
   private
 
   def unique_library
-    l = self.class.active.where(name: name, category: category, format: self.format).first
+    l = self.class.active.where(name:, category:, format: self.format).first
     return unless l && l.id != id
 
     errors.add :name, "and format must be unique. Name: #{name}, category: #{category}, format: #{self.format}"
@@ -107,6 +107,13 @@ class Admin::ConfigLibrary < Admin::AdminBase
   def valid_options
     return if options.blank?
 
-    YAML.safe_load(options, aliases: true)
+    # Allow the libraries a library depends on to be specified
+    # This doesn't load them, but does allow validations to pass
+    # when saving or importing config libraries that use
+    # yaml anchor definitions from other libraries, which would
+    # otherwise be specified in the dynamic definition that is using the library
+    new_options = OptionConfigs::ExtraOptions.include_libraries(options)
+
+    YAML.safe_load(new_options, aliases: true)
   end
 end

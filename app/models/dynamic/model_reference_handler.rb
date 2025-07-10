@@ -19,10 +19,11 @@ module Dynamic
       # Do this both before and after create, to handle the different permutations
       before_create :link_embedded_item
       after_create :link_embedded_item
+      after_create :finalize_prepped_embedded_item
 
       after_commit :reset_model_references
 
-      attr_accessor :action_name
+      attr_accessor :action_name, :prepped_embedded_item
 
       # a list of embedded items (full data for each model reference)
       # is available, if the #populate_embedded_items method is called
@@ -156,7 +157,15 @@ module Dynamic
       null_value = vo[:null_value]
 
       top_item = res.delete_at(0) if keep_top
+      
+      begin
       res = res.sort_by { |a| a[smr] || null_value }
+      rescue StandardError => e
+        msg = "sort_references failed to sort - a null_value configuration is probably required: #{e}"
+        Rails.logger.warn msg
+        raise FphsException, msg
+      end
+
       res = res.reverse if sdir&.in?(['desc', 'reverse'])
       res.insert(0, top_item) if top_item
 
@@ -254,7 +263,7 @@ module Dynamic
     #
     # @param [Boolean] only_creatables - will return only the creatable model references if true
     # @return [Hash] <description>
-    def creatable_model_references(only_creatables: false, force_reload: nil)
+    def creatable_model_references(only_creatables: false, force_reload: nil, current_admin_sample: nil)
       clear_creatable_model_reference_memo if force_reload
 
       memoize_creatable_model_references(only_creatables) do
@@ -284,7 +293,7 @@ module Dynamic
                 next
               end
 
-              user_can_create = target_object_creatable?(ref_type, ref_config)
+              user_can_create = current_admin_sample || target_object_creatable?(ref_type, ref_config)
               res = { ref_type:, many: creatable_add_config, ref_config: } if user_can_create
             end
 
@@ -308,19 +317,17 @@ module Dynamic
     def target_object_creatable?(ref_type, ref_config)
       mrc = class_for_reference_type(ref_type)
 
+      attrs = {}
       if mrc&.class_parent_name == 'ActivityLog'
-
         elt = ref_config[:add_with] && ref_config[:add_with][:extra_log_type]
-        ref_obj = mrc.new(extra_log_type: elt, master:)
+        attrs = { extra_log_type: elt, master: }
+      elsif mrc.no_master_association
+        attrs[:current_user] = master_user
       else
-        attrs = {}
-        if mrc.no_master_association
-          attrs[:current_user] = master_user
-        else
-          attrs[:master] = master
-        end
-        ref_obj = mrc.new attrs
+        attrs[:master] = master
       end
+      attrs[:skip_presets] = true
+      ref_obj = mrc.new attrs
 
       ref_obj&.allows_current_user_access_to?(:create)
     end
@@ -470,7 +477,18 @@ module Dynamic
 
       optional_params.merge!(tot)
 
-      cmrdef[:ref_type].ns_camelize.constantize.new optional_params
+      new_c = cmrdef[:ref_type].ns_camelize.constantize
+
+      # If there is a master for the current item, and the new ref item will accept a master
+      # and no master is already set through the filters, then add it.
+      # This ensures that preset values and anything else that relies on associations with the master
+      # can operate correctly.
+      if respond_to?(:master) && new_c.instance_methods.include?(:master)
+        m_set = optional_params[:master] || optional_params[:master_id]
+        optional_params[:master] = master unless m_set
+      end
+
+      new_c.new optional_params
     end
 
     #
@@ -501,7 +519,7 @@ module Dynamic
     # Return an "embedded item", which is a standard model that appears embedded directly
     # within a parent activity log's form. This ties in tightly with the handling of this
     # within an EmbeddedItemHandler, which enables forms to submit data cleanly to
-    # and embedded item, without having to manually traverse through the model reference.
+    # an embedded item, without having to manually traverse through the model reference.
     # Also, JSON data returned for an activity log will include an *embedded_item* method response
     # so that the embedded item data can be accessed directly within an activity log's data.
     # There are rules that decide which referenced item is the embedded item, dependent on the
@@ -515,11 +533,15 @@ module Dynamic
     # is likely due to the UI, but for now retain it here.
     #
     # @return [UserBase]
-    def embedded_item
+    def embedded_item(embed_action_type: nil, only_creatables: true, force_reload: nil, current_admin_sample: nil)
+      embed_action_type ||= self.embed_action_type
+
+      clear_embedded_item_memo if force_reload
+
       memoize_embedded_item do
         res = nil
-        mrs = model_references
-        cmrs = creatable_model_references only_creatables: true
+        mrs = model_references(force_reload:)
+        cmrs = creatable_model_references(only_creatables:, force_reload:, current_admin_sample:)
 
         if never_embed_item || embed_action_type == :creating && never_embed_creatable_item
           # Do nothing - we have been told to never embed
@@ -527,8 +549,8 @@ module Dynamic
           # The current action is to display a new form or to create an item from a submitted form.
           # If always_embed_creatable_reference: true has been specified, use this,
           # unless the embeddable item is an activity log or is configured to not be viewable as embedded.
-          res = build_model_reference([always_embed_creatable.to_sym,
-                                       always_embed_creatable_model_reference(cmrs)])
+          res = build_model_reference([always_embed_creatable.to_sym, always_embed_creatable_model_reference(cmrs)],
+                                      optional_params: { current_admin_sample: })
           res = nil if creatable_model_not_embeddable?(cmrs, res)
         elsif (res = always_embed_item(mrs))
           # Do nothing, we've found an embedded item that matches the configured type and set it in the condition above
@@ -537,7 +559,7 @@ module Dynamic
           # and exactly one item is creatable.
           # Build this creatable item, unless the target item is an activity log or is configured not to
           # be viewable as embedded.
-          res = build_model_reference(cmrs.first)
+          res = build_model_reference(cmrs.first, optional_params: { current_admin_sample: })
           res = nil if creatable_model_not_embeddable?(cmrs, res)
         elsif embed_action_type == :creating && cmrs.length > 1
           # If more than one item is creatable, don't use it
@@ -545,7 +567,7 @@ module Dynamic
         elsif embed_action_type == :creating && cmrs.empty? && mrs.length == 1
           # Nothing is creatable, but one reference item has been created. Use the existing one.
           res = mrs.first.to_record
-        elsif (embed_action_type == :editing || embed_action_type == :viewing) && mrs.empty?
+        elsif %i[editing viewing].include?(embed_action_type) && mrs.empty?
           # If nothing has been embedded, there is nothing to show
           res = nil
         elsif embed_action_type == :editing && mrs.length == 1
@@ -572,8 +594,7 @@ module Dynamic
     # @param [true|false] force_not_valid
     # @return [UserBase] embedded item that was created
     def create_embedded_item(attrs, force_create: nil, force_not_valid: nil)
-      self.action_name = 'create'
-      ei = embedded_item
+      ei = embedded_item(embed_action_type: :creating)
       return unless ei
 
       ei.ignore_configurable_valid_if = force_not_valid
@@ -585,8 +606,56 @@ module Dynamic
 
       ei.update!(attrs)
       ModelReference.create_with self, ei unless direct_embed?
-      self.action_name = 'index'
       ei
+    end
+
+    #
+    # An embedded item may need its attributes set before the parent save
+    # method is called
+    def prep_embedded_item(attrs, force_create: nil, force_not_valid: nil)
+      @prep_embedded_item = {
+        attrs:,
+        force_create:,
+        force_not_valid:
+      }
+    end
+
+    #
+    # Apply the details added to prep the embedded item
+    def apply_prepped_embedded_item(use_embedded_item = nil)
+      return unless @prep_embedded_item
+
+      attrs = @prep_embedded_item[:attrs]
+      force_create = @prep_embedded_item[:force_create]
+      force_not_valid = @prep_embedded_item[:force_not_valid]
+
+      self.action_name = 'create'
+      ei = use_embedded_item || embedded_item(embed_action_type: :creating)
+      return unless ei
+
+      ei.ignore_configurable_valid_if = force_not_valid
+      ei.send(:force_write_user)
+
+      ei.force_save! if force_create
+
+      if direct_embed?
+        ei.assign_attributes(attrs)
+      else
+        ei.update(attrs)
+      end
+      self.action_name = 'index'
+
+      @prepped_embedded_item = ei
+    end
+
+    #
+    # After creating, a prepped embedded item may need its model reference created
+    # unless it is a directly embedded item
+    def finalize_prepped_embedded_item
+      return if !@prepped_embedded_item || direct_embed?
+
+      prepped_embedded_item.save!
+      ModelReference.create_with self, @prepped_embedded_item
     end
 
     #
@@ -815,7 +884,10 @@ module Dynamic
     # the target embedded item, depending on the configuration. We can only do this when
     # either record has been persisted with an id.
     def link_embedded_item
-      link_new_embedded_item(embedded_item) if respond_to?(:direct_embed?) && direct_embed?
+      ei = embedded_item(embed_action_type: :creating)
+      apply_prepped_embedded_item ei
+
+      link_new_embedded_item(ei) if direct_embed?
     end
 
     #
@@ -853,15 +925,16 @@ module Dynamic
         return
       end
 
-      # Make sure the new embedded item is saved to ensure it is created
-      new_embedded_item.save!
-
       target_fk = dec[:target_fk]
-      # Return if the configuration says there is not a foreign key field in the new embedded item
-      return unless target_fk
+      unless target_fk
+        # Make sure the new embedded item is saved to ensure it is created
+        new_embedded_item.save!
+        # Return if the configuration says there is not a foreign key field in the new embedded item
+        return
+      end
 
       fk_val = new_embedded_item.attributes[target_fk]
-      # Exit if this isntance does not have a valid id or if the foreign
+      # Exit if this instance does not have a valid id or if the foreign
       # key field in the new embedded item is already set
       return if (!id || id < 0) || (fk_val && fk_val >= 0)
 

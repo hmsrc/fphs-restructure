@@ -11,13 +11,14 @@ module OptionConfigs
     ValidValidIfTriggers = %i[on_create on_save on_update].freeze
     ValidSaveTriggerTriggers = %i[before_save on_create on_save on_update on_upload on_disable].freeze
     LibraryMatchRegex = /# @library\s+([^\s]+)\s+([^\s]+)\s*$/
+    ValidFieldConfigs = %i[db_configs field_options labels caption_before dialog_before show_if].freeze
 
     def self.base_key_attributes
       %i[
         name label config_obj caption_before show_if resource_name resource_item_name save_action view_options
         field_options dialog_before creatable_if editable_if showable_if add_reference_if valid_if
         filestore labels fields button_label orig_config db_configs save_trigger embed references
-        show_if_condition_strings batch_trigger config_trigger
+        show_if_condition_strings batch_trigger config_trigger preset_fields field_configs raw_field_configs
       ]
     end
 
@@ -59,6 +60,8 @@ module OptionConfigs
 
       self.resource_name = "#{config_obj.full_implementation_class_name.ns_underscore}__#{self.name}"
       self.resource_item_name = resource_name
+      clean_fields_def
+      clean_field_configs
 
       clean_label_def
       clean_caption_before_def
@@ -71,13 +74,18 @@ module OptionConfigs
       clean_access_if_def
       clean_valid_if_def
       clean_filestore_def
-      clean_fields_def
       clean_field_options_def
       clean_embed_def
       clean_references_def
       clean_save_triggers
       clean_batch_triggers
       clean_config_triggers
+      clean_preset_fields
+
+      # Add the cleaned values back into field_configs - save a raw version for use elsewhere
+      # This needs to be "deep cloned", to avoid a simple clone just copying references
+      self.raw_field_configs = Marshal.load(Marshal.dump(field_configs))
+      add_field_configs_from_standalone_defs
     end
 
     # Defintion label
@@ -113,6 +121,24 @@ module OptionConfigs
     def clean_dialog_before_def
       self.dialog_before ||= {}
       self.dialog_before = self.dialog_before.symbolize_keys
+
+      dialog_before.transform_values! { |v| v.is_a?(String) ? { name: v } : v }
+      dialog_before.each do |k, v|
+        unless v.is_a? Hash
+          failed_config :dialog_before,
+                        "dialog_before must be a Hash { name: '<template name>' } or String: #{k}",
+                        level: :error
+          next
+        end
+
+        name = v[:name]
+        mt = Admin::MessageTemplate.active.find_by(name:)
+        next if mt
+
+        failed_config :dialog_before,
+                      "dialog_before specifies a named message template that doesn't exist: #{name}",
+                      level: :warn
+      end
     end
 
     # Field labels definitions
@@ -167,6 +193,10 @@ module OptionConfigs
       @config_obj.db_columns ||= self.db_configs = self.db_configs.symbolize_keys if @config_obj.respond_to? :db_columns
     end
 
+    #
+    # Clean the fields definition. This intentionally does not override the dynamic model field list
+    # or external identifier extra fields list. The fields definition is intended to be a list of
+    # fields that are presented to the end user, and may be a subset of the fields in the model.
     def clean_fields_def
       self.fields ||= []
     end
@@ -228,6 +258,9 @@ module OptionConfigs
 
       if embed == 'default_embed_resource'
         rn = config_obj.default_embed_resource_name(name)
+        self.embed = { resource_name: rn }
+      elsif embed.is_a?(String)
+        rn = embed
         self.embed = { resource_name: rn }
       else
         rn = embed[:resource_name]
@@ -299,6 +332,13 @@ module OptionConfigs
         self.bad_ref_items = []
         refitem.each do |mn, conf|
           to_class = ModelReference.to_record_class_for_type(mn)
+
+          # Avoid breaking app type imports if the resource being pointed to in the reference
+          # hasn't been set up yet.
+          if to_class.nil? || to_class.respond_to?(:definition) && !to_class.definition
+            Rails.logger.warn "Definition for class #{to_class} is not set - skipping reference setup for #{mn}"
+            break
+          end
 
           if to_class
             elt = conf[:add_with] && conf[:add_with][:extra_log_type]
@@ -393,8 +433,83 @@ module OptionConfigs
     def clean_config_triggers
       self.config_trigger ||= {}
       self.config_trigger = self.config_trigger.symbolize_keys
-      self.config_trigger = self.config_trigger.symbolize_keys
-      self.config_trigger[:on_define] ||= {}
+      od = self.config_trigger[:on_define] ||= []
+
+      self.config_trigger[:on_define] = [od] unless od.is_a?(Array)
+    end
+
+    def clean_preset_fields
+      self.preset_fields ||= {}
+      self.preset_fields = self.preset_fields.symbolize_keys
+    end
+
+    def clean_field_configs
+      fla = fields
+      if field_configs.nil?
+        self.field_configs = {}
+      else
+        # 'field_configs' was explicitly set, so use it to set the appropriate configurations
+        # for each of the valid_configs
+        self.field_configs ||= {}
+        self.field_configs = self.field_configs.symbolize_keys
+
+        field_configs.each do |fname, fconfig|
+          ValidFieldConfigs.each do |vc|
+            # For each of the ValidFieldConfigs, add the corresponding definition to the
+            #  named attribute
+            c = fconfig[vc]
+            next unless c
+
+            ivar = instance_variable_get("@#{vc}")
+            unless ivar
+              instance_variable_set("@#{vc}", {})
+              ivar = instance_variable_get("@#{vc}")
+            end
+
+            ivar.merge!(fname => c)
+          end
+        end
+
+      end
+
+      # Build the list of errors from the explicitly defined field_configs
+      efs = field_configs.keys.map(&:to_s) - fla
+      if efs.present?
+        failed_config :field_configs, "field_configs includes fields that are not in the field list: #{efs}"
+      end
+
+      field_configs.each do |fname, fconfig|
+        extra_keys = fconfig.keys - ValidFieldConfigs
+        next if extra_keys.empty?
+
+        failed_config :field_configs,
+                      "field_configs for #{fname} includes invalid keys: #{extra_keys} - expected only #{ValidFieldConfigs}"
+      end
+
+      # Now that the field_configs errors have been checked for the explicitly definition,
+      # go ahead and merge in the values from the standalone definitions
+      add_field_configs_from_standalone_defs
+    end
+
+    # Set field_configs from the configurations listed in ValidFieldConfigs
+    # for each of the valid fields
+    def add_field_configs_from_standalone_defs
+      fla = fields
+
+      self.field_configs ||= {}
+      ValidFieldConfigs.each do |vc|
+        c = instance_variable_get("@#{vc}")
+        next unless c
+
+        c.symbolize_keys.each do |k, v|
+          # Only include valid fields from the field_list_array
+          # NOTE: this excludes caption_before 'all_fields' and 'submit'
+          next unless fla.include?(k.to_s)
+
+          field_configs[k] ||= {}
+          field_configs[k].merge!({ vc => v })
+        end
+      end
     end
 
     # Check if any of the configs were bad
@@ -419,6 +534,8 @@ module OptionConfigs
       configs = []
 
       if config_text.present?
+        config_text = config_text.sub("---\n", '')
+        config_text = prepend_standard_definitions(config_text)
         config_text = include_libraries(config_text)
         begin
           res = YAML.safe_load(config_text, permitted_classes: [],
@@ -621,6 +738,35 @@ module OptionConfigs
     end
 
     def self.set_defaults(config_obj, all_options = {}); end
+
+    #
+    # Add standard definitions that simplify configurations
+    def self.prepend_standard_definitions(content_to_update, force_type: nil)
+      return unless content_to_update
+
+      # First time through we ensure the common extra options defaults are added
+      content_to_update = prepend_standard_definitions(content_to_update, force_type: 'extra_options') unless force_type
+
+      new_force_type ||= name.demodulize.underscore
+      # Ensure we don't include extra_options defaults twice
+      return content_to_update if force_type.nil? && new_force_type == 'extra_options'
+
+      force_type ||= new_force_type
+
+      defsw = [
+        'app',
+        'models',
+        'admin',
+        'defs',
+        "#{force_type}_standard_option_defs.yaml"
+      ]
+
+      path = Rails.root.join(*defsw)
+      return content_to_update unless File.exist?(path)
+
+      defs_yaml = File.read(path)
+      "# @#{force_type}_standard_definitions_start\n#{defs_yaml}\n# @#{force_type}_standard_definitions_end\n#{content_to_update}\n"
+    end
 
     #
     # Inject config libraries into the provided content

@@ -100,19 +100,20 @@ class DynamicModel < ActiveRecord::Base
 
     remove_assoc_class('Master', nil, '')
 
+    man = model_association_name
     if foreign_key_through_external_id
       add_master_association_through_external_id
     else
-      Master.has_many model_association_name, inverse_of: :master,
-                                              class_name: "DynamicModel::#{model_class_name}",
-                                              foreign_key: foreign_key_name,
-                                              primary_key: primary_key_name
+      Master.has_many man, inverse_of: :master,
+                           class_name: "DynamicModel::#{model_class_name}",
+                           foreign_key: foreign_key_name,
+                           primary_key: primary_key_name
     end
     # Add a filtered scope method, which allows master associations to remove non-accessible items automatically
     # This is not the default scope, since it calls #calc_if(:showable_if,...) under the covers, and that may
     # reference the associations itself, causing a cascade of calls
-    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{model_association_name}" do
-      send(model_association_name).filter_results
+    Master.send :define_method, "#{Master::FilteredAssocPrefix}#{man}" do
+      send(man).filter_results
     end
   end
 
@@ -181,6 +182,7 @@ class DynamicModel < ActiveRecord::Base
     active.select(:category)
           .distinct(:category)
           .unscope(:order)
+          .reload
           .map { |s| s.category || 'default' }
   end
 
@@ -361,11 +363,16 @@ class DynamicModel < ActiveRecord::Base
   # Load dynamic model routes for all active implementations
   def self.routes_load
     m = active_model_configurations
-    Rails.application.routes.draw do
+    routes = Rails.application.routes
+    routes.disable_clear_and_finalize = true
+    routes.draw do
       m.each do |dm|
         pg_name = dm.base_route_segments
         short_pg_name = dm.base_route_short_name
         if dm.foreign_key_name.present?
+          next if routes.url_helpers.respond_to?("master_#{pg_name.gsub('/', '_')}_path")
+
+          Rails.logger.info "Setting up routes for dynamic model: #{short_pg_name}"
 
           resources :masters do
             resources short_pg_name, except: [:destroy], controller: pg_name
@@ -382,6 +389,9 @@ class DynamicModel < ActiveRecord::Base
           end
 
         else
+          next if routes.url_helpers.respond_to?("#{short_pg_name}_path")
+
+          Rails.logger.info "Setting up routes for #{dm}"
 
           resources short_pg_name, except: [:destroy], controller: pg_name
           namespace :dynamic_model do
@@ -391,6 +401,9 @@ class DynamicModel < ActiveRecord::Base
         end
       end
     end
+  ensure
+    routes ||= Rails.application.routes
+    routes.disable_clear_and_finalize = false
   end
 
   def table_name_ok
@@ -502,9 +515,9 @@ class DynamicModel < ActiveRecord::Base
     new_options = YAML.dump(hash)
     self.options ||= ''
     self.options = if self.options.index(/^#{key}:/)
-                     self.options = self.options.gsub(/^(#{key}:(.+?))(\n[^\s]|\z)/m, "#{new_options}\\3")
+                     self.options = self.options.gsub(/^(#{key}:(.+?))(\n[^\s]|\z)/m, "#{new_options}\n\n\\3")
                    else
-                     "#{new_options}\n#{self.options}"
+                     "#{new_options}\n\n#{self.options}"
                    end
 
     self.options = self.options.gsub(/^---.*\n/, '')
