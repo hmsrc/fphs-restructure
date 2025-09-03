@@ -3,10 +3,12 @@
   height: 400px;
   background: white;
   border: 1px solid gray;
-  opacity: 30%;
 }
 .iframe-message-notification.if-mn-type-sms {
   height: 100px;
+}
+.iframe-message-notification {
+  opacity: 30%;
 }
 .iframe-message-notification.if-mn-status-complete {
   opacity: 100%;

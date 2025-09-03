@@ -12613,11 +12613,13 @@ div.popover {
 .common-template-item .expandable, .admin-edit-form .expandable {
   max-height: 174px;
   margin-bottom: 0px;
-  display: block;
-  overflow: hidden;
 }
 .common-template-item .expandable:not(.expanded), .admin-edit-form .expandable:not(.expanded) {
   border-bottom: 2px dotted gray;
+}
+.common-template-item .expandable, .admin-edit-form .expandable {
+  display: block;
+  overflow: hidden;
 }
 .common-template-item .expandable.expandable-target:hover,
 .common-template-item .expandable .expandable-target:hover, .admin-edit-form .expandable.expandable-target:hover,
@@ -13570,6 +13572,8 @@ a.add-icon {
 .advanced-form-selections .btn {
   color: var(--project-color);
   background: white;
+  border-bottom: 4px solid var(--project-color);
+  text-shadow: none;
 }
 .advanced-form-selections .btn:active {
   color: var(--link-active-color);
@@ -13577,6 +13581,8 @@ a.add-icon {
 .advanced-form-selections .btn.collapsed {
   background: var(--project-color);
   color: white;
+  border-bottom: 4px solid transparent;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 .advanced-form-selections .btn.collapsed:active {
   color: white;
@@ -16119,22 +16125,6 @@ table.tracker-tree-results tr[data-tracker-history-items="1"][data-tracker-proto
 table.tracker-tree-results,
 table.tracker-chron-results {
   border: 1px solid rgb(192, 192, 192);
-  /*    td.tracker-edit {
-        width: 5%;
-    }
-
-    td.tracker-protocol_name, td.tracker-sub_process_name, td.tracker-event_name{
-        width:15%;
-    }
-
-    td.tracker-event_date {width:10%;}
-
-    td.edit-tracker-col {
-        width: 5%;
-    }
-    td.tracker-record-meta{
-        width: 10%;
-    }*/
 }
 table.tracker-tree-results tbody[data-tracker-protocol=""] td.tracker-protocol_name:before,
 table.tracker-tree-results tbody[data-tracker-protocol=""] td.tracker-history-protocol_name:before,
@@ -16153,6 +16143,25 @@ table.tracker-tree-results tr[data-tracker-protocol=updates] div.cell-holder,
 table.tracker-chron-results tbody[data-tracker-protocol=updates] div.cell-holder,
 table.tracker-chron-results tr[data-tracker-protocol=updates] div.cell-holder {
   color: #999;
+}
+table.tracker-tree-results,
+table.tracker-chron-results {
+  /*    td.tracker-edit {
+        width: 5%;
+    }
+
+    td.tracker-protocol_name, td.tracker-sub_process_name, td.tracker-event_name{
+        width:15%;
+    }
+
+    td.tracker-event_date {width:10%;}
+
+    td.edit-tracker-col {
+        width: 5%;
+    }
+    td.tracker-record-meta{
+        width: 10%;
+    }*/
 }
 table.tracker-tree-results td.tracker-notes .cell-holder.expandable,
 table.tracker-tree-results td.tracker-history-notes .cell-holder.expandable,

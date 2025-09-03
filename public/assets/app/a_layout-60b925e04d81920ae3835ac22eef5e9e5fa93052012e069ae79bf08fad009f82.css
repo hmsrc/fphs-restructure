@@ -655,11 +655,13 @@ div.popover {
 .common-template-item .expandable, .admin-edit-form .expandable {
   max-height: 174px;
   margin-bottom: 0px;
-  display: block;
-  overflow: hidden;
 }
 .common-template-item .expandable:not(.expanded), .admin-edit-form .expandable:not(.expanded) {
   border-bottom: 2px dotted gray;
+}
+.common-template-item .expandable, .admin-edit-form .expandable {
+  display: block;
+  overflow: hidden;
 }
 .common-template-item .expandable.expandable-target:hover,
 .common-template-item .expandable .expandable-target:hover, .admin-edit-form .expandable.expandable-target:hover,

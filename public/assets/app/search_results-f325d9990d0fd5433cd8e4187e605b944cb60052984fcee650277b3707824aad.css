@@ -479,22 +479,6 @@ table.tracker-tree-results tr[data-tracker-history-items="1"][data-tracker-proto
 table.tracker-tree-results,
 table.tracker-chron-results {
   border: 1px solid rgb(192, 192, 192);
-  /*    td.tracker-edit {
-        width: 5%;
-    }
-
-    td.tracker-protocol_name, td.tracker-sub_process_name, td.tracker-event_name{
-        width:15%;
-    }
-
-    td.tracker-event_date {width:10%;}
-
-    td.edit-tracker-col {
-        width: 5%;
-    }
-    td.tracker-record-meta{
-        width: 10%;
-    }*/
 }
 table.tracker-tree-results tbody[data-tracker-protocol=""] td.tracker-protocol_name:before,
 table.tracker-tree-results tbody[data-tracker-protocol=""] td.tracker-history-protocol_name:before,
@@ -513,6 +497,25 @@ table.tracker-tree-results tr[data-tracker-protocol=updates] div.cell-holder,
 table.tracker-chron-results tbody[data-tracker-protocol=updates] div.cell-holder,
 table.tracker-chron-results tr[data-tracker-protocol=updates] div.cell-holder {
   color: #999;
+}
+table.tracker-tree-results,
+table.tracker-chron-results {
+  /*    td.tracker-edit {
+        width: 5%;
+    }
+
+    td.tracker-protocol_name, td.tracker-sub_process_name, td.tracker-event_name{
+        width:15%;
+    }
+
+    td.tracker-event_date {width:10%;}
+
+    td.edit-tracker-col {
+        width: 5%;
+    }
+    td.tracker-record-meta{
+        width: 10%;
+    }*/
 }
 table.tracker-tree-results td.tracker-notes .cell-holder.expandable,
 table.tracker-tree-results td.tracker-history-notes .cell-holder.expandable,
