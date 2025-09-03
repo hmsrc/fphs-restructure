@@ -1,0 +1,75 @@
+table.table.tree-table {
+  border: 1px solid gray;
+  margin: 0 auto;
+}
+table.table.tree-table tbody, table.table.tree-table thead {
+  opacity: 0.3;
+}
+table.table.tree-table:before {
+  content: "loading...";
+  opacity: 1;
+  color: black;
+  text-align: left;
+  margin: 0 auto;
+  width: auto;
+  position: absolute;
+  left: 46%;
+  font-size: 41px;
+  font-weight: bold;
+  display: block;
+}
+table.table.tree-table.jsTT tbody, table.table.tree-table.jsTT thead, table.table.tree-table[data-results-count="0"] tbody, table.table.tree-table[data-results-count="0"] thead {
+  opacity: 1;
+}
+table.table.tree-table.jsTT:before, table.table.tree-table[data-results-count="0"]:before {
+  display: none;
+}
+table.table.tree-table thead tr th.is-parent-col {
+  background-color: rgb(230, 230, 230);
+}
+table.table.tree-table [data-col-type=id],
+table.table.tree-table [data-col-name=id] {
+  min-width: 30px;
+  width: 30px;
+}
+table.table.tree-table td[data-col-type=id] {
+  text-align: center;
+}
+table.table.tree-table tr[data-tt-level="0"] {
+  border-top: 3px solid rgb(192, 192, 192);
+}
+table.table.tree-table tr[data-tt-level="0"] td {
+  font-weight: bold;
+}
+table.table.tree-table tr[data-tt-level="0"] td.is-not-parent-col {
+  border-left: 0px;
+  border-right: 0px;
+  background: none;
+}
+table.table.tree-table tr[data-tt-level="0"] td.report-el[colspan] pre {
+  max-width: 100%;
+}
+table.table.tree-table tr[data-tt-level="1"] td {
+  border-top: 1px;
+}
+table.table.tree-table tr[data-tt-level] td.is-parent-col {
+  border-top: 0px;
+  border-bottom: 0;
+  border-left: 0px;
+  border-right: 0px;
+  background: rgb(242, 242, 242);
+}
+table.table.tree-table td.tt-expander-cell:hover {
+  cursor: pointer;
+}
+table.table.tree-table thead {
+  border-width: 0 0 3px 0;
+  border-style: solid;
+  border-color: rgb(128, 128, 128);
+}
+table.table.tree-table treeid {
+  display: none;
+}
+table.table.tree-table td {
+  border: 0;
+}

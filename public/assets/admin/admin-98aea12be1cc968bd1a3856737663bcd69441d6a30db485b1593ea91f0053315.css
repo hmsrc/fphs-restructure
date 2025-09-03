@@ -1,0 +1,266 @@
+.admin-index-page,
+.admin-user-index-page {
+  border-color: silver;
+}
+.admin-index-page .nav > li > a,
+.admin-user-index-page .nav > li > a {
+  padding: 10px 1px;
+}
+
+.admin-index-page .panel-heading .config-status-block p {
+  display: inline-block;
+  margin-right: 2em;
+}
+
+.admin-panel-actions {
+  float: right;
+  margin-right: 20px;
+  margin-top: -7px;
+}
+
+.admin-edit-form .well {
+  background: rgb(245, 245, 245);
+}
+
+a > .caret {
+  visibility: visible;
+  transform: rotate(180deg);
+}
+
+a.collapsed > .caret {
+  visibility: visible;
+  transform: none;
+}
+
+.CodeMirror.cm-s-default {
+  border: 1px solid rgb(204, 204, 204);
+}
+
+.common-admin-markdown-editor .custom-editor {
+  width: 800px;
+  height: 20vh;
+  background: white;
+}
+
+.form-group[data-out-attr-name=notes] {
+  vertical-align: top;
+  display: block;
+}
+
+.admin-title {
+  padding-left: 15px;
+  padding-right: 15px;
+  margin-left: 47px;
+}
+
+.admin-help-icon {
+  float: right;
+}
+
+.password-expired {
+  color: gray;
+}
+
+.admin-field- {
+  min-width: 60px;
+}
+
+.admin-result-index td,
+.admin-result-index th {
+  min-width: 60px;
+}
+
+.admin-edit-form .form-group,
+.admin-edit-form .form-text-area-group {
+  margin: 0 0 8px;
+  width: 400px;
+}
+.admin-edit-form .form-group label,
+.admin-edit-form .form-text-area-group label {
+  display: block;
+}
+.admin-edit-form .form-group input[type=checkbox] + label,
+.admin-edit-form .form-group input[type=radio] + label,
+.admin-edit-form .form-text-area-group input[type=checkbox] + label,
+.admin-edit-form .form-text-area-group input[type=radio] + label {
+  display: inline-block;
+}
+
+.admin-edit-form .form-group.form-group-wide {
+  width: 800px;
+}
+.admin-edit-form .form-group.form-group-wide .form-text-area-group {
+  width: 800px;
+}
+
+.admin-edit-form .form-group[data-out-attr-name=description] {
+  display: block;
+}
+
+.admin-edit-form .form-group {
+  width: 400px;
+}
+.admin-edit-form .form-group input[type=text], .admin-edit-form .form-group input[type=email] {
+  width: 100%;
+}
+
+.admin-flex-block {
+  display: flex;
+  align-items: stretch;
+}
+
+@media only screen and (max-width: 600px) {
+  .admin-flex-block {
+    display: block;
+  }
+}
+.label-help-icon {
+  color: gray;
+}
+
+#admin_user_access_control_resource_name {
+  width: 30em;
+}
+
+#admin_role_description_name {
+  width: 30em;
+}
+
+.form-group[data-out-attr-name=name] {
+  display: block;
+}
+
+.app-configuration-value-block {
+  min-width: 300px;
+}
+
+.info-danger {
+  color: #cc0000;
+}
+
+div#creddocframe {
+  border: 1px solid rgb(128, 128, 128);
+  padding: 10px;
+  margin: 10px;
+  background: rgb(255, 255, 255);
+}
+
+.admin-panel-components ul {
+  list-style: none;
+  padding-left: 0.3em;
+}
+.admin-panel-components ul.app-components-for-loc {
+  padding-left: 1.8em;
+}
+.admin-panel-components li.app-component-loc {
+  font-weight: bold;
+  padding-top: 6px;
+}
+
+.tall-admin-editor {
+  width: 800px;
+  height: 73vh;
+}
+.tall-admin-editor .custom-editor-container {
+  height: 73vh;
+}
+.tall-admin-editor .custom-editor-container .custom-editor {
+  height: 73vh;
+}
+
+.admin-item-admin-links a {
+  display: inline-block;
+  margin-right: 1em;
+}
+
+.admin-item-admin-infos span {
+  color: gray;
+}
+
+.nothing-admin-authed {
+  color: gray;
+  font-style: italic;
+}
+
+a.link-disabled {
+  color: gray;
+}
+
+.admin-action-page {
+  position: relative;
+  overflow: visible;
+}
+
+#components-menu-button {
+  top: 30px;
+  position: absolute;
+}
+
+.components-menu-block {
+  top: 103px;
+  position: absolute;
+  left: 0;
+}
+
+.components-menu {
+  max-width: 90vw;
+  background: white;
+  padding: 4px;
+  position: absolute;
+  z-index: 2000;
+  width: 600px;
+  box-shadow: 0 4px 6px 4px rgba(0, 0, 0, 0.15);
+}
+
+.admin-sample-field-info,
+.admin-sample-form-info {
+  color: gray;
+  font-family: "Courier New", Courier, monospace;
+  text-align: right;
+}
+
+.admin-sample-form-info {
+  padding-left: 8px;
+  padding-top: 3px;
+  text-align: left;
+  background-color: #f1f1f1;
+}
+
+.caption-before .admin-sample-field-info {
+  font-size: 96%;
+}
+
+.dialog-before .admin-sample-field-info {
+  font-size: 90%;
+}
+
+.form-group .chosen-container {
+  min-width: 200px;
+}
+
+.chosen-container.chosen-container-single .chosen-drop {
+  width: auto;
+}
+
+[data-out-attr-name=user_id] .chosen-container {
+  min-width: 300px;
+}
+
+.admin-protocol-tree-list {
+  background-color: white;
+  margin-top: 14px;
+  border-top: 1px solid silver;
+  border-bottom: 1px solid silver;
+  padding: 10px;
+}
+
+.admin-inline-update-report {
+  height: 18px;
+}
+.admin-inline-update-report .btn-primary {
+  margin-right: 10px;
+}
+
+.dynamic-field-list .sb-subitem {
+  margin-top: 8px;
+}
