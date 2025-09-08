@@ -1,0 +1,242 @@
+table.admin-list tbody tr:hover {
+  background-color: #ffe;
+}
+table.admin-list tbody tr.disabled-result,
+table.admin-list tbody tr.disabled-result:hover {
+  background-color: #eee;
+}
+table.admin-list tbody td pre {
+  max-width: 70%;
+}
+table.admin-list tbody td pre.full-width {
+  max-width: 100%;
+}
+
+.field_with_errors {
+  display: inline;
+  background-color: #fff6bf;
+}
+
+.config-error-block {
+  background-color: #fff6bf;
+  padding: 14px 10px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.config-error-block .config-error-def-config-type {
+  padding-left: 20px;
+}
+.config-error-block .config-error-list-name {
+  font-weight: bold;
+  font-family: "Courier New", Courier, monospace;
+}
+.config-error-block .config-error-list-type {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.error-mark, .error-mark-in-circle {
+  color: #aa0000;
+}
+
+.error-mark-in-circle {
+  border-radius: 100%;
+  border: 1px solid #b4b4b4;
+  padding: 0.05em;
+  font-size: 110%;
+}
+
+.admin-edit-form {
+  background-color: #eee;
+  padding: 1.4em;
+  margin: 1.4em;
+  border-radius: 8px;
+}
+.admin-edit-form .form-group {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.admin-edit-form .nav-tabs > li > a {
+  border-radius: 4px 4px 0 0;
+  border: 1px solid rgb(221, 221, 221);
+}
+
+.wide-field {
+  min-width: 500px;
+}
+
+#admin-edit- .form-inline .form-group {
+  margin-bottom: 1em;
+}
+
+#admin-edit- .admin-edit-form .form-inline input.form-control[name="dynamic_model[field_list]"] {
+  width: 400px;
+}
+
+#admin_user_role_role_name {
+  width: 100%;
+}
+
+input.form-control.tt-hint {
+  width: 100%;
+}
+
+input.form-control[type=checkbox] {
+  width: 1em;
+  display: inline-block;
+  margin-left: 1em;
+}
+
+.form-inline [data-out-attr-name=options] textarea.form-control,
+textarea#activity_log_extra_log_types {
+  width: 800px;
+  font-family: courier;
+  font-size: 13px;
+}
+
+table.admin-list .expandable {
+  max-height: 100px;
+  max-width: 70vw;
+  padding-bottom: 20px;
+  margin-bottom: 26px;
+  border-bottom: 2px dotted gray;
+  display: block;
+  overflow: hidden;
+  overflow-x: auto;
+  position: relative;
+}
+table.admin-list .expandable:hover {
+  cursor: s-resize;
+}
+table.admin-list .expandable:after {
+  content: "(click to expand)";
+  font-size: 90%;
+  font-weight: normal;
+  font-style: italic;
+  display: block;
+  padding-top: 0;
+  color: rgb(128, 128, 128);
+  position: absolute;
+  bottom: 1px;
+  right: 8px;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+table.admin-list .expanded {
+  max-height: none;
+  border-bottom: 0;
+}
+table.admin-list .expanded:hover {
+  cursor: n-resize;
+}
+table.admin-list .expanded:after {
+  content: "(click to shrink)";
+  font-size: 90%;
+  font-weight: normal;
+  font-style: italic;
+  position: relative;
+  top: 4px;
+  text-align: right;
+}
+table.admin-list pre.shrinkable-block.expandable {
+  max-width: 1300px;
+}
+
+pre.scrollable-block {
+  max-height: 200px;
+  max-width: 50vw;
+  overflow: auto;
+}
+
+td.admin-field-generate_view {
+  max-width: 500px;
+  white-space: pre;
+  font-family: monospace;
+  font-size: 13px;
+  background-color: #f9f9f9;
+  line-height: 1.42857143;
+  word-break: break-all;
+  word-wrap: break-word;
+  overflow: auto;
+}
+
+tr.saved-row,
+tbody.saved-row .admin-list-item {
+  background-color: #ffa;
+}
+
+.btn.btn-default.like-type {
+  background: rgb(85, 85, 85);
+  color: rgb(255, 255, 255);
+  text-shadow: none;
+}
+
+p.like-type {
+  margin-top: 1em;
+  margin-bottom: 3px;
+}
+
+.extra-help-info {
+  height: 80vh;
+}
+
+.failed-parse td {
+  background-color: #faa;
+}
+
+#nfs_store_filter_filter_filter {
+  min-width: 420px;
+}
+
+.admin-form-title {
+  font-size: 127%;
+  font-weight: bold;
+  color: rgb(121, 121, 121);
+}
+
+.alert.alert-success.logged-in-as-admin {
+  margin-top: -20px;
+  padding: 0 20px 0.6em;
+}
+
+ul.admin-menu-list {
+  padding-left: 1em;
+}
+
+.admin-menu-list > li > a {
+  padding-left: 0;
+  list-style: none;
+}
+
+.dfc-field-config-block ul.nav li {
+  font-family: var(--button-font-family);
+  padding: 0;
+  border-radius: 0;
+}
+.dfc-field-config-block ul.nav li a {
+  padding: 0 4px;
+}
+
+.admin-options-ref-block .dfc-field-config-block .tab-content {
+  padding: 0;
+  padding-left: 4px;
+  border: none;
+  background: transparent;
+}
+.admin-options-ref-block .dfc-field-config-block .tab-content ul li {
+  list-style: normal;
+  border: none;
+  background: transparent;
+}
+
+.dfc-text {
+  padding: 4px 0;
+  display: block;
+}
+
+.dfc-dialog-text {
+  padding: 4px 0;
+  display: block;
+}
+.dfc-dialog-text hr {
+  margin-top: 6px;
+  margin-bottom: 6px;
+}

@@ -1,0 +1,260 @@
+.container-icons-items .container-icons-folder-items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.container-icons-items .container-icons-folder-items.collapse {
+  display: none;
+}
+.container-icons-items .container-icons-folder-items.collapse.in, .container-icons-items .container-icons-folder-items.collapsing {
+  display: flex;
+  padding-left: 10px;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry {
+  flex-direction: row;
+  width: 260px;
+  padding: 6px;
+  text-align: center;
+  font-size: 90%;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry a.browse-icon {
+  width: 92px;
+  height: 92px;
+  border: 1px solid silver;
+  background-color: rgb(214, 214, 214);
+  display: inline-block;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry .browse-icon-img {
+  width: 90px;
+  height: 90px;
+  opacity: 0;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry .browse-icon-img.broken-image {
+  opacity: 0;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry .browse-icon-img.loaded-image {
+  opacity: 1;
+  transition: ease-in 600ms;
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry a.browse-filename {
+  color: rgb(64, 64, 64);
+}
+.container-icons-items .container-icons-folder-items .container-icons-entry a.browse-filename:link, .container-icons-items .container-icons-folder-items .container-icons-entry a.browse-filename:active, .container-icons-items .container-icons-folder-items .container-icons-entry a.browse-filename:focus {
+  color: rgb(64, 64, 64);
+}
+.container-icons-items .container-icons-folder {
+  width: 100% !important;
+  display: block;
+  position: relative;
+  float: none;
+  clear: both;
+}
+.container-icons-items .container-icons-folder .folder-icon {
+  font-size: 60px;
+}
+.container-icons-items .container-icons-folder .cif-inner {
+  width: 260px;
+  text-align: center;
+  display: block;
+}
+.container-icons-items input[type=checkbox] {
+  cursor: pointer;
+  vertical-align: top;
+  display: none;
+}
+.container-icons-items input.container-new-folder-name {
+  font-weight: normal;
+}
+.container-icons-items a.container-add {
+  margin-left: 1em;
+}
+.container-icons-items .glyphicon-folder-close,
+.container-icons-items .glyphicon-folder-open {
+  cursor: pointer;
+  vertical-align: baseline;
+  color: #cf9c13;
+}
+.container-icons-items .glyphicon-info-sign {
+  color: gray;
+}
+.container-icons-items .root-folder .glyphicon-folder-close,
+.container-icons-items .root-folder .glyphicon-folder-open {
+  color: #3db553;
+}
+.container-icons-items,
+.container-icons-items ul {
+  list-style-type: none;
+  padding-left: 1.5em;
+}
+.container-icons-items li,
+.container-icons-items ul li {
+  list-style-type: none;
+}
+.container-icons-items .container-icons-entry.checked {
+  font-weight: bold;
+}
+.container-icons-items .container-folder.checked {
+  font-weight: bold;
+}
+.container-icons-items .container-folder .file-archive-tag {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-icons-items .container-icons-entry .file-processing-tag {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-icons-items .container-list-file-count {
+  font-style: italic;
+  color: gray;
+}
+
+.container-browser {
+  display: block;
+  position: relative;
+  max-height: 60vh;
+  min-height: 50px;
+  overflow: auto;
+  margin-bottom: 10px;
+  border: 1px solid silver;
+  border-radius: 3px;
+  padding: 10px;
+}
+
+.container-browser.ajax-running .container-list-items,
+.container-browser.ajax-running .no-container-list-items {
+  filter: blur(2px);
+}
+.container-browser.ajax-running.ajax-running form.new_download {
+  overflow: hidden;
+}
+
+.container-icons-entry {
+  width: 270px;
+  padding: 6px;
+  text-align: center;
+  font-size: 90%;
+}
+.container-icons-entry:hover {
+  background-color: rgb(251, 254, 177);
+}
+.container-icons-entry:hover .browse-filename {
+  background-color: rgba(251, 254, 177, 0.8);
+}
+.container-icons-entry .browse-filename {
+  background-color: transparent;
+}
+.container-icons-entry .browse-filename:hover {
+  background-color: rgba(251, 254, 177, 0.8);
+}
+.container-icons-entry .browse-entry-meta,
+.container-icons-entry .browse-entry-classifications {
+  display: block;
+  color: rgb(128, 128, 128);
+  font-size: 93%;
+  z-index: 0;
+}
+.container-icons-entry .browse-entry-classifications {
+  color: #333;
+}
+.container-icons-entry .browse-entry-classifications:link, .container-icons-entry .browse-entry-classifications:active, .container-icons-entry .browse-entry-classifications:focus {
+  color: #333;
+}
+.container-icons-entry .browse-entry-classifications:hover {
+  cursor: pointer;
+}
+.container-icons-entry .browse-entry-classifications .bem-meta-link {
+  text-decoration: none;
+}
+.container-icons-entry .browse-entry-classifications .bem-meta-link:hover {
+  text-decoration: none;
+}
+.container-icons-entry .browse-entry-classifications .bem-class-title {
+  display: block;
+  font-weight: bold;
+}
+.container-icons-entry .browse-entry-classifications .bem-class-description {
+  display: block;
+}
+.container-icons-entry span.bem-classification-attrs {
+  margin-bottom: 0.3em;
+  display: block;
+}
+.container-icons-entry .browse-entry-meta {
+  font-size: 85%;
+}
+.container-icons-entry .browse-entry-meta .bem-mime-type {
+  display: block;
+}
+.container-icons-entry .browse-entry-meta .bem-mod-date {
+  display: inline-block;
+  text-align: right;
+}
+
+.icon-rows .container-icons-items .container-icons-folder-items {
+  display: block;
+}
+.icon-rows .container-icons-items .container-icons-folder-items .container-icons-entry {
+  width: auto;
+  text-align: left;
+}
+.icon-rows .container-icons-items .container-icons-folder-items .container-icons-entry .browse-icon {
+  float: left;
+  margin-right: 4%;
+}
+.icon-rows .container-icons-items .container-icons-folder-items .container-icons-entry .browse-filename {
+  padding-left: 0;
+}
+.icon-rows .container-icons-items .container-icons-folder-items .container-icons-entry .browse-entry-meta .bem-mime-type {
+  display: inline-block;
+  padding-right: 1em;
+}
+
+.nfs-store-valid-files.panel {
+  display: none;
+  background: rgb(243, 243, 243);
+  padding-left: 16px;
+  border-bottom: 1px solid rgb(221, 221, 221);
+  border-top: 1px solid rgb(221, 221, 221);
+  padding-top: 1px;
+  margin: 12px -10px -11px;
+}
+.nfs-store-valid-files.panel .panel-header {
+  font-size: 95%;
+  font-style: italic;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+}
+.nfs-store-valid-files.panel ul {
+  padding-left: 2em;
+  margin: 0.4em;
+}
+.nfs-store-valid-files.panel li {
+  font-family: monospace;
+  font-size: 12px;
+  list-style: none;
+}
+
+.plain-list .container-icons-folder-items {
+  flex-direction: column;
+}
+.plain-list .container-icons-folder-items .container-icons-entry {
+  text-align: left;
+  padding-left: 0;
+  width: auto;
+}
+.plain-list .container-icons-folder-items .container-icons-entry a.browse-icon,
+.plain-list .container-icons-folder-items .container-icons-entry .browse-entry-meta {
+  display: none;
+}
+.plain-list .container-icons-folder-items .container-icons-entry a.browse-entry-classifications {
+  color: var(--bottom-grad-color);
+}
+.plain-list .container-icons-folder-items .container-icons-entry a.browse-entry-classifications:link, .plain-list .container-icons-folder-items .container-icons-entry a.browse-entry-classifications:active, .plain-list .container-icons-folder-items .container-icons-entry a.browse-entry-classifications:focus {
+  color: var(--bottom-grad-color);
+}
+.plain-list .container-icons-folder-items .container-icons-entry a.browse-filename {
+  display: none;
+}
