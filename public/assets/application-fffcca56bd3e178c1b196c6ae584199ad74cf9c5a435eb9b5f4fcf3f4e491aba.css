@@ -8483,6 +8483,11 @@ body {
   color: gray;
   padding-left: 0.6em;
 }
+.container-icons-items .container-icons-entry .file-entry-not-downloadable-reason {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
 .container-icons-items .container-list-file-count {
   font-style: italic;
   color: gray;
@@ -8708,6 +8713,12 @@ body {
 }
 .container-list-items .container-entry .file-processing-tag,
 .browse-move-to-folders .container-entry .file-processing-tag {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-list-items .container-entry .file-entry-not-downloadable-reason,
+.browse-move-to-folders .container-entry .file-entry-not-downloadable-reason {
   font-style: italic;
   color: gray;
   padding-left: 0.6em;
@@ -9096,6 +9107,15 @@ body {
 }
 .browse-container .progress-running .button-upload-abort {
   display: inline-block;
+}
+.browse-container .uploaded-files-outer {
+  display: none;
+}
+.browse-container .uploaded-files-outer .uploaded-files-control {
+  margin: 8px 16px;
+}
+.browse-container .uploaded-files-outer .uploaded-files-control span {
+  font-weight: bold;
 }
 /*
  * This is a manifest file that'll be compiled into application.css, which will include all the files
@@ -17865,9 +17885,12 @@ div.reset-row .glyphicon-alert-red .glyphicon-alert {
   overflow-x: scroll;
 }
 
-.embedded-report-block .report-results-table-block {
+.embedded-report-block .report-results-table-block, .tag-embedded-report .report-results-table-block {
   height: auto;
   overflow: auto;
+}
+.embedded-report-block .report-results-block, .tag-embedded-report .report-results-block {
+  margin: 0;
 }
 
 #embed_results_block .import-edit-form,

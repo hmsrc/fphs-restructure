@@ -14347,6 +14347,8 @@ _nfs_store.uploader = function ($outer) {
   var abortClicked;
   var uploadedIds;
   var uploadSet;
+  var $completed_uploads = $outer.find('.uploaded-files');
+  var $completed_uploads_outer = $outer.find('.uploaded-files-outer');
 
   var frOnload = function (e) {
 
@@ -14448,6 +14450,11 @@ _nfs_store.uploader = function ($outer) {
     $block.removeClass('progress-running');
     removeAbortButton($block);
     console.log('completed upload of file');
+
+    if ($block.hasClass('file-upload-failed')) return;
+
+    showCompletedBlocks();
+    $block.appendTo($completed_uploads);
   };
 
   var setBlockFailed = function (error_array, $block) {
@@ -14458,7 +14465,7 @@ _nfs_store.uploader = function ($outer) {
     $block.find('.file-error').text('file upload failed: ' + error_array.join(' | '));
     $block.find('.progress-bar').addClass('progress-bar-failed').removeClass('progress-bar-success');
     $block.find('.progress-bar-status-text').text('failed');
-    $block.removeClass('progress-running');
+    $block.removeClass('progress-running').addClass('file-upload-failed');
     removeAbortButton($block);
     showAddFilesButton();
   };
@@ -14483,8 +14490,13 @@ _nfs_store.uploader = function ($outer) {
   };
 
   var clearFileBlocks = function () {
-    $outer.find('.data-context .file-block[data-file-index]').remove();
+    $completed_uploads_outer.hide();
+    $outer.find('.data-context .file-block[data-file-index], .uploaded-files .file-block[data-file-index]').remove();
   };
+
+  var showCompletedBlocks = function () {
+    $completed_uploads_outer.show();
+  }
 
   var getFileBlock = function () {
     return $outer.find('.data-context .file-block.process-ready').first();
@@ -15087,6 +15099,7 @@ var SecureView = function () {
 
     $('.sv-close').not('.sv-added-click-ev').on('click', function (ev) {
       _this.close();
+      ev.preventDefault();
     }).addClass('sv-added-click-ev');
 
 
@@ -112637,7 +112650,7 @@ _fpa.preprocessors_nfs_store = {
           else if (value.file_name.match(/\.__processing__$/))
             value.is_processing = true
 
-          value.file_name = value.file_name.replace(/(.+)\.__processing.*__$/, '$1')
+          value.file_name = value.file_name.replace(/(.+)\.__.+.*__$/, '$1')
         }
       }
     }
@@ -112649,7 +112662,7 @@ _fpa.preprocessors_nfs_store = {
 _fpa.postprocessors_nfs_store = {
 
   refresh_container_if_needed: function (block) {
-    var tel = block.find('.file-processing-tag');
+    var tel = block.find('.file-processing-tag').not('.failed-processing-archive-tag');
     if (tel.length) {
       if (!tel.is(':visible')) return;
       window.setTimeout(function () {
@@ -115111,10 +115124,10 @@ _fpa.form_utils = {
           var $a = $(a);
           if (last) $a = $a.last();
           var rect = $a.get(0);
+          if (attempt_count > 10) {
+            return;
+          }
           if (!rect) {
-            if (attempt_count > 10) {
-              return;
-            }
             attempt_count++;
             window.setTimeout(function () {
               doscroll();
@@ -115493,7 +115506,7 @@ _fpa.form_utils = {
   setup_extra_actions: function (block) {
     block
       .find('.collapse')
-      .not('.attached-force-collapse')
+      .not('.attached-force-collapse, .no-force-collapse')
       .each(function () {
         var el = $(this);
         el.on('show.bs.collapse', function () {
@@ -117467,6 +117480,10 @@ _fpa.substitution = class {
         const icon = next_tag.replace('glyphicon_', '').replace('_', '-');
         got = `<span class="glyphicon glyphicon-${icon}"></span>`;
       }
+      else if (next_tag.indexOf('embedded_report') === 0) {
+        var repname = next_tag.replace('embedded_report_', '');
+        got = _fpa.utils.embedded_report(repname, this.data);
+      }
       else if (iter_data.model_references) {
         // Get array of matching references with this resource name
         got = iter_data.model_references.filter((el) => el.to_record_resource_name == next_tag);
@@ -119019,6 +119036,32 @@ _fpa.utils.get_params = function (key1, key2, full_key) {
   if (Object.keys(data).length === 0) return;
 
   return data;
+}
+
+// Generate the embedded report HTML for a given report name and optional alt_data
+// alt_data is used when the report is to be generated for a different record than 'this',
+// which is typically used by handlebars
+_fpa.utils.embedded_report = function (repname, alt_data) {
+  const referring_record = this.referenced_from && this.referenced_from[0];
+  alt_data = alt_data || this;
+  // Get the appropriate id, master_id and type for the report call params
+  if (referring_record) {
+    var list_id = referring_record.from_record_id;
+    var list_master_id = referring_record.from_record_master_id;
+    var list_type = referring_record.from_record_type_us;
+  }
+  else {
+    var list_id = alt_data.id;
+    var list_master_id = alt_data.master_id;
+    var list_type = alt_data.item_type;
+  }
+
+  console.log(`rhembedded: ${repname}`);
+  const search_attrs = `search_attrs[master_id]=${list_master_id}&search_attrs[list_id]=${list_id}&search_attrs[list_type]=${list_type}`
+  const divid = `tag_embedded_report_results-${repname}-${list_master_id}-${list_id}-${list_type}`
+  const htags = `data-remote="true" data-result-target="#${divid}" data-target="#${divid}" data-target-force="true"`;
+  var res = `<div class="tag-embedded-report" id="${divid}"><a ${htags} href="/reports/${repname}?embed=true&part=results&${search_attrs}&commit=table" class="on-postprocess-click">loading...</a></div>`;
+  return res;
 };
 _fpa.view_handlers.address = function (block) {
 
@@ -120028,25 +120071,7 @@ _fpa.e_signature = class {
   Handlebars.registerHelper('embedded_report', function (resname, t, opt) {
     if (!resname) return;
     if (typeof resname !== 'string') return resname;
-    const referring_record = this.referenced_from && this.referenced_from[0];
-
-    // Get the appropriate id, master_id and type for the report call params
-    if (referring_record) {
-      var list_id = referring_record.from_record_id;
-      var list_master_id = referring_record.from_record_master_id;
-      var list_type = referring_record.from_record_type_us;
-    }
-    else {
-      var list_id = this.id;
-      var list_master_id = this.master_id;
-      var list_type = this.item_type;
-    }
-
-    console.log('rhembedded');
-    const search_attrs = `search_attrs[master_id]=${list_master_id}&search_attrs[list_id]=${list_id}&search_attrs[list_type]=${list_type}`
-    const divid = `tag_embedded_report_results-${resname}-${list_master_id}-${list_id}-${list_type}`
-    const htags = `data-remote="true" data-result-target="#${divid}" data-target="#${divid}" data-target-force="true"`;
-    var res = `<div class="tag-embedded-report" id="${divid}"><a ${htags} href="/reports/${resname}?embed=true&part=results&${search_attrs}&commit=table" class="on-postprocess-click">loading...</a></div>`;
+    var res = _fpa.utils.embedded_report(resname);
     return new Handlebars.SafeString(res);
   });
 

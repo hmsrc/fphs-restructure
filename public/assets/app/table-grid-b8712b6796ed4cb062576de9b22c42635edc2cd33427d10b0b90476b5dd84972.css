@@ -30,9 +30,12 @@
   overflow-x: scroll;
 }
 
-.embedded-report-block .report-results-table-block {
+.embedded-report-block .report-results-table-block, .tag-embedded-report .report-results-table-block {
   height: auto;
   overflow: auto;
+}
+.embedded-report-block .report-results-block, .tag-embedded-report .report-results-block {
+  margin: 0;
 }
 
 #embed_results_block .import-edit-form,

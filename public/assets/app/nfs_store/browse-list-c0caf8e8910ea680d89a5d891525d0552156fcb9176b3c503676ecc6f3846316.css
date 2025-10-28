@@ -75,6 +75,12 @@
   color: gray;
   padding-left: 0.6em;
 }
+.container-list-items .container-entry .file-entry-not-downloadable-reason,
+.browse-move-to-folders .container-entry .file-entry-not-downloadable-reason {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
 .container-list-items .container-list-file-count,
 .browse-move-to-folders .container-list-file-count {
   font-style: italic;

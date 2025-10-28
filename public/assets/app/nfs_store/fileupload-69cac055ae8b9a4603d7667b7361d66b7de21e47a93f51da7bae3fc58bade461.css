@@ -100,3 +100,12 @@
 .browse-container .progress-running .button-upload-abort {
   display: inline-block;
 }
+.browse-container .uploaded-files-outer {
+  display: none;
+}
+.browse-container .uploaded-files-outer .uploaded-files-control {
+  margin: 8px 16px;
+}
+.browse-container .uploaded-files-outer .uploaded-files-control span {
+  font-weight: bold;
+}
