@@ -8803,6 +8803,23 @@ body {
   display: none;
 }
 
+.container-browser .is-file-status-folder,
+.container-browser .is-file-status-folder-items {
+  background: #ededed;
+  padding: 4px;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .container-entry {
+  word-wrap: normal;
+  white-space: normal;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .file-entry-not-downloadable {
+  display: none;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .browse-filename {
+  background: transparent;
+  position: relative;
+}
+
 .container-meta-controls {
   text-align: right;
   padding-right: 1em;
