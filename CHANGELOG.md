@@ -14,6 +14,45 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.30.11] - 2025-10-29
+
+- [Fixed] bug checking timed out indicators
+
+## [9.30.10] - 2025-10-29
+
+- [Changed] Filestore exceptions to inherit from StandardError
+- [Fixed] Filestore incorrectly indexing mounted archive folders if they haven't been processed - fixes #713 Added better reporting of Zip "mounter" errors that occur in background processes
+- [Changed] "file status" to appear at the top of a Filestore browser
+
+## [9.30.9] - 2025-10-28
+
+## [9.30.8] - 2025-10-28
+
+- [Fixed] Filestore adding .__processing__ files to index - fixes #710
+
+## [9.30.7] - 2025-10-28
+
+### From FPHS - PR #709 - 2025-10-28
+
+- [Fixed] Filestore not indexing files uploaded in a Zip with multiple levels of subdirectories - fixes #704
+- [Added] Filestore auto setup of DB stored file records that don't have a corresponding entry - resolves #70
+- [Changed] handling and display of archive / unzip errors
+- [Fixed] page jumping to top when cancelling a secure view file that can't be viewed
+- [Fixed] admin field popover error
+- [Fixed] unnecessary attempts to scroll page
+
+### From FPHS - PR #707 - 2025-10-28
+
+- [Changed] Filestore upload multi files - condensed list of uploaded files - resolves #705
+
+### From Viva - PR #703 - 2025-10-23
+
+- [Added] documentation on setting search_path directly on the database user - resolves #577
+
+### From Viva - PR #701 - 2025-10-23
+
+- [Fixed] embedded_record substitution in a placeholder doesn't work (in show mode) - it does above a reference caption - fixes #684
+
 ### From Viva - PR #700 - 2025-10-23
 
 - [Fixed] documentation for preset_fields and others that use with_results - fixes #698
