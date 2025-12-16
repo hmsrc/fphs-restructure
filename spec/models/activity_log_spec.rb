@@ -303,8 +303,14 @@ RSpec.describe 'Activity Log definition', type: :model do
       @master = @player_contact.master
       expect(@master).not_to be nil
 
-      ActiveRecord::Base.connection.execute('DROP VIEW IF EXISTS test_activity_log_views CASCADE')
-      ActiveRecord::Base.connection.execute('DROP TABLE IF EXISTS activity_log_player_contact_view_tests CASCADE')
+      # Use unique table/view names for parallel test isolation
+      # Using letter prefix to avoid validation error (no underscore before number)
+      @unique_suffix = "t#{rand(100_000_000_000_000).to_s(36)}"
+      @al_name = "activity_log_player_contact_view_tests#{@unique_suffix}"
+      @view_name = "test_activity_log_views#{@unique_suffix}"
+
+      ActiveRecord::Base.connection.execute("DROP VIEW IF EXISTS dynamic_test.#{@view_name} CASCADE")
+      ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS dynamic_test.#{@al_name} CASCADE")
 
       config = <<~ENDDEF
         step_1:
@@ -315,14 +321,14 @@ RSpec.describe 'Activity Log definition', type: :model do
             - disabled
       ENDDEF
 
-      ActivityLog.active.where(name: 'activity_log_player_contact_view_tests').each do |oal|
+      ActivityLog.active.where(name: @al_name).each do |oal|
         oal.current_admin = @admin
         oal.disable!
       end
 
       # Set up initial activity log definition
       @al_def = al_def = ActivityLog.create!(
-        name: 'activity_log_player_contact_view_tests',
+        name: @al_name,
         item_type: 'player_contact',
         process_name: 'view_test',
         schema_name: 'dynamic_test',
@@ -336,8 +342,8 @@ RSpec.describe 'Activity Log definition', type: :model do
       al_def.reload
       al_def.force_option_config_parse
 
-      setup_access :activity_log__player_contact_view_tests, resource_type: :table, access: :create, user: @user
-      setup_access :activity_log__player_contact_view_test__step_1, resource_type: :activity_log_type, access: :create, user: @user
+      setup_access "activity_log__#{@al_name}".to_sym, resource_type: :table, access: :create, user: @user
+      setup_access "activity_log__#{@al_name}__step_1".to_sym, resource_type: :activity_log_type, access: :create, user: @user
       al_def.add_master_association
 
       @al_def = al_def
@@ -349,8 +355,8 @@ RSpec.describe 'Activity Log definition', type: :model do
 
       # Create a dynamic model with a view referencing the activity log table
       @dm = DynamicModel.create!(
-        name: 'test activity log view',
-        table_name: 'test_activity_log_views',
+        name: "test activity log view #{@unique_suffix}",
+        table_name: @view_name,
         schema_name: 'dynamic_test',
         primary_key_name: :id,
         foreign_key_name: :master_id,
@@ -367,7 +373,7 @@ RSpec.describe 'Activity Log definition', type: :model do
 
       # Verify the view was created
       view_exists = ActiveRecord::Base.connection.execute(
-        "SELECT COUNT(*) FROM information_schema.views WHERE table_schema = 'dynamic_test' AND table_name = '#{@dm.table_name}'"
+        "SELECT COUNT(*) FROM information_schema.views WHERE table_schema = 'dynamic_test' AND table_name = '#{@view_name}'"
       ).first['count'].to_i > 0
       expect(view_exists).to be_truthy
 
