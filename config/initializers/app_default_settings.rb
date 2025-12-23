@@ -24,10 +24,11 @@ class DefaultSettings
   DbPrefix = 'restr'
   GlobalIdPrefix = 'fpa1'
   CaptionAcronyms = %w[IPA IPAs BHS PI PIs HMS FPHS MD RA RAs ID NFL NFLPA].freeze
-  # Rails.logger levels to use for errors logged in AppExceptionHandler
-  # Any unlisted method will default to level :error
+  # Rails.logger levels to use for errors logged in AppExceptionHandler and other modules
+  # Any unlisted method for AppExceptionHandler will default to level :error
   LogLevel = {
     routing_error_handler: :info,
-    runtime_record_not_found_handler: :info
+    runtime_record_not_found_handler: :info,
+    redcap_api: :info
   }.freeze
 end
