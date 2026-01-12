@@ -112049,19 +112049,8 @@ _fpa.postprocessors = {
       hljs.highlightBlock($(this)[0]);
     });
 
-
-    block.find('.show-in-modal').not('.attached-show-in-modal').each(function () {
-      var el = $(this).attr('data-content-el');
-      if (!el) return;
-
-      var content = $(el).html()
-      var title = $(this).attr('data-title');
-
-      $(this).on('click', function (ev) {
-        ev.preventDefault();
-        _fpa.show_modal(content, title);
-      })
-    }).addClass('attached-show-in-modal');
+    // Note: .show-in-modal[data-content-el] elements are handled by a delegated
+    // event handler in _fpa_loaded.js to ensure they work after AJAX updates.
 
   },
 
@@ -116494,6 +116483,19 @@ _fpa.loaded.preload = function () {
     ev.preventDefault();
   });
 
+  // Delegated handler for show-in-modal elements using data-content-el attribute.
+  // Using event delegation ensures this works for dynamically loaded content
+  // without requiring re-attachment after AJAX updates.
+  $(document).on('click', '.show-in-modal[data-content-el]', function (ev) {
+    ev.preventDefault();
+    var contentSelector = $(this).attr('data-content-el');
+    if (!contentSelector) return;
+
+    var content = $(contentSelector).html();
+    var title = $(this).attr('data-title');
+    _fpa.show_modal(content, title);
+  });
+
 
   window.addEventListener('focus', function () {
     // Check the session timeout
@@ -119085,7 +119087,19 @@ _fpa.utils.calc_field = function (field_name_sym, form_object_item_type_us) {
 // Pass the html as {html: '<markup>...'} so it can be updated
 // The function returns the text markdown
 _fpa.utils.html_to_markdown = function (obj) {
-  var $html = $('<div>' + obj.html + '</div>');
+  // Pre-process HTML to remove Microsoft Office namespace elements (o:p, w:*, etc.)
+  // These namespaced tags can cause parsing issues in browsers since they're not valid HTML5
+  var cleanedHtml = obj.html
+    .replace(/<o:p[^>]*>[\s\S]*?<\/o:p>/gi, '') // Remove o:p elements and their content
+    .replace(/<\/?o:[^>]*>/gi, '')  // Remove any remaining o: namespace tags
+    .replace(/<\/?w:[^>]*>/gi, '')  // Remove w: namespace tags (Word)
+    .replace(/<\/?m:[^>]*>/gi, '')  // Remove m: namespace tags (Math)
+    .replace(/<\/?v:[^>]*>/gi, ''); // Remove v: namespace tags (VML)
+
+  var $html = $('<div>' + cleanedHtml + '</div>');
+
+  // Remove dangerous/unwanted elements completely (these should not have their content preserved)
+  $html.find('script, style, meta, link, noscript, object, embed, applet').remove();
 
   $html.find('*').removeAttr('style').removeAttr('class');
 
@@ -119097,14 +119111,14 @@ _fpa.utils.html_to_markdown = function (obj) {
     .find('p p')
     .contents().unwrap();
 
+  // Remove elements not in the allowed list, but preserve their text content
+  // The allowed elements are structural/formatting elements that markdown can represent
+  const allowedTags = 'div, p, h1, h2, h3, h4, i, b, strong, em, u, li, ol, ul, table, tr, td, thead, th, tbody, code, pre, img, a, br, sup, sub';
   $html
     .find('*')
-    .not(
-      'div, p, h1, h2, h3, h4, i, b, strong, em, u, li, ol, ul, table, tr, td, thead, th, tbody, code, pre, img, a, br, sup, sub'
-    )
+    .not(allowedTags)
     .contents()
-    .unwrap()
-    .wrap('');
+    .unwrap();
 
   $html.find('*').each(function () {
     if ($(this)[0].tagName === 'PRE' || $(this)[0].tagName === 'CODE') return;
@@ -119213,17 +119227,21 @@ _fpa.utils.html_to_markdown = function (obj) {
     $(this).find('p, h1, h2, h3, h4').contents().unwrap().append('<br/>');
   });
 
+  // Remove truly empty elements (elements with no meaningful content)
+  // Do this twice to handle nested empty elements
   for (let i = 0; i < 2; i++) {
-    $html.find('p, h1, h2, h3, h4, span').has(':empty').each(
+    $html.find('div, p, h1, h2, h3, h4, span, u, b, i, em, strong').each(
       function () {
-        if ($(this).find('img, hr').length == 0) {
-          $(this).addClass('cleanup-remove');
+        const $el = $(this);
+        // Check if this element itself is empty (no text content, ignoring whitespace)
+        // Also check it doesn't contain images or hr
+        if ($el.text().trim() === '' && $el.find('img, hr').length === 0) {
+          $el.addClass('cleanup-remove');
         }
       }
     );
+    $html.find('.cleanup-remove').remove();
   }
-
-  $html.find('.cleanup-remove').remove();
 
   obj.html = $html.html();
 
