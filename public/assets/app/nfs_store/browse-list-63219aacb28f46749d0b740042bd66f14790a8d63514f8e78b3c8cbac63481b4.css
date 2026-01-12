@@ -1,0 +1,216 @@
+.browse-move-to-folders {
+  max-height: 50vh;
+  height: 200px;
+  overflow: auto;
+  border: solid 1px rgb(228, 228, 228);
+  margin-bottom: 8px;
+}
+
+.container-list-items input[type=checkbox],
+.browse-move-to-folders input[type=checkbox] {
+  cursor: pointer;
+  vertical-align: top;
+}
+.container-list-items input.container-new-folder-name,
+.browse-move-to-folders input.container-new-folder-name {
+  font-weight: normal;
+}
+.container-list-items a.container-add,
+.browse-move-to-folders a.container-add {
+  margin-left: 1em;
+}
+.container-list-items .glyphicon-folder-close,
+.container-list-items .glyphicon-folder-open,
+.browse-move-to-folders .glyphicon-folder-close,
+.browse-move-to-folders .glyphicon-folder-open {
+  cursor: pointer;
+  vertical-align: baseline;
+  color: #cf9c13;
+}
+.container-list-items .glyphicon-info-sign,
+.browse-move-to-folders .glyphicon-info-sign {
+  color: gray;
+}
+.container-list-items .root-folder .glyphicon-folder-close,
+.container-list-items .root-folder .glyphicon-folder-open,
+.browse-move-to-folders .root-folder .glyphicon-folder-close,
+.browse-move-to-folders .root-folder .glyphicon-folder-open {
+  color: #3db553;
+}
+.container-list-items,
+.container-list-items ul,
+.browse-move-to-folders,
+.browse-move-to-folders ul {
+  list-style-type: none;
+  padding-left: 1.5em;
+}
+.container-list-items li,
+.container-list-items ul li,
+.browse-move-to-folders li,
+.browse-move-to-folders ul li {
+  list-style-type: none;
+  white-space: nowrap;
+}
+.container-list-items .container-entry,
+.browse-move-to-folders .container-entry {
+  white-space: nowrap;
+}
+.container-list-items .container-entry.checked,
+.browse-move-to-folders .container-entry.checked {
+  font-weight: bold;
+}
+.container-list-items .container-folder.checked,
+.browse-move-to-folders .container-folder.checked {
+  font-weight: bold;
+}
+.container-list-items .container-folder .file-archive-tag,
+.browse-move-to-folders .container-folder .file-archive-tag {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-list-items .container-entry .file-processing-tag,
+.browse-move-to-folders .container-entry .file-processing-tag {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-list-items .container-entry .file-entry-not-downloadable-reason,
+.browse-move-to-folders .container-entry .file-entry-not-downloadable-reason {
+  font-style: italic;
+  color: gray;
+  padding-left: 0.6em;
+}
+.container-list-items .container-list-file-count,
+.browse-move-to-folders .container-list-file-count {
+  font-style: italic;
+  color: gray;
+}
+
+.container-browser {
+  display: block;
+  position: relative;
+  max-height: 60vh;
+  min-height: 50px;
+  overflow: auto;
+  margin-bottom: 10px;
+  border: 1px solid silver;
+  border-radius: 3px;
+  padding: 10px;
+}
+
+.container-browser.ajax-running .container-list-items,
+.container-browser.ajax-running .no-container-list-items {
+  filter: blur(2px);
+}
+.container-browser.ajax-running.ajax-running form.new_download {
+  overflow: hidden;
+}
+
+.container-entry:hover {
+  background-color: rgb(251, 254, 177);
+}
+.container-entry:hover .browse-filename {
+  background-color: rgba(251, 254, 177, 0.8);
+}
+.container-entry .browse-filename {
+  position: absolute;
+  z-index: 10;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding-left: 0.5em;
+  padding-right: 1em;
+}
+.container-entry .browse-filename:hover {
+  background-color: rgba(251, 254, 177, 0.8);
+}
+.container-entry .browse-entry-meta:hover {
+  background-color: rgba(251, 254, 177, 0.8);
+  z-index: 100;
+}
+.container-entry .browse-entry-meta,
+.container-entry .browse-entry-classifications {
+  color: rgb(128, 128, 128);
+  font-size: 93%;
+  margin-left: 0.7em;
+  z-index: 0;
+  position: absolute;
+  right: 0;
+  padding-right: 0.4em;
+}
+.container-entry .browse-entry-meta span,
+.container-entry .browse-entry-classifications span {
+  margin-left: 1em;
+}
+.container-entry .browse-entry-classifications .bem-meta-link {
+  text-decoration: none;
+}
+.container-entry .browse-entry-classifications .bem-meta-link:hover {
+  text-decoration: none;
+}
+.container-entry .browse-entry-meta .bem-mod-date {
+  min-width: 150px;
+  display: inline-block;
+  text-align: right;
+}
+
+.container-browser.browser-hide-meta .browse-entry-meta {
+  display: none;
+}
+
+.container-browser.browser-hide-classifications .browse-entry-classifications {
+  display: none;
+}
+
+.container-browser .is-file-status-folder,
+.container-browser .is-file-status-folder-items {
+  background: #ededed;
+  padding: 4px;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .container-entry {
+  word-wrap: normal;
+  white-space: normal;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .file-entry-not-downloadable {
+  display: none;
+}
+.container-browser .container-folder-items.is-file-status-folder-items .browse-filename {
+  background: transparent;
+  position: relative;
+}
+
+.container-meta-controls {
+  text-align: right;
+  padding-right: 1em;
+}
+.container-meta-controls input[type=radio] {
+  vertical-align: text-bottom;
+}
+.container-meta-controls .show-label {
+  color: gray;
+  font-style: italic;
+  padding-right: 0.6em;
+}
+
+.nfs-store-valid-files.panel {
+  background: rgb(243, 243, 243);
+  padding-left: 16px;
+  border-bottom: 1px solid rgb(221, 221, 221);
+  border-top: 1px solid rgb(221, 221, 221);
+  padding-top: 1px;
+  margin: 12px -10px -11px;
+}
+.nfs-store-valid-files.panel .panel-header {
+  font-size: 95%;
+  font-style: italic;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+}
+.nfs-store-valid-files.panel ul {
+  padding-left: 2em;
+  margin: 0.4em;
+}
+.nfs-store-valid-files.panel li {
+  font-family: monospace;
+  font-size: 12px;
+  list-style: none;
+}
