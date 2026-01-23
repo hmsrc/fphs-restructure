@@ -18,13 +18,11 @@
   border-top: 1px solid silver;
 }
 
-ul.activity-list,
-ul.admin-tag-list {
+ul.activity-list {
   padding-left: 0;
   text-align: left;
 }
-ul.activity-list li,
-ul.admin-tag-list li {
+ul.activity-list li {
   padding: 3px 5px;
   border: 1px solid silver;
   border-radius: 3px;
@@ -36,26 +34,27 @@ ul.admin-tag-list li {
   font-family: monospace;
   font-size: 12px;
 }
-ul.activity-list ul.activity-list-activity-references li,
-ul.admin-tag-list ul.activity-list-activity-references li {
+ul.activity-list ul.activity-list-activity-references li {
   border: 0;
   display: block;
 }
-ul.activity-list ul.activity-list-activity-references li em.al-ref-this,
-ul.admin-tag-list ul.activity-list-activity-references li em.al-ref-this {
+ul.activity-list ul.activity-list-activity-references li em.al-ref-this {
   color: gray;
 }
-ul.activity-list li.activity-list-name,
-ul.admin-tag-list li.activity-list-name {
+ul.activity-list li.activity-list-name {
   background-color: rgb(221, 221, 221);
 }
-ul.activity-list li.activity-list-name:hover,
-ul.admin-tag-list li.activity-list-name:hover {
+ul.activity-list li.activity-list-name:hover {
   cursor: pointer;
 }
-ul.activity-list li.activity-list-name.al-name-selected,
-ul.admin-tag-list li.activity-list-name.al-name-selected {
+ul.activity-list li.activity-list-name.al-name-selected {
   background-color: #f4f498 !important;
+}
+ul.activity-list ul.common-def-panel--uacs {
+  padding-left: revert;
+}
+ul.activity-list ul.common-def-panel--uacs:before {
+  content: "access";
 }
 
 ul.activity-list li.activity-list-name {
@@ -89,22 +88,11 @@ ul.activity-list ul.activity-list-activity-embed:before {
 ul.activity-list ul.activity-list-activity-references:before {
   content: "references";
 }
-ul.activity-list ul.activity-list-activity-uacs:before {
-  content: "access";
-}
-ul.activity-list ul.activity-list-activity-uacs span.activity-log-access-type {
-  font-style: italic;
-  padding: 0 10px 0 20px;
-}
 
 span.activity-list-name {
   color: black;
 }
 span.activity-list-name:hover {
-  cursor: pointer;
-}
-
-.admin-tag-list.selectable li:hover {
   cursor: pointer;
 }
 

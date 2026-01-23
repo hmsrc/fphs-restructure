@@ -97,6 +97,9 @@ ul.admin-options-tag-list li {
 .admin-form-block-outer {
   display: flex;
 }
+.admin-form-block-outer .block-within-flex {
+  overflow: hidden;
+}
 
 @media only screen and (max-width: 600px) {
   .admin-form-block-outer {

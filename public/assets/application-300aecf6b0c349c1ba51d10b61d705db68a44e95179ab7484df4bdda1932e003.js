@@ -111556,8 +111556,8 @@ _fpa = {
     })
 
     if (modal_index) {
-      // Hide a previously shown modal back
-      $('.modal.in').removeClass('in').addClass('was-in');
+      // Hide a previously shown modal back, but not the one we're currently showing
+      $('.modal.in').not(pm).removeClass('in').addClass('was-in');
 
       pm.on('click.dismiss.bs.modal', `[data-dismiss="modal${modal_index}"]`, function () {
         _fpa.hide_modal(modal_index);
@@ -112133,6 +112133,7 @@ _fpa.postprocessors = {
       .click(function (ev) {
         ev.preventDefault();
         var id = $(this).attr('data-target');
+
         $(id).on('shown.bs.collapse', function () {
           $('.selected-result').removeClass('selected-result');
 
@@ -113119,33 +113120,72 @@ _fpa.postprocessors_reports = {
     $('#modal_results_block').prop('id', 'modal_results_block_1')
   },
 
+  /**
+   * Postprocessor for embedded dynamic block links in reports.
+   * Opens a modal dialog displaying a dynamic model or activity log record.
+   * 
+   * Supports two modes:
+   * - Show mode: Displays the record in read-only view
+   * - Edit mode: Opens the edit form directly (GitHub #325)
+   *   When data-edit-mode="true", clicks the edit button and closes modal on save
+   */
   report_embed_dynamic_block: function (block, data) {
-    var us_name = block.attr('data-model-name')
-    var hyph_name = us_name.hyphenate()
-    var id = block.attr('data-id')
-    var master_id = block.attr('data-master-id')
-    var target_block = "report-result-embedded-block"
-    var html = $(`<div id="${target_block}-outer"><div id="${target_block}" class="common-template-item index-1" data-model-data-type="dynamic_model" data-subscription="${hyph_name}-edit-form-${master_id}-${id}" data-template="${hyph_name}-result-template" data-item-class="dynamic_model__${us_name}" data-sub-item="dynamic_model__${us_name}" data-sub-id="${id}" data-item-id="" data-preprocessor="${us_name}_edit_form"></div></div>`)
-    if ($(block).contents().length == 0) {
+    var modelName = block.attr('data-model-name');
+    var hyphenatedName = modelName.hyphenate();
+    var recordId = block.attr('data-id');
+    var masterId = block.attr('data-master-id');
+    var isEditMode = block.attr('data-edit-mode') === 'true';
+    var targetBlockId = 'report-result-embedded-block';
+
+    // Build the modal content container
+    var modalContent = $(`<div id="${targetBlockId}-outer"><div id="${targetBlockId}" class="common-template-item index-1" data-model-data-type="dynamic_model" data-subscription="${hyphenatedName}-edit-form-${masterId}-${recordId}" data-template="${hyphenatedName}-result-template" data-item-class="dynamic_model__${modelName}" data-sub-item="dynamic_model__${modelName}" data-sub-id="${recordId}" data-item-id="" data-preprocessor="${modelName}_edit_form"></div></div>`);
+
+    // If no content was loaded via AJAX, hide the modal and return
+    if ($(block).contents().length === 0) {
       _fpa.hide_modal(1);
       return;
     }
-    block.removeClass('sv-added-setup-links')
-    _fpa.show_modal(html, null, true, 'embedded-dynamic-block', 1)
+
+    block.removeClass('sv-added-setup-links');
+    _fpa.show_modal(modalContent, null, true, 'embedded-dynamic-block', 1);
+
+    // Move content into modal and set up handlers
     window.setTimeout(function () {
-      $(block).contents().appendTo(`#${target_block}`)
+      $(block).contents().appendTo(`#${targetBlockId}`);
       $(block).html('');
+
       window.setTimeout(function () {
-        const $target_block = $(`#${target_block}`);
-        _fpa.form_utils.resize_labels($target_block, null, true)
+        const $targetBlock = $(`#${targetBlockId}`);
+        _fpa.form_utils.resize_labels($targetBlock, null, true);
 
-        // Ensure that the viewer is set up with the user's capabilities to view and download
-        var sv_opt = { allow_actions: null };
-        sv_opt.allow_actions = _fpa.state.user_can;
+        // Set up secure view links with user capabilities
+        var secureViewOptions = { allow_actions: _fpa.state.user_can };
+        _fpa.secure_view.setup_links($targetBlock, 'a.redcap-file-use-secure-view', secureViewOptions);
 
-        _fpa.secure_view.setup_links($target_block, 'a.redcap-file-use-secure-view', sv_opt);
+        // Handle edit mode: click edit button and set up save handler
+        if (isEditMode) {
+          _fpa.postprocessors_reports.setup_edit_mode($targetBlock);
+        }
       }, 500);
     }, 500);
+  },
+
+  /**
+   * Sets up edit mode behavior for an embedded block.
+   * Clicks the edit button to open the form and closes modal on successful save.
+   */
+  setup_edit_mode: function ($targetBlock) {
+    var editButton = $targetBlock.find('.edit-entity.glyphicon-pencil').first();
+    if (editButton.length) {
+      editButton.click();
+    }
+
+    // Close modal after successful form save
+    $targetBlock.on('ajax:success', 'form', function () {
+      window.setTimeout(function () {
+        _fpa.hide_modal(1);
+      }, 300);
+    });
   },
 
   reports_form: function (block, data) {
@@ -116081,36 +116121,42 @@ _fpa.form_utils = {
       $outer = $inner;
     }
 
-    window.setTimeout(function () {
-      var heights = [];
-      var cols = $outer.find('.sublist-column');
-      if (cols.length === 0) return;
+    // Process each reorder-sublist-columns container individually to avoid
+    // moving columns between different containers (fixes issue #857)
+    $outer.each(function () {
+      const $container = $(this);
+      window.setTimeout(function () {
+        var heights = [];
+        var cols = $container.find('.sublist-column');
+        if (cols.length === 0) return;
 
-      cols.each(function () {
-        var h = $(this).height();
-        if ($(this).find('[data-sub-item]').length === 0) {
-          // No items in the column
-          h = 0;
+        cols.each(function () {
+          var h = $(this).height();
+          if ($(this).find('[data-sub-item]').length === 0) {
+            // No items in the column
+            h = 0;
+          }
+          heights.push([$(this), h]);
+        });
+
+        heights.sort(function (a, b) {
+          return b[1] - a[1]
+        });
+
+        var prev = null;
+        for (var key in heights) {
+          if (!heights.hasOwnProperty(key)) continue;
+
+          // Use the jQuery element directly instead of looking up by ID
+          // This prevents selecting wrong elements when duplicate IDs exist
+          var $col = heights[key][0];
+          if (prev) {
+            prev.after($col);
+          }
+          prev = $col;
         }
-        heights.push([$(this).prop('id'), h]);
-      });
-
-      heights.sort(function (a, b) {
-        return b[1] - a[1]
-      });
-
-      var prev = null;
-      for (var key in heights) {
-        if (!heights.hasOwnProperty(key)) continue;
-
-        var id = heights[key][0];
-        var $col = $(`#${id}`);
-        if (prev) {
-          prev.after($col);
-        }
-        prev = $col;
-      }
-    }, 200)
+      }, 200)
+    });
 
   },
 
@@ -119830,13 +119876,15 @@ _fpa.e_signature = class {
       if (!right) right = '';
       right = right.split(',');
     }
-    return right.indexOf(left) !== -1;
+    // Convert left to string for comparison to handle number/string mismatches
+    return right.indexOf(String(left)) !== -1;
   });
   eR.add('!in', function (left, right) {
     if (!isArray(right)) {
       right = right.split(',');
     }
-    return right.indexOf(left) === -1;
+    // Convert left to string for comparison to handle number/string mismatches
+    return right.indexOf(String(left)) === -1;
   });
   eR.add('includes', function (left, right) {
     return includes(left, right);
@@ -120590,20 +120638,35 @@ _fpa.masters = {
     max_results: 100,
 
     switch_id_on_click: function (block) {
-        block.find('.switch_id').not('attached-switch-click').click(function (ev) {
+        block.find('.switch_id').not('.attached-switch-click').click(function (ev) {
             ev.preventDefault();
             var p = $(this).parent();
-            var alt_id = p.find('span.alt_id');
-            var master_id = p.find('span.master_id');
-            if (alt_id.is(':visible')) {
-                alt_id.hide();
-                master_id.show();
-                $(this).attr('title', 'switch to Master ID');
-            } else {
-                master_id.hide();
-                alt_id.show();
-                $(this).attr('title', 'switch to alternative ID');
-            }
+            var id_items = p.find('span.alt-id-item');
+
+            if (id_items.length <= 1) return;
+
+            // Find the currently visible item
+            var visible_index = -1;
+            id_items.each(function (i) {
+                if ($(this).is(':visible')) {
+                    visible_index = i;
+                    return false;
+                }
+            });
+
+            // Hide all items
+            id_items.hide();
+
+            // Show the next item (cycling back to first)
+            var next_index = (visible_index + 1) % id_items.length;
+            var next_item = id_items.eq(next_index);
+            next_item.show();
+
+            // Update the switch icon title to indicate the next ID to switch to
+            var after_next_index = (next_index + 1) % id_items.length;
+            var after_next_item = id_items.eq(after_next_index);
+            var next_title = after_next_item.data('idLabel') || 'alternative ID';
+            $(this).attr('title', 'switch to ' + next_title);
         }).addClass('attached-switch-click');
     },
 
