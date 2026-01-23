@@ -1,0 +1,384 @@
+.import-edit-container,
+.import-table-container,
+.report-results-block {
+  margin: 30px 30px 0 30px;
+}
+
+.import-edit-container {
+  overflow: auto;
+  max-height: 50vh;
+}
+.import-edit-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgb(238, 238, 238);
+}
+.import-edit-container thead th:hover {
+  cursor: pointer;
+}
+
+.import-edit-form,
+.report-results-inner {
+  width: auto;
+  background-color: white;
+}
+
+.report-results-table-block {
+  height: calc(100vh - 50px);
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
+
+.embedded-report-block .report-results-table-block, .tag-embedded-report .report-results-table-block {
+  height: auto;
+  overflow: auto;
+}
+.embedded-report-block .report-results-block, .tag-embedded-report .report-results-block {
+  margin: 0;
+}
+
+#embed_results_block .import-edit-form,
+#embed_results_block .report-results-inner {
+  height: auto;
+}
+#embed_results_block .report-results-table-block {
+  height: 73vh;
+}
+
+#import-container.hide-blank-rows tr.blank-row,
+.report-container.hide-blank-rows tr.blank-row {
+  display: none;
+}
+#import-container.hide-blank-rows tr.next-blank-row,
+.report-container.hide-blank-rows tr.next-blank-row {
+  display: table-row;
+}
+#import-container.hide-blank-rows tr.final-blank-row,
+.report-container.hide-blank-rows tr.final-blank-row {
+  display: none;
+}
+#import-container.hide-blank-rows .bottom-tab.hide-blank-rows,
+.report-container.hide-blank-rows .bottom-tab.hide-blank-rows {
+  display: none;
+}
+#import-container.hide-blank-rows .bottom-tab.show-blank-rows,
+.report-container.hide-blank-rows .bottom-tab.show-blank-rows {
+  display: inline-block;
+}
+
+table.table.report-table {
+  margin: 0 auto;
+}
+
+table.import-grid tr.report-item-edit td,
+table.table.report-table tr.report-item-edit td {
+  background-color: rgb(255, 255, 200);
+  font-size: var(--table-font-size);
+}
+table.import-grid tr.report-item-edit td .input-sm,
+table.table.report-table tr.report-item-edit td .input-sm {
+  font-size: var(--table-font-size);
+  padding-top: 8px;
+}
+table.import-grid tr.report-item-edit td.report-el-disabled,
+table.table.report-table tr.report-item-edit td.report-el-disabled {
+  background-color: #eee;
+}
+table.import-grid td select,
+table.table.report-table td select {
+  line-height: normal;
+}
+
+table.import-grid th,
+table.import-grid td.table-header,
+table.import-grid thead th.tablesorter-header,
+table.table.report-table th,
+table.table.report-table td.table-header,
+table.table.report-table thead th.tablesorter-header {
+  padding: 6px 8px 10px 8px;
+  border: 1px solid silver;
+  background-color: #eee;
+  vertical-align: top;
+}
+table.import-grid th[aria-sort=descending], table.import-grid th[aria-sort=ascending],
+table.import-grid td.table-header[aria-sort=descending],
+table.import-grid td.table-header[aria-sort=ascending],
+table.import-grid thead th.tablesorter-header[aria-sort=descending],
+table.import-grid thead th.tablesorter-header[aria-sort=ascending],
+table.table.report-table th[aria-sort=descending],
+table.table.report-table th[aria-sort=ascending],
+table.table.report-table td.table-header[aria-sort=descending],
+table.table.report-table td.table-header[aria-sort=ascending],
+table.table.report-table thead th.tablesorter-header[aria-sort=descending],
+table.table.report-table thead th.tablesorter-header[aria-sort=ascending] {
+  background-color: #ffb;
+}
+table.import-grid td,
+table.table.report-table td {
+  padding: 0 0 0 4px;
+  border: 1px solid silver;
+  background-color: white;
+  line-height: normal;
+  font-size: var(--table-font-size);
+}
+table.import-grid td.report-el-edit-type-boolean,
+table.table.report-table td.report-el-edit-type-boolean {
+  text-align: center;
+  line-height: 100%;
+  vertical-align: middle;
+}
+table.import-grid td.report-el-was-from-new,
+table.table.report-table td.report-el-was-from-new {
+  display: none;
+}
+table.import-grid td input.form-control,
+table.import-grid td select.form-control,
+table.table.report-table td input.form-control,
+table.table.report-table td select.form-control {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  width: 100%;
+  min-width: 100px;
+  padding-right: 4px;
+  background-image: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+table.import-grid td input.form-control[type=checkbox],
+table.import-grid td select.form-control[type=checkbox],
+table.table.report-table td input.form-control[type=checkbox],
+table.table.report-table td select.form-control[type=checkbox] {
+  min-width: 1em;
+}
+table.import-grid td select.form-control,
+table.table.report-table td select.form-control {
+  width: 100%;
+}
+table.import-grid td textarea.form-control,
+table.table.report-table td textarea.form-control {
+  height: 2em;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  font-size: var(--table-font-size);
+  padding: 2px 2px;
+  min-width: 200px;
+  width: 97%;
+}
+table.import-grid td input[type=checkbox],
+table.table.report-table td input[type=checkbox] {
+  border: 1px solid silver;
+  -moz-appearance: checkbox;
+  -webkit-appearance: checkbox;
+  box-sizing: border-box;
+  padding: 0;
+  line-height: normal;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+  color: #444;
+}
+table.import-grid .edit-entity,
+table.table.report-table .edit-entity {
+  margin: 0;
+}
+table.import-grid select.form-control.has-value,
+table.import-grid input.form-control.has-value,
+table.table.report-table select.form-control.has-value,
+table.table.report-table input.form-control.has-value {
+  background-color: white !important;
+  background-image: none;
+}
+table.import-grid select.form-control.has-value,
+table.table.report-table select.form-control.has-value {
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+table.import-grid .import-link-item,
+table.table.report-table .import-link-item {
+  position: relative;
+  margin-bottom: -2em;
+  margin-top: 0.4em;
+}
+table.import-grid tr:hover,
+table.table.report-table tr:hover {
+  background-color: #ffd;
+}
+table.import-grid tr:hover td,
+table.table.report-table tr:hover td {
+  background-color: #ffd;
+}
+table.import-grid tr.item-invalid .form-control,
+table.table.report-table tr.item-invalid .form-control {
+  color: red !important;
+}
+table.import-grid td.row-num,
+table.table.report-table td.row-num {
+  background-color: #e6e6e6;
+  font-size: var(--table-font-size);
+  padding-right: 4px;
+  text-align: center;
+}
+table.import-grid .report-el,
+table.table.report-table .report-el {
+  padding: 8px 8px;
+}
+table.import-grid .report-item-edit .report-el-edit-cell,
+table.table.report-table .report-item-edit .report-el-edit-cell {
+  padding: 0px 4px;
+}
+table.import-grid .report-item-edit .report-el-edit-id-field-cell,
+table.table.report-table .report-item-edit .report-el-edit-id-field-cell {
+  padding: 8px 6px;
+}
+table.import-grid .report-el.report-el-object-id,
+table.table.report-table .report-el.report-el-object-id {
+  padding: 8px 6px;
+}
+table.import-grid .report-edit-btn-cell,
+table.table.report-table .report-edit-btn-cell {
+  padding: 4px 6px;
+  min-width: 60px;
+}
+table.import-grid .report-edit-btn-cell.report-edit-btn-cell-editing,
+table.table.report-table .report-edit-btn-cell.report-edit-btn-cell-editing {
+  padding: 4px 4px;
+}
+table.import-grid .report-edit-btn-cell.report-edit-btn-cell-editing a.btn,
+table.table.report-table .report-edit-btn-cell.report-edit-btn-cell-editing a.btn {
+  top: 0;
+}
+table.import-grid p.table-header-col-type,
+table.table.report-table p.table-header-col-type {
+  font-weight: normal;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+}
+table.import-grid ul.report-result-cell-tags,
+table.table.report-table ul.report-result-cell-tags {
+  display: block;
+  list-style-type: none;
+  margin-block-start: 0;
+  margin-block-end: 0;
+  margin-inline-start: 0px;
+  margin-inline-end: 0px;
+  padding-inline-start: 0px;
+}
+table.import-grid li.report-result-cell-tags,
+table.table.report-table li.report-result-cell-tags {
+  list-style: none;
+  display: inline-block;
+  background: rgb(225, 225, 225);
+  padding: 3px 5px;
+  border-radius: 3px;
+  border: 1px solid rgb(192, 192, 192);
+  font-size: 90%;
+  margin-right: 4px;
+  line-height: 1em;
+  margin-bottom: 4px;
+}
+
+.transposed-table table.table.report-table td {
+  vertical-align: middle;
+}
+.transposed-table table.table.report-table td.table-header {
+  font-weight: 700;
+  font-size: 14px;
+}
+.transposed-table table.table.report-table td.table-header p.table-header-col-type {
+  margin: 5px 0;
+}
+
+fieldset[disabled] .form-control {
+  background-color: inherit;
+  cursor: default;
+}
+fieldset[disabled] h3,
+fieldset[disabled] h4 {
+  color: gray;
+}
+
+p.field-names {
+  font-weight: bold;
+  margin-bottom: 4px;
+  margin-top: 16px;
+}
+
+table.table.tablesorter > thead > tr > th.no-sort.tablesorter-header:after {
+  display: none;
+}
+
+table th.edit-button-column {
+  width: 80px;
+}
+
+table.table.report-table pre {
+  position: relative;
+  background-color: transparent;
+  border: 0;
+}
+table.table.report-table pre.expandable {
+  border-bottom: 2px dotted gray;
+}
+table.table.report-table pre.expanded {
+  border-bottom: 0;
+}
+table.table.report-table markdown {
+  margin: 1em 0;
+  display: block;
+}
+table.table.report-table ul.report-inner-hash {
+  list-style: none;
+}
+table.table.report-table .expandable {
+  max-height: 100px;
+  padding-bottom: 20px;
+  margin-bottom: 26px;
+  display: block;
+  overflow: hidden;
+  border-bottom: 2px dotted gray;
+}
+table.table.report-table .expandable:hover {
+  cursor: s-resize;
+}
+table.table.report-table .expandable:after {
+  content: "(click to expand)";
+  font-size: 90%;
+  font-weight: normal;
+  font-style: italic;
+  display: block;
+  padding-top: 0;
+  color: rgb(128, 128, 128);
+  position: absolute;
+  top: 76px;
+  right: 0;
+  background: rgb(245, 245, 245);
+  margin-bottom: -20px;
+}
+table.table.report-table .expanded {
+  max-height: none;
+  border-bottom: 0;
+}
+table.table.report-table .expanded:hover {
+  cursor: n-resize;
+}
+table.table.report-table .expanded:after {
+  display: none;
+}
+table.table.report-table pre.shrinkable-block.expandable {
+  max-width: 1300px;
+}
+
+.tablesorter-header-inner:hover {
+  max-height: none;
+  overflow: initial;
+}
+
+.tablesorter-header-inner {
+  max-height: 180px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
