@@ -40,7 +40,7 @@ module FeatureSupport
   def js_console_log
     nil unless ENV['DEBUG_JS'] == 'true'
 
-    # puts page.driver.browser.logs.get(:browser).select { |l| l.start_with?('console.') }.join("\n")
+    # puts_debug_plain page.driver.browser.logs.get(:browser).select { |l| l.start_with?('console.') }.join("\n")
   end
 
   def login
@@ -817,9 +817,111 @@ module FeatureSupport
     puts "[FeatureSupport DEBUG] #{msg}" if ENV['FEATURE_DEBUG'] == 'true' || force
   end
 
+  def puts_debug_plain(msg, force: false)
+    puts msg if ENV['FEATURE_DEBUG'] == 'true' || force
+  end
+
   def save_html_snapshot(filename)
     File.write(filename, page.html)
     puts_debug "Saved HTML snapshot to #{filename}"
+  end
+
+  #
+  # Set up browser console log capture. Call this AFTER initial page load but BEFORE
+  # navigating to the page you want to debug. Captures console.log, console.error,
+  # console.warn, and CSP violation events.
+  #
+  # Usage:
+  #   visit '/some/page'
+  #   setup_browser_console_capture
+  #   visit '/page/to/debug'  # Console capture active for this navigation
+  #   finish_page_loading
+  #   print_browser_console_logs('After visiting debug page')
+  #
+  def setup_browser_console_capture
+    page.execute_script(<<~JS)
+      window.browserLogs = [];
+      window.cspViolations = [];
+      if (!window._consoleIntercepted) {
+        window._consoleIntercepted = true;
+        var origLog = console.log;
+        var origError = console.error;
+        var origWarn = console.warn;
+        console.log = function() {
+          window.browserLogs.push('LOG: ' + Array.from(arguments).join(' '));
+          origLog.apply(console, arguments);
+        };
+        console.error = function() {
+          window.browserLogs.push('ERROR: ' + Array.from(arguments).join(' '));
+          origError.apply(console, arguments);
+        };
+        console.warn = function() {
+          window.browserLogs.push('WARN: ' + Array.from(arguments).join(' '));
+          origWarn.apply(console, arguments);
+        };
+
+        // Listen for CSP violation events
+        document.addEventListener('securitypolicyviolation', function(e) {
+          var violation = {
+            blockedURI: e.blockedURI,
+            violatedDirective: e.violatedDirective,
+            sourceFile: e.sourceFile,
+            lineNumber: e.lineNumber,
+            columnNumber: e.columnNumber,
+            sample: e.sample
+          };
+          window.cspViolations.push(violation);
+          window.browserLogs.push('CSP VIOLATION: ' + e.violatedDirective +
+            ' - blocked: ' + e.blockedURI +
+            ' at ' + e.sourceFile + ':' + e.lineNumber + ':' + e.columnNumber +
+            ' sample: ' + e.sample);
+        });
+      }
+    JS
+  end
+
+  #
+  # Retrieve and print captured browser console logs. Call after setup_browser_console_capture
+  # and after performing the actions you want to debug.
+  #
+  # @param context [String] Description of what was being tested (for output header)
+  # @return [Hash] { logs: Array, csp_violations: Array }
+  #
+  def print_browser_console_logs(context = 'Browser Console')
+    logs = page.evaluate_script('window.browserLogs || []')
+    violations = page.evaluate_script('window.cspViolations || []')
+
+    puts_debug "\n#{'=' * 80}"
+    puts_debug "CONTEXT: #{context}"
+    puts_debug '-' * 80
+    puts_debug "BROWSER CONSOLE LOGS (#{logs.length} entries):"
+    logs.each { |log| puts_debug "  #{log}" }
+
+    if violations.any?
+      puts_debug "\nCSP VIOLATIONS CAPTURED (#{violations.length}):"
+      violations.each_with_index do |v, i|
+        puts_debug "  Violation ##{i + 1}:"
+        puts_debug "    Directive: #{v['violatedDirective']}"
+        puts_debug "    Blocked URI: #{v['blockedURI']}"
+        puts_debug "    Source: #{v['sourceFile']}:#{v['lineNumber']}:#{v['columnNumber']}"
+        puts_debug "    Sample: #{v['sample']}"
+      end
+    else
+      puts_debug "\nNo CSP violations captured"
+    end
+    puts_debug '=' * 80
+
+    { logs:, csp_violations: violations }
+  end
+
+  #
+  # Get captured browser console logs without printing.
+  # @return [Hash] { logs: Array, csp_violations: Array }
+  #
+  def get_browser_console_logs
+    logs = page.evaluate_script('window.browserLogs || []')
+    violations = page.evaluate_script('window.cspViolations || []')
+    { logs:, csp_violations: violations }
   end
 
   # Click a tab in the top report tabs bar
@@ -908,9 +1010,9 @@ module FeatureSupport
       res_html = res_html.gsub("\r", '').gsub(/\n\n+/, "\n")
       res_md = res_html.html_to_markdown
       puts_debug 'Caption for user:'
-      puts '---'
-      puts res_md
-      puts '---'
+      puts_debug_plain '---'
+      puts_debug_plain res_md
+      puts_debug_plain '---'
       results[field_name] = res_md
     end
     results
@@ -937,8 +1039,8 @@ module FeatureSupport
       res[:is_active] = (tab['aria-expanded'] == 'true')
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -983,8 +1085,8 @@ module FeatureSupport
       res[:is_in_show_mode] = true
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -1000,8 +1102,8 @@ module FeatureSupport
       res[:visible] = f.visible?
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -1018,8 +1120,8 @@ module FeatureSupport
       res[:data_target] = mr_action['data-target']
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -1047,8 +1149,8 @@ module FeatureSupport
       end
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -1066,8 +1168,8 @@ module FeatureSupport
 
     if results.present?
       puts_debug '⚠️  Form validation errors:'
-      puts String.yaml_dump(results)
-      puts '---'
+      puts_debug_plain String.yaml_dump(results)
+      puts_debug_plain '---'
     else
       puts_debug 'Form validation errors: none'
     end
@@ -1078,9 +1180,9 @@ module FeatureSupport
   end
 
   def puts_highlighted(text)
-    puts "\n#{'=' * 80}"
-    puts text
-    puts "#{'=' * 80}\n"
+    puts_debug_plain "\n#{'=' * 80}"
+    puts_debug_plain text
+    puts_debug_plain "#{'=' * 80}\n"
   end
 
   def puts_error_page
@@ -1090,8 +1192,8 @@ module FeatureSupport
       return
     end
     puts_debug '⚠️  Error page message:'
-    puts epb.html.html_to_markdown
-    puts '---'
+    puts_debug_plain epb.html.html_to_markdown
+    puts_debug_plain '---'
   end
 
   def puts_alerts
@@ -1108,8 +1210,8 @@ module FeatureSupport
       res[:body] = m.all('.modal-body').first&.text
       results << res
     end
-    puts String.yaml_dump(results)
-    puts '---'
+    puts_debug_plain String.yaml_dump(results)
+    puts_debug_plain '---'
     results
   end
 
@@ -1135,8 +1237,8 @@ module FeatureSupport
     page.save_screenshot(filepath)
 
     # Log the screenshot
-    puts "[Screenshot] #{name}: #{filepath}"
-    puts "[Screenshot] #{description}" if description
+    puts_debug_plain "[Screenshot] #{name}: #{filepath}"
+    puts_debug_plain "[Screenshot] #{description}" if description
 
     # Return relative path for documentation
     filepath.to_s
