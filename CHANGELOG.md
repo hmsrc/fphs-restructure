@@ -14,6 +14,10 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+### PR #872
+
+- [Fixed] Switchable ID on participant header now shows first non-"(none)" ID - fixes #872
+
 ## [9.42.2] - 2026-01-23
 
 ### From FPHS - PR #870 - 2026-01-23
