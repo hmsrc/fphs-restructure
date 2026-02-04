@@ -9,6 +9,8 @@ applyTo: 'spec/system/**'
 
 System specs are located in `spec/system/`. Follow Best Practices and Development Patterns below when implementing system specs. We write system specs to simulate real user/admin interactions through the UI as much as possible. Interacting with underlying Javascript is discouraged; use Jasmine tests for Javascript-specific behavior. 
 
+The following information builds on For general Rspec standards: [Rspec project coding standards](instructions/rspec.instructions.md)
+
 ## Rspec System Spec Best Practices
 1. **ALWAYS use helper methods for system specs** - read `spec/support/feature_support.rb` before starting to implement system spec tests
 2. **Run `debug_process_status`** when fields/sections can't be found
@@ -66,19 +68,28 @@ If an HTML snapshot is needed for debugging, use the helper method:
 save_html_snapshot('/tmp/debug_page.html')
 ```
 
-To capture console logs from the browser, store them to a global array variable during the test run
-and retrieve them later for debugging:
+To capture console logs and CSP violations from the browser, use the helper methods:
 
 ```ruby
-# At the start of the test run
-page.execute_script('window.browserLogs = []; console.log = function(msg) { window.browserLogs.push(msg); };')
+# Set up capture AFTER initial page load, BEFORE navigating to page to debug
+visit '/'
+setup_browser_console_capture
+
+# Navigate and perform actions you want to debug
+visit '/page/to/debug'
+finish_page_loading
+click_button 'Submit'
+
+# Print captured logs with context description
+print_browser_console_logs('After clicking Submit')
+
+# Or retrieve logs programmatically without printing
+result = get_browser_console_logs
+puts "CSP violations: #{result[:csp_violations].count}"
+result[:logs].each { |log| puts log }
 ```
 
-```ruby
-# At the end of the test run
-logs = page.evaluate_script('window.browserLogs')
-puts "Browser console logs:\n#{logs.join("\n")}"
-```
+The capture methods intercept `console.log`, `console.error`, `console.warn`, and CSP violation events.
 
 ### Things to Remember
 - Standard string / varchar fields downcase data on storage and titleize on display. Keep this in mind when writing system specs that interact with user data fields.

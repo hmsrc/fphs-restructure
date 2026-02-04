@@ -106,6 +106,7 @@ setup_browser unless ENV['SKIP_BROWSER_SETUP']
 SetupHelper.clean_conflicting_activity_logs
 SetupHelper.setup_nfs_directories
 SetupHelper.clean_app_migrations_dirs
+SetupHelper.clean_handlebars_dirs
 
 put_now 'Devise and warden'
 require 'devise'
@@ -208,13 +209,22 @@ RSpec.configure do |config|
 
   # For system tests that need javascript, use selenium_chrome
   # The following avoids this needing to be specified in each spec file
-  config.before(:each, type: :system, js: true) do
+  # The js: true metadata is also set to true to ensure proper handling
+  config.before(:each, type: :system, js: true) do |example|
     driven_by $browser_driver
     Capybara.page.driver.browser.manage.window.maximize
+    example.metadata[:js] = true
   end
 
   config.before(:each) do
     SetupHelper.raise_if_stale_instance_variables!(instance_variables)
+  end
+
+  # Set a default before(:all) for system tests setup consistent app settings.
+  config.before(:all, type: :system) do
+    change_setting('TwoFactorAuthDisabledForUser', true)
+    change_setting('TwoFactorAuthDisabledForAdmin', false)
+    change_setting('AllowDynamicMigrations', true)
   end
 
   Shoulda::Matchers.configure do |config|
