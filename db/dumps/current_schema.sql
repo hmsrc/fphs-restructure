@@ -3,7 +3,7 @@ begin;
 -- PostgreSQL database dump
 --
 
-\restrict 3lhBMDduAHJaYEqR3XTXVZlqMP1rQe87XU3QQhPE8w5msp1wT15VV1wvtpk1ncg
+\restrict hMGtFqQN76hWYCzebovW8qZ28P3eslWfdPlx9Hx5iveosVIV6qlrhZGf2PuBmY6
 
 -- Dumped from database version 15.15
 -- Dumped by pg_dump version 15.15
@@ -23299,6 +23299,6 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 3lhBMDduAHJaYEqR3XTXVZlqMP1rQe87XU3QQhPE8w5msp1wT15VV1wvtpk1ncg
+\unrestrict hMGtFqQN76hWYCzebovW8qZ28P3eslWfdPlx9Hx5iveosVIV6qlrhZGf2PuBmY6
 
 commit;
