@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.42.3] - 2026-02-04
+
 ### From FPHS - PR #893 - 2026-02-04
 
 - [Added] dynamic page title updates based on UI context - fixes #871
