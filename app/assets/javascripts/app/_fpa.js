@@ -1509,9 +1509,7 @@ _fpa = {
       });
     }
 
-  }
-
-};
+  },
 
   load_template_version: function (template_version, rails_env) {
     $.get({ url: `/pages/${template_version}/template`, cache: true }).done(function (data) {
