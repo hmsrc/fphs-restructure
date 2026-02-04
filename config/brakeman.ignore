@@ -30,7 +30,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/layouts/application.html.erb",
-      "line": 39,
+      "line": 40,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "template_block(\"ui page css - #{current_user.app_type.name}\", :markdown_to_html => false, :no_substitutions => true)",
       "render_path": [
@@ -133,7 +133,7 @@
       "check_name": "MassAssignment",
       "message": "Specify exact keys allowed for mass assignment instead of using `permit!` which allows any keys",
       "file": "app/controllers/concerns/master_handler.rb",
-      "line": 203,
+      "line": 205,
       "link": "https://brakemanscanner.org/docs/warning_types/mass_assignment/",
       "code": "params.permit!",
       "render_path": null,
@@ -146,6 +146,25 @@
       "confidence": "Medium",
       "cwe_id": [
         915
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "27bdf3a885293fc4234575e7d41194d1e833a2a530b2ceb9842ccfb0a49bf760",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/initializers/handlebars_precompiler.rb",
+      "line": 38,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "`which #{ENV.fetch(\"HANDLEBARS_CLI\", \"npx handlebars\")}`",
+      "render_path": null,
+      "location": null,
+      "user_input": "ENV.fetch(\"HANDLEBARS_CLI\", \"npx handlebars\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
       ],
       "note": ""
     },
@@ -292,7 +311,7 @@
       "check_name": "CrossSiteScripting",
       "message": "Unescaped model attribute",
       "file": "app/views/layouts/application.html.erb",
-      "line": 40,
+      "line": 41,
       "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
       "code": "template_block(\"ui page js - #{current_user.app_type.name}\", :markdown_to_html => false, :no_substitutions => true)",
       "render_path": [
@@ -649,6 +668,25 @@
       "note": ""
     },
     {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "924804a97879035493cfa4b3395fbefda035a230be328c8cfff9728e5255b7cc",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "config/initializers/handlebars_precompiler.rb",
+      "line": 30,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"#{ENV.fetch(\"HANDLEBARS_CLI\", \"npx handlebars\")} --version > /dev/null 2>&1\")",
+      "render_path": null,
+      "location": null,
+      "user_input": "ENV.fetch(\"HANDLEBARS_CLI\", \"npx handlebars\")",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    },
+    {
       "warning_type": "SQL Injection",
       "warning_code": 0,
       "fingerprint": "a1a1a9e56151a033ef45d00320fdfad7b2588d784cbb2d0afbd2087c5d7e3add",
@@ -771,50 +809,6 @@
       "confidence": "Weak",
       "cwe_id": [
         502
-      ],
-      "note": ""
-    },
-    {
-      "warning_type": "Cross-Site Scripting",
-      "warning_code": 2,
-      "fingerprint": "cc839fcc3d042100ab0bb70eceec8f0fd0d467d612241405a0e96380c5dcb7a2",
-      "check_name": "CrossSiteScripting",
-      "message": "Unescaped parameter value",
-      "file": "app/views/reports/_insert_options_css.html.erb",
-      "line": 62,
-      "link": "https://brakemanscanner.org/docs/warning_types/cross_site_scripting",
-      "code": "(((active_layouts.find(params[:id]) or active_layouts.where(:panel_name => params[:id]).first).view_css.classes.map do\n styles = v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end\n\"#{\"##{\"standalone-page-container-#{SecureRandom.hex}\"}\"} .#{c} {  #{v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end.join(\" \")}}\"\n end or ([] + (active_layouts.find(params[:id]) or active_layouts.where(:panel_name => params[:id]).first).view_css.selectors.map do\n next unless v\ncs = c.to_s.split(\",\").map do\n \"#{\"##{\"standalone-page-container-#{SecureRandom.hex}\"}\"} #{c1}\"\n end.join(\", \")\nstyles = v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end\n\"#{c.to_s.split(\",\").map do\n \"#{\"##{\"standalone-page-container-#{SecureRandom.hex}\"}\"} #{c1}\"\n end.join(\", \")} {  #{v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end.join(\" \")}}\"\n end)) or (([\"#{mk} {\"] + mv.map do\n cs = c.to_s.split(\",\").map do\n \"#{\"##{\"standalone-page-container-#{SecureRandom.hex}\"}\"} #{c1}\"\n end.join(\", \")\nstyles = v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end\n\"#{c.to_s.split(\",\").map do\n \"#{\"##{\"standalone-page-container-#{SecureRandom.hex}\"}\"} #{c1}\"\n end.join(\", \")} {  #{v.map do\n \"#{s.to_s.hyphenate}: #{v};\"\n end.join(\" \")}}\"\n end) << \"}\")).join(\"\\n\")",
-      "render_path": [
-        {
-          "type": "controller",
-          "class": "PageLayoutsController",
-          "method": "show",
-          "line": 28,
-          "file": "app/controllers/page_layouts_controller.rb",
-          "rendered": {
-            "name": "page_layouts/show",
-            "file": "app/views/page_layouts/show.html.erb"
-          }
-        },
-        {
-          "type": "template",
-          "name": "page_layouts/show",
-          "line": 10,
-          "file": "app/views/page_layouts/show.html.erb",
-          "rendered": {
-            "name": "reports/_insert_options_css",
-            "file": "app/views/reports/_insert_options_css.html.erb"
-          }
-        }
-      ],
-      "location": {
-        "type": "template",
-        "template": "reports/_insert_options_css"
-      },
-      "user_input": "params[:id]",
-      "confidence": "Weak",
-      "cwe_id": [
-        79
       ],
       "note": ""
     },
@@ -951,5 +945,5 @@
       "note": ""
     }
   ],
-  "brakeman_version": "8.0.1"
+  "brakeman_version": "8.0.2"
 }
