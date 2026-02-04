@@ -4,6 +4,8 @@
   <title><%= Settings::PageTitle %></title>
   <%= csp_meta_tag %>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <link rel="shortcut icon" type="image/png" href="/favicon.png">
 
   <%= stylesheet_link_tag    'application', media: 'all' %>
   <% if current_user&.app_type&.name
@@ -35,10 +37,8 @@
   };
   <% end %>
   <%= render partial: "layouts/setup_app" %>
-  <%= csrf_meta_tags %>
-  <link rel="shortcut icon" type="image/png" href="/favicon.png">
-  <%= content_tag :style, nonce: true do %><%= template_block("ui page css - #{current_user&.app_type&.name}", markdown_to_html: false, no_substitutions: true)&.html_safe %><% end %>
-  <%= javascript_tag nonce: true do %><%= template_block("ui page js - #{current_user&.app_type&.name}", markdown_to_html: false, no_substitutions: true)&.html_safe %><% end %>
+  <style><%= template_block("ui page css - #{current_user&.app_type&.name}", markdown_to_html: false, no_substitutions: true)&.html_safe %></style>
+  <script><%= template_block("ui page js - #{current_user&.app_type&.name}", markdown_to_html: false, no_substitutions: true)&.html_safe %></script>
 </head>
 <body <%= body_classes %> id="body-top" data-user-roles="<%= user_roles_for_attr %>" data-user-id="<%= current_user&.id %>" data-admin-id="<%= current_admin&.id %>">
     <%= render partial: 'layouts/navbar/navbar' if @navbar_ready%>
