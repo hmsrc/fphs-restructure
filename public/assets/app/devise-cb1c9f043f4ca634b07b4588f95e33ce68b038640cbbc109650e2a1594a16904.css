@@ -1,0 +1,17 @@
+.devise-block.login-block {
+  max-width: 400px;
+}
+
+.devise-links {
+  margin-top: 1em;
+}
+
+.devise-form__terms-of-use {
+  display: none;
+}
+.devise-form__2fa-block {
+  display: none;
+}
+.devise-form__final-submit {
+  margin: 0.8em 0;
+}

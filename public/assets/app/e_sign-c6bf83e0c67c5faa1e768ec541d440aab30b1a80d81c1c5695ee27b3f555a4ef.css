@@ -1,0 +1,28 @@
+.e-sign-doc {
+  min-width: 860px;
+}
+
+.e-signature-otp-attempt,
+.e-signature-password {
+  min-width: 200px;
+  font-size: 13px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.e-signed-how-fields {
+  margin-top: 7px;
+  margin-bottom: 7px;
+}
+
+.e-signature-container {
+  width: 812px;
+  margin: 0 auto;
+  height: auto;
+  overflow: hidden;
+}
+
+.e-signature-container__iframe {
+  width: 810px;
+  border: 0;
+}
