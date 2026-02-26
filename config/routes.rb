@@ -25,6 +25,7 @@ Rails.application.routes.draw do
   post '/csp-violation-report-endpoint', to: 'csp_reports#create'
 
   namespace :admin do
+    resources :master_records, only: %i[index show]
     resources :external_identifiers, except: %i[show destroy]
     get :external_identifier_details, to: 'external_identifiers#details'
     resources :reports, except: %i[show destroy]
@@ -79,6 +80,7 @@ Rails.application.routes.draw do
     resources :role_descriptions, except: %i[show destroy]
     resources :user_roles, except: %i[show destroy]
     post 'user_roles/copy_user_roles', to: 'user_roles#copy_user_roles'
+    post 'user_roles/clear_user_roles', to: 'user_roles#clear_user_roles'
     resources :page_layouts, except: %i[show destroy]
 
     resources :protocols, except: %i[show destroy] do
