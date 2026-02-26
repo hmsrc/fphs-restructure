@@ -5,6 +5,18 @@ require 'rails_helper'
 describe 'user sign in process for users that can self register', js: true, driver: $browser_driver do
   include ModelSupport
 
+  TEMPLATE_NAMES = [
+    'ui new user registration terms default',
+    'ui new user registration terms gdpr',
+    'ui new user registration terms us',
+    'ui update user registration terms default',
+    'ui update user registration terms gdpr',
+    'ui update user registration terms us',
+    'terms_of_use_gdpr',
+    'terms_of_use_non_gdpr',
+    'terms_of_use_us'
+  ].freeze
+
   before(:all) do
     change_setting('AllowUsersToRegister', true)
     Rails.application.reload_routes!
@@ -184,6 +196,28 @@ describe 'user sign in process for users that can self register', js: true, driv
     it { is_expected.to have_select('Country') }
 
     describe 'terms of use' do
+      before :all do
+        Admin::MessageTemplate.where(
+          name: TEMPLATE_NAMES,
+          template_type: 'content',
+          message_type: 'dialog'
+        ).update_all(disabled: false)
+      end
+
+      context 'terms of use documents' do
+        it 'should have seeded the documents' do
+          TEMPLATE_NAMES.each do |name|
+            doc = Admin::MessageTemplate.find_by(
+              name:,
+              template_type: 'content',
+              message_type: 'dialog'
+            )
+            expect(doc).not_to be nil
+            expect(doc.disabled).to be_falsey
+          end
+        end
+      end
+
       gdpr_countries = %w[Austria
                           Belgium
                           Bulgaria
