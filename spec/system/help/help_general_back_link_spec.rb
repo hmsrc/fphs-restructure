@@ -16,8 +16,11 @@
 #   3. HelpHelper#main_section reads and validates `params[:back_path]` to build the
 #      correct "back to main section" href.
 #
-# Additionally, when a help page is shown embedded, the footer shows a glyphicon link
-# that opens the current page (without display_as=embedded) in a new browser tab.
+# When a help page is shown embedded, the footer shows a glyphicon link that opens the
+# current page (without display_as=embedded) in a new browser tab.  If the current page
+# is in the `general` section and carries a `back_path` param, that param must be
+# propagated into the open-in-new-tab URL so that opening the page directly also produces
+# a correct "back to main section" link.
 #
 # Test coverage:
 #   - Full AJAX sidebar flow: detailed_options → general option page → back
@@ -26,6 +29,8 @@
 #   - Validates clicking back returns to the detailed_options page
 #   - Validates "open in new tab" icon link is present in the embedded footer
 #   - Validates the open-in-new-tab href points to the clean (non-embedded) URL
+#   - Validates back_path is included in the open-in-new-tab URL for general section pages
+#   - Validates that directly navigating to the open-in-new-tab URL shows the correct back link
 
 require 'rails_helper'
 
@@ -118,11 +123,49 @@ describe 'help sidebar back link from general option pages', js: true, driver: $
 
       # Href should point to the help page without display_as=embedded
       expect(href).to include('/help/admin_reference/activity_logs/'),
-        "Expected open-in-new-tab href to be a clean help URL, but was: #{href}"
+                      "Expected open-in-new-tab href to be a clean help URL, but was: #{href}"
       expect(href).not_to include('display_as=embedded'),
-        "Expected open-in-new-tab href to not include display_as=embedded, but was: #{href}"
+                          "Expected open-in-new-tab href to not include display_as=embedded, but was: #{href}"
       expect(href).to include('#open-in-new-tab'),
-        "Expected open-in-new-tab href to include #open-in-new-tab fragment, but was: #{href}"
+                      "Expected open-in-new-tab href to include #open-in-new-tab fragment, but was: #{href}"
     end
+  end
+
+  it 'includes back_path in the open-in-new-tab link from a general section page, and direct navigation shows correct back link' do
+    admin_sign_in_with_2fa
+    open_activity_log_help_sidebar
+
+    within '#help-sidebar-body' do
+      click_link 'Detailed Options'
+      expect(page).to have_content('Activity Log: Detailed Options', wait: 10)
+
+      # Navigate to a general section page (JS adds back_path to the link)
+      general_link = first('a[href*="/general/"]', wait: 10)
+      general_link.click
+      expect(page).to have_css('[data-help-path*="/general/"]', wait: 15)
+
+      # The "open in new tab" link should include back_path for the general section page
+      open_link = find('.help-footer .help-open-in-new-tab', wait: 10)
+      href = open_link[:href]
+
+      expect(href).to include('back_path='),
+                      "Expected open-in-new-tab href to include back_path param, but was: #{href}"
+      expect(URI.decode_www_form_component(href)).to include('activity_logs/detailed_options'),
+                                                     "Expected back_path in open-in-new-tab href to reference activity_logs/detailed_options, but was: #{href}"
+      expect(href).not_to include('display_as=embedded'),
+                          "Expected open-in-new-tab href to not include display_as=embedded, but was: #{href}"
+    end
+
+    # Navigate directly to the URL (simulating "open in new tab") – strip the fragment
+    direct_href = find('.help-footer .help-open-in-new-tab', wait: 10)[:href].sub('#open-in-new-tab', '')
+    visit direct_href
+
+    finish_page_loading
+
+    # The "back to main section" link should point back to detailed_options, not general/0_introduction
+    back_link = find('.help-footer a', text: 'back to main section', wait: 10)
+    expect(back_link[:href]).to include('activity_logs/detailed_options'),
+                                "Expected 'back to main section' on directly-opened page to point to activity_logs/detailed_options, " \
+                                "but href was: #{back_link[:href]}"
   end
 end

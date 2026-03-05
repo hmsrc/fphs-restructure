@@ -8,7 +8,11 @@
   <%= render partial: 'help/home_link' %>
   <% if display_embedded? %>
     &nbsp;
-    <%= link_to help_page_path(library: library, section: section, subsection: subsection) + '#open-in-new-tab',
+    <%
+      new_tab_params = { library: library, section: section, subsection: subsection }
+      new_tab_params[:back_path] = params[:back_path] if params[:back_path].present?
+    %>
+    <%= link_to help_page_path(new_tab_params) + '#open-in-new-tab',
           title: 'open in new tab',
           class: 'help-open-in-new-tab' do %><% end %>
   <% end %>
