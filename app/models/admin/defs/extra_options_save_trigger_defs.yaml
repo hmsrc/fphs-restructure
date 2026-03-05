@@ -1,0 +1,74 @@
+  save_trigger:
+    on_create: &trigger_tasks
+      # Each trigger definition is run in order within the list
+      # simpler definitions may not use a list, and just specify a hash of key value pairs, run in order
+      # noting that this only allows a single configuration of each type of trigger
+
+      - add_tracker: 
+#!defs(save_triggers_add_tracker_options_defs.yaml)
+
+      - create_master: 
+#!defs(save_triggers_create_master_options_defs.yaml)
+
+      - create_reference: 
+#!defs(save_triggers_create_reference_options_defs.yaml)
+
+      - change_user_roles:
+#!defs(save_triggers_change_user_roles_options_defs.yaml)
+
+      - create_filestore_container: 
+#!defs(save_triggers_create_filestore_container_options_defs.yaml)
+
+      - notify: 
+#!defs(save_triggers_notify_options_defs.yaml)
+
+      - pull_external_data: 
+#!defs(save_triggers_pull_external_data_options_defs.yaml)
+
+      - redcap_request: 
+#!defs(save_triggers_redcap_request_options_defs.yaml)
+
+      - set_item_flags:
+#!defs(save_triggers_set_item_flags_options_defs.yaml)
+
+      - update_reference: 
+#!defs(save_triggers_update_reference_options_defs.yaml)
+
+      - update_this: 
+#!defs(save_triggers_update_this_options_defs.yaml)
+
+      - run_batch_trigger:
+#!defs(save_triggers_run_batch_trigger_options_defs.yaml)
+
+      - log:
+#!defs(save_triggers_log_options_defs.yaml)
+
+      - transaction:
+#!defs(save_triggers_transaction_options_defs.yaml)
+
+      - background:
+#!defs(save_triggers_background_options_defs.yaml)
+
+      - reload_this:
+#!defs(save_triggers_reload_this_options_defs.yaml)
+
+      - case:
+#!defs(save_triggers_case_options_defs.yaml)
+
+      - each:
+#!defs(save_triggers_each_options_defs.yaml)
+
+    on_update: {}
+    
+    on_save:
+      # on_save provides a shorthand for on_create and on_update. on_create and on_update override on_save configurations.
+    
+    on_disable:
+      # on_disable is triggered for any item that has a field named disabled that is switched to true
+    
+    on_upload: {}
+
+    before_save:
+      # Run a specified trigger before the current item has saved, allowing output to be reflected 
+      # in the UI update, but before reference updates are available
+      # Typically used for update_this, although can be applied to the other triggers if necessary

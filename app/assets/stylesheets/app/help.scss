@@ -290,6 +290,12 @@ div.help-view-doc,
   .footer {
     display: none;
   }
+
+  h1 code {
+    color: #444;
+    background-color: transparent;
+    font-weight: bold;
+  }
 }
 
 .help-doc-header {

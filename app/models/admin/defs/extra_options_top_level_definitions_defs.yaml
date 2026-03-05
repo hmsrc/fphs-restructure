@@ -1,0 +1,3 @@
+_definitions:
+  reusable_key: |
+    &anchor reusable objects for substitution in definitions
