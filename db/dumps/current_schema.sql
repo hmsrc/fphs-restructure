@@ -3,7 +3,7 @@ begin;
 -- PostgreSQL database dump
 --
 
-\restrict KzkcwY1HfBmbnGXfovkWN8FaJ7prd8JvIzR7VrFTfLoy73aycQgxe21cKt1j7Sc
+\restrict 7Rtfjtln8if8CP797mzUr4FXUSCygBqRzwFJi3WhhaGR7nglYg5wrwF5lje5ENV
 
 -- Dumped from database version 15.15
 -- Dumped by pg_dump version 15.15
@@ -38,6 +38,61 @@ COMMENT ON SCHEMA ml_app IS 'The primary Zeus application, player contact and tr
 --
 
 CREATE SCHEMA ref_data;
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: nfs_store_archived_files; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_archived_files (
+    id integer NOT NULL,
+    file_hash character varying,
+    file_name character varying NOT NULL,
+    content_type character varying NOT NULL,
+    archive_file character varying NOT NULL,
+    path character varying NOT NULL,
+    file_size bigint NOT NULL,
+    file_updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    nfs_store_container_id integer,
+    user_id integer,
+    title character varying,
+    description character varying,
+    nfs_store_stored_file_id integer,
+    file_metadata jsonb,
+    embed_resource_name character varying,
+    embed_resource_id bigint
+);
+
+
+--
+-- Name: nfs_store_stored_files; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_stored_files (
+    id integer NOT NULL,
+    file_hash character varying NOT NULL,
+    file_name character varying NOT NULL,
+    content_type character varying NOT NULL,
+    file_size bigint NOT NULL,
+    path character varying,
+    file_updated_at timestamp without time zone,
+    user_id integer,
+    nfs_store_container_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    title character varying,
+    description character varying,
+    last_process_name_run character varying,
+    file_metadata jsonb,
+    embed_resource_name character varying,
+    embed_resource_id bigint
+);
 
 
 --
@@ -770,10 +825,6 @@ CREATE FUNCTION ml_app.create_message_notification_job(message_notification_id i
     END;
     $$;
 
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
 
 --
 -- Name: player_contacts; Type: TABLE; Schema: ml_app; Owner: -
@@ -1890,57 +1941,6 @@ $$;
 
 
 --
--- Name: nfs_store_archived_files; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_archived_files (
-    id integer NOT NULL,
-    file_hash character varying,
-    file_name character varying NOT NULL,
-    content_type character varying NOT NULL,
-    archive_file character varying NOT NULL,
-    path character varying NOT NULL,
-    file_size bigint NOT NULL,
-    file_updated_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    nfs_store_container_id integer,
-    user_id integer,
-    title character varying,
-    description character varying,
-    nfs_store_stored_file_id integer,
-    file_metadata jsonb,
-    embed_resource_name character varying,
-    embed_resource_id bigint
-);
-
-
---
--- Name: nfs_store_stored_files; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_stored_files (
-    id integer NOT NULL,
-    file_hash character varying NOT NULL,
-    file_name character varying NOT NULL,
-    content_type character varying NOT NULL,
-    file_size bigint NOT NULL,
-    path character varying,
-    file_updated_at timestamp without time zone,
-    user_id integer,
-    nfs_store_container_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    title character varying,
-    description character varying,
-    last_process_name_run character varying,
-    file_metadata jsonb,
-    embed_resource_name character varying,
-    embed_resource_id bigint
-);
-
-
---
 -- Name: filestore_report_file_path(ml_app.nfs_store_stored_files, ml_app.nfs_store_archived_files); Type: FUNCTION; Schema: ml_app; Owner: -
 --
 
@@ -2240,55 +2240,6 @@ CREATE FUNCTION ml_app.handle_address_update() RETURNS trigger
 
 
 --
--- Name: handle_delete(); Type: FUNCTION; Schema: ml_app; Owner: -
---
-
-CREATE FUNCTION ml_app.handle_delete() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-      DECLARE
-        latest_tracker tracker_history%ROWTYPE;
-      BEGIN
-
-        -- Find the most recent remaining item in tracker_history for the master/protocol pair,
-        -- now that the target record has been deleted.
-        -- tracker_id is the foreign key onto the trackers table master/protocol record.
-
-        SELECT * INTO latest_tracker
-          FROM tracker_history 
-          WHERE tracker_id = OLD.tracker_id 
-          ORDER BY event_date DESC NULLS last, updated_at DESC NULLS last LIMIT 1;
-
-        IF NOT FOUND THEN
-          -- No record was found in tracker_history for the master/protocol pair.
-          -- Therefore there should be no corresponding trackers record either. Delete it.
-          DELETE FROM trackers WHERE trackers.id = OLD.tracker_id;
-
-        ELSE
-          -- A record was found in tracker_history. Since it is the latest one for the master/protocol pair,
-          -- just go ahead and update the corresponding record in trackers.
-          UPDATE trackers 
-            SET 
-              event_date = latest_tracker.event_date, 
-              sub_process_id = latest_tracker.sub_process_id, 
-              protocol_event_id = latest_tracker.protocol_event_id, 
-              item_id = latest_tracker.item_id, 
-              item_type = latest_tracker.item_type, 
-              updated_at = latest_tracker.updated_at, 
-              notes = latest_tracker.notes, 
-              user_id = latest_tracker.user_id
-            WHERE trackers.id = OLD.tracker_id;
-
-        END IF;
-
-
-        RETURN OLD;
-
-      END
-    $$;
-
-
---
 -- Name: handle_player_contact_update(); Type: FUNCTION; Schema: ml_app; Owner: -
 --
 
@@ -2535,34 +2486,6 @@ Submitted by REDCap ID '|| OLD.redcap_survey_identifier), NEW.user_id, NULL, NUL
           RETURN NEW;
             
         END;   
-    $$;
-
-
---
--- Name: handle_tracker_history_update(); Type: FUNCTION; Schema: ml_app; Owner: -
---
-
-CREATE FUNCTION ml_app.handle_tracker_history_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-    BEGIN
-      
-      DELETE FROM tracker_history WHERE id = OLD.id;
-  
-      INSERT INTO trackers 
-        (master_id, protocol_id, 
-         protocol_event_id, event_date, sub_process_id, notes,
-         item_id, item_type,
-         created_at, updated_at, user_id)
-
-        SELECT NEW.master_id, NEW.protocol_id, 
-           NEW.protocol_event_id, NEW.event_date, 
-           NEW.sub_process_id, NEW.notes, 
-           NEW.item_id, NEW.item_type,
-           NEW.created_at, NEW.updated_at, NEW.user_id  ;
-
-      RETURN NULL;
-    END;
     $$;
 
 
@@ -6449,53 +6372,6 @@ CREATE FUNCTION ml_app.log_test_item_update() RETURNS trigger
 
 
 --
--- Name: log_tracker_update(); Type: FUNCTION; Schema: ml_app; Owner: -
---
-
-CREATE FUNCTION ml_app.log_tracker_update() RETURNS trigger
-    LANGUAGE plpgsql
-    AS $$
-        BEGIN
-
-          -- Check to see if there is an existing record in tracker_history that matches the 
-          -- that inserted or updated in trackers.
-          -- If there is, just skip the insert into tracker_history, otherwise make the insert happen.
-
-          PERFORM * from tracker_history 
-            WHERE
-              master_id = NEW.master_id 
-              AND protocol_id = NEW.protocol_id
-              AND coalesce(protocol_event_id,-1) = coalesce(NEW.protocol_event_id,-1)
-              AND coalesce(event_date, '1900-01-01'::date)::date = coalesce(NEW.event_date, '1900-01-01')::date
-              AND sub_process_id = NEW.sub_process_id
-              AND coalesce(notes,'') = coalesce(NEW.notes,'')
-              AND coalesce(item_id,-1) = coalesce(NEW.item_id,-1)
-              AND coalesce(item_type,'') = coalesce(NEW.item_type,'')
-              -- do not check created_at --
-              AND updated_at::timestamp = NEW.updated_at::timestamp
-              AND coalesce(user_id,-1) = coalesce(NEW.user_id,-1);
-              
-            IF NOT FOUND THEN
-              INSERT INTO tracker_history 
-                  (tracker_id, master_id, protocol_id, 
-                   protocol_event_id, event_date, sub_process_id, notes,
-                   item_id, item_type,
-                   created_at, updated_at, user_id)
-
-                  SELECT NEW.id, NEW.master_id, NEW.protocol_id, 
-                     NEW.protocol_event_id, NEW.event_date, 
-                     NEW.sub_process_id, NEW.notes, 
-                     NEW.item_id, NEW.item_type,
-                     NEW.created_at, NEW.updated_at, NEW.user_id  ;
-            END IF;
-
-            RETURN NEW;
-            
-        END;   
-    $$;
-
-
---
 -- Name: log_user_access_control_update(); Type: FUNCTION; Schema: ml_app; Owner: -
 --
 
@@ -6767,90 +6643,84 @@ $$;
 
 
 --
--- Name: tracker_upsert(); Type: FUNCTION; Schema: ml_app; Owner: -
+-- Name: trackers_instead_of_delete(); Type: FUNCTION; Schema: ml_app; Owner: -
 --
 
-CREATE FUNCTION ml_app.tracker_upsert() RETURNS trigger
+CREATE FUNCTION ml_app.trackers_instead_of_delete() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
-      DECLARE
-        latest_tracker trackers%ROWTYPE;
-      BEGIN
+BEGIN
+  DELETE FROM tracker_history
+  WHERE tracker_id = OLD.id;
 
-        
+  RETURN OLD;
+END;
+$$;
 
-        -- Look for a row in trackers for the inserted master / protocol pair
-        SELECT * into latest_tracker 
-          FROM trackers 
-          WHERE
-            master_id = NEW.master_id 
-            AND protocol_id = NEW.protocol_id              
-          ORDER BY
-            event_date DESC NULLS LAST, updated_at DESC NULLS LAST
-          LIMIT 1
-        ;
 
-        IF NOT FOUND THEN
-          -- Nothing was found, so just allow the insert to continue
-          
-          RETURN NEW;
+--
+-- Name: trackers_instead_of_insert(); Type: FUNCTION; Schema: ml_app; Owner: -
+--
 
-        ELSE   
-          -- A trackers row for the master / protocol pair was found.
-          -- Check if it is more recent, by having an event date either later than the insert, or 
-          -- has an event_date the same as the insert but with later updated_at time (unlikely)
+CREATE FUNCTION ml_app.trackers_instead_of_insert() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+  existing_tracker_id INTEGER;
+BEGIN
+  -- Find existing tracker_id for this master/protocol pair
+  SELECT tracker_id INTO existing_tracker_id
+  FROM tracker_history
+  WHERE master_id = NEW.master_id AND protocol_id = NEW.protocol_id
+  LIMIT 1;
 
-          IF latest_tracker.event_date > NEW.event_date OR 
-              latest_tracker.event_date = NEW.event_date AND latest_tracker.updated_at > NEW.updated_at
-              THEN
+  -- If no existing group, use the sequence
+  IF existing_tracker_id IS NULL THEN
+    existing_tracker_id := nextval('trackers_id_seq');
+  END IF;
 
-            -- The retrieved record was more recent, we should not make a change to the trackers table,
-            -- but instead we need to ensure an insert into the tracker_history table does happen even though there
-            -- is no actual insert or update trigger to fire.
-            -- We use the trackers record ID that was retrieved as the tracker_id in tracker_history
+  -- Always insert into tracker_history (the single source of truth)
+  INSERT INTO tracker_history
+    (tracker_id, master_id, protocol_id,
+     protocol_event_id, event_date, sub_process_id, notes,
+     item_id, item_type,
+     created_at, updated_at, user_id)
+  VALUES
+    (existing_tracker_id, NEW.master_id, NEW.protocol_id,
+     NEW.protocol_event_id, NEW.event_date, NEW.sub_process_id, NEW.notes,
+     NEW.item_id, NEW.item_type,
+     COALESCE(NEW.created_at, now()), COALESCE(NEW.updated_at, now()), NEW.user_id);
 
-            INSERT INTO tracker_history (
-                tracker_id, master_id, protocol_id, 
-                protocol_event_id, event_date, sub_process_id, notes,
-                item_id, item_type,
-                created_at, updated_at, user_id
-              )                 
-              SELECT 
-                latest_tracker.id, NEW.master_id, NEW.protocol_id, 
-                NEW.protocol_event_id, NEW.event_date, 
-                NEW.sub_process_id, NEW.notes, 
-                NEW.item_id, NEW.item_type,
-                NEW.created_at, NEW.updated_at, NEW.user_id  ;
-            
-            RETURN NULL;
+  -- Set the id on NEW so Rails gets it back via RETURNING
+  NEW.id := existing_tracker_id;
+  RETURN NEW;
+END;
+$$;
 
-          ELSE
-            -- The tracker record for the master / protocol pair exists and was not more recent, therefore it
-            -- needs to be replaced by the intended NEW record. Complete with an update and allow the cascading 
-            -- trackers update trigger to handle the insert into tracker_history.
 
-            UPDATE trackers SET
-              master_id = NEW.master_id, 
-              protocol_id = NEW.protocol_id, 
-              protocol_event_id = NEW.protocol_event_id, 
-              event_date = NEW.event_date, 
-              sub_process_id = NEW.sub_process_id, 
-              notes = NEW.notes, 
-              item_id = NEW.item_id, 
-              item_type = NEW.item_type,
-              -- do not update created_at --
-              updated_at = NEW.updated_at, 
-              user_id = NEW.user_id
-            WHERE master_id = NEW.master_id AND 
-              protocol_id = NEW.protocol_id
-            ;
+--
+-- Name: trackers_instead_of_update(); Type: FUNCTION; Schema: ml_app; Owner: -
+--
 
-            -- Prevent the original insert from actually completing.
-            RETURN NULL;
-          END IF;
-        END IF;      
-      END;
-    $$;
+CREATE FUNCTION ml_app.trackers_instead_of_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  -- Insert a new tracker_history row with the updated values
+  INSERT INTO tracker_history
+    (tracker_id, master_id, protocol_id,
+     protocol_event_id, event_date, sub_process_id, notes,
+     item_id, item_type,
+     created_at, updated_at, user_id)
+  VALUES
+    (OLD.id, NEW.master_id, NEW.protocol_id,
+     NEW.protocol_event_id, NEW.event_date, NEW.sub_process_id, NEW.notes,
+     NEW.item_id, NEW.item_type,
+     COALESCE(NEW.created_at, now()), COALESCE(NEW.updated_at, now()), NEW.user_id);
+
+  RETURN NEW;
+END;
+$$;
 
 
 --
@@ -7759,6 +7629,33 @@ $$;
 
 
 --
+-- Name: log_test_long_lines_update(); Type: FUNCTION; Schema: ref_data; Owner: -
+--
+
+CREATE FUNCTION ref_data.log_test_long_lines_update() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  INSERT INTO test_long_line_history (
+    
+    
+    user_id,
+    created_at,
+    updated_at,
+    test_long_line_id)
+  SELECT
+    
+    
+    NEW.user_id,
+    NEW.created_at,
+    NEW.updated_at,
+    NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: redcap_data_collection_instrument_history_upd(); Type: FUNCTION; Schema: ref_data; Owner: -
 --
 
@@ -7844,6 +7741,131 @@ BEGIN
   RETURN QUERY execute sql;  
 END
 $_$;
+
+
+--
+-- Name: model_references; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.model_references (
+    id integer NOT NULL,
+    from_record_type character varying,
+    from_record_id integer,
+    from_record_master_id integer,
+    to_record_type character varying,
+    to_record_id integer,
+    to_record_master_id integer,
+    user_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    disabled boolean
+);
+
+
+--
+-- Name: masters; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.masters (
+    id integer NOT NULL,
+    msid integer,
+    pro_id integer,
+    pro_info_id integer,
+    rank integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    user_id integer,
+    contact_id integer,
+    created_by_user_id bigint
+);
+
+
+--
+-- Name: tracker_history; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.tracker_history (
+    id integer NOT NULL,
+    master_id integer,
+    protocol_id integer,
+    tracker_id integer,
+    event_date timestamp without time zone,
+    user_id integer,
+    notes character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    sub_process_id integer,
+    protocol_event_id integer,
+    item_id integer,
+    item_type character varying
+);
+
+
+--
+-- Name: nfs_store_containers; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_containers (
+    id integer NOT NULL,
+    name character varying,
+    user_id integer,
+    app_type_id integer,
+    nfs_store_container_id integer,
+    master_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    created_by_user_id bigint
+);
+
+
+--
+-- Name: scantrons; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.scantrons (
+    id integer NOT NULL,
+    master_id integer,
+    scantron_id integer,
+    user_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: activity_logs; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.activity_logs (
+    id integer NOT NULL,
+    name character varying,
+    item_type character varying,
+    rec_type character varying,
+    admin_id integer,
+    disabled boolean,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    action_when_attribute character varying,
+    field_list character varying,
+    blank_log_field_list character varying,
+    blank_log_name character varying,
+    extra_log_types character varying,
+    hide_item_list_panel boolean,
+    main_log_name character varying,
+    process_name character varying,
+    table_name character varying,
+    category character varying,
+    schema_name character varying
+);
+
+
+--
+-- Name: next_msid_values; Type: VIEW; Schema: ref_data; Owner: -
+--
+
+CREATE VIEW ref_data.next_msid_values AS
+ SELECT (max(masters.msid) + 1) AS msid
+   FROM ml_app.masters;
 
 
 --
@@ -8385,33 +8407,6 @@ CREATE SEQUENCE ml_app.activity_log_player_infos_id_seq
 --
 
 ALTER SEQUENCE ml_app.activity_log_player_infos_id_seq OWNED BY ml_app.activity_log_player_infos.id;
-
-
---
--- Name: activity_logs; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.activity_logs (
-    id integer NOT NULL,
-    name character varying,
-    item_type character varying,
-    rec_type character varying,
-    admin_id integer,
-    disabled boolean,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    action_when_attribute character varying,
-    field_list character varying,
-    blank_log_field_list character varying,
-    blank_log_name character varying,
-    extra_log_types character varying,
-    hide_item_list_panel boolean,
-    main_log_name character varying,
-    process_name character varying,
-    table_name character varying,
-    category character varying,
-    schema_name character varying
-);
 
 
 --
@@ -9932,24 +9927,6 @@ CREATE VIEW ml_app.marketo_master_ids AS
 
 
 --
--- Name: masters; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.masters (
-    id integer NOT NULL,
-    msid integer,
-    pro_id integer,
-    pro_info_id integer,
-    rank integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    user_id integer,
-    contact_id integer,
-    created_by_user_id bigint
-);
-
-
---
 -- Name: masters_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -10170,25 +10147,6 @@ CREATE TABLE ml_app.ml_copy (
 
 
 --
--- Name: model_references; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.model_references (
-    id integer NOT NULL,
-    from_record_type character varying,
-    from_record_id integer,
-    from_record_master_id integer,
-    to_record_type character varying,
-    to_record_id integer,
-    to_record_master_id integer,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    disabled boolean
-);
-
-
---
 -- Name: model_references_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -10388,23 +10346,6 @@ CREATE SEQUENCE ml_app.nfs_store_container_history_id_seq
 --
 
 ALTER SEQUENCE ml_app.nfs_store_container_history_id_seq OWNED BY ml_app.nfs_store_container_history.id;
-
-
---
--- Name: nfs_store_containers; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_containers (
-    id integer NOT NULL,
-    name character varying,
-    user_id integer,
-    app_type_id integer,
-    nfs_store_container_id integer,
-    master_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    created_by_user_id bigint
-);
 
 
 --
@@ -11730,20 +11671,6 @@ ALTER SEQUENCE ml_app.scantron_series_twos_id_seq OWNED BY ml_app.scantron_serie
 
 
 --
--- Name: scantrons; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.scantrons (
-    id integer NOT NULL,
-    master_id integer,
-    scantron_id integer,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
 -- Name: scantrons_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -12397,27 +12324,6 @@ ALTER SEQUENCE ml_app.test_items_id_seq OWNED BY ml_app.test_items.id;
 
 
 --
--- Name: tracker_history; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.tracker_history (
-    id integer NOT NULL,
-    master_id integer,
-    protocol_id integer,
-    tracker_id integer,
-    event_date timestamp without time zone,
-    user_id integer,
-    notes character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    sub_process_id integer,
-    protocol_event_id integer,
-    item_id integer,
-    item_type character varying
-);
-
-
---
 -- Name: tracker_history_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -12437,23 +12343,24 @@ ALTER SEQUENCE ml_app.tracker_history_id_seq OWNED BY ml_app.tracker_history.id;
 
 
 --
--- Name: trackers; Type: TABLE; Schema: ml_app; Owner: -
+-- Name: trackers; Type: VIEW; Schema: ml_app; Owner: -
 --
 
-CREATE TABLE ml_app.trackers (
-    id integer NOT NULL,
-    master_id integer,
-    protocol_id integer NOT NULL,
-    event_date timestamp without time zone,
-    user_id integer DEFAULT 0,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    notes character varying,
-    sub_process_id integer NOT NULL,
-    protocol_event_id integer,
-    item_id integer,
-    item_type character varying
-);
+CREATE VIEW ml_app.trackers AS
+ SELECT DISTINCT ON (th.master_id, th.protocol_id) th.tracker_id AS id,
+    th.master_id,
+    th.protocol_id,
+    th.event_date,
+    th.user_id,
+    th.notes,
+    th.created_at,
+    th.updated_at,
+    th.sub_process_id,
+    th.protocol_event_id,
+    th.item_id,
+    th.item_type
+   FROM ml_app.tracker_history th
+  ORDER BY th.master_id, th.protocol_id, ((th.event_date)::date) DESC NULLS LAST, th.id DESC;
 
 
 --
@@ -12469,10 +12376,23 @@ CREATE SEQUENCE ml_app.trackers_id_seq
 
 
 --
--- Name: trackers_id_seq; Type: SEQUENCE OWNED BY; Schema: ml_app; Owner: -
+-- Name: trackers_old; Type: TABLE; Schema: ml_app; Owner: -
 --
 
-ALTER SEQUENCE ml_app.trackers_id_seq OWNED BY ml_app.trackers.id;
+CREATE TABLE ml_app.trackers_old (
+    id integer DEFAULT nextval('ml_app.trackers_id_seq'::regclass) NOT NULL,
+    master_id integer,
+    protocol_id integer NOT NULL,
+    event_date timestamp without time zone,
+    user_id integer DEFAULT 0,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    notes character varying,
+    sub_process_id integer NOT NULL,
+    protocol_event_id integer,
+    item_id integer,
+    item_type character varying
+);
 
 
 --
@@ -14869,6 +14789,76 @@ ALTER SEQUENCE ref_data.redcap_user_status_recs_id_seq OWNED BY ref_data.redcap_
 
 
 --
+-- Name: test_long_line_history; Type: TABLE; Schema: ref_data; Owner: -
+--
+
+CREATE TABLE ref_data.test_long_line_history (
+    id bigint NOT NULL,
+    user_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    test_long_line_id bigint
+);
+
+
+--
+-- Name: test_long_line_history_id_seq; Type: SEQUENCE; Schema: ref_data; Owner: -
+--
+
+CREATE SEQUENCE ref_data.test_long_line_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_long_line_history_id_seq; Type: SEQUENCE OWNED BY; Schema: ref_data; Owner: -
+--
+
+ALTER SEQUENCE ref_data.test_long_line_history_id_seq OWNED BY ref_data.test_long_line_history.id;
+
+
+--
+-- Name: test_long_lines; Type: TABLE; Schema: ref_data; Owner: -
+--
+
+CREATE TABLE ref_data.test_long_lines (
+    id bigint NOT NULL,
+    user_id bigint,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: TABLE test_long_lines; Type: COMMENT; Schema: ref_data; Owner: -
+--
+
+COMMENT ON TABLE ref_data.test_long_lines IS 'Dynamicmodel: Health Biosample Initiative Invitation Form';
+
+
+--
+-- Name: test_long_lines_id_seq; Type: SEQUENCE; Schema: ref_data; Owner: -
+--
+
+CREATE SEQUENCE ref_data.test_long_lines_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: test_long_lines_id_seq; Type: SEQUENCE OWNED BY; Schema: ref_data; Owner: -
+--
+
+ALTER SEQUENCE ref_data.test_long_lines_id_seq OWNED BY ref_data.test_long_lines.id;
+
+
+--
 -- Name: test_views; Type: VIEW; Schema: ref_data; Owner: -
 --
 
@@ -14914,10 +14904,10 @@ COMMENT ON COLUMN ref_data.test_views.first_name IS 'First Name';
 --
 
 CREATE VIEW ref_data.view_data_variable_domains AS
- SELECT DISTINCT dv.domain
-   FROM ref_data.datadic_variables dv
-  WHERE (NOT COALESCE(dv.disabled, false))
-  ORDER BY dv.domain;
+ SELECT DISTINCT datadic_variables.domain
+   FROM ref_data.datadic_variables
+  WHERE (NOT COALESCE(datadic_variables.disabled, false))
+  ORDER BY datadic_variables.domain;
 
 
 --
@@ -14925,6 +14915,19 @@ CREATE VIEW ref_data.view_data_variable_domains AS
 --
 
 COMMENT ON VIEW ref_data.view_data_variable_domains IS 'Dynamicmodel: Data Variable Domains';
+
+
+--
+-- Name: view_datadic_db_tables; Type: VIEW; Schema: ref_data; Owner: -
+--
+
+CREATE VIEW ref_data.view_datadic_db_tables AS
+ SELECT DISTINCT dv.schema_or_path AS schema_name,
+    dv.table_or_file AS table_name,
+    ((((dv.schema_or_path)::text || '.'::text) || (dv.table_or_file)::text))::character varying AS schema_and_table
+   FROM ref_data.datadic_variables dv
+  WHERE ((NOT COALESCE(dv.disabled, false)) AND ((dv.storage_type)::text = 'database'::text) AND (dv.table_or_file IS NOT NULL))
+  ORDER BY dv.schema_or_path, dv.table_or_file;
 
 
 --
@@ -15951,13 +15954,6 @@ ALTER TABLE ONLY ml_app.tracker_history ALTER COLUMN id SET DEFAULT nextval('ml_
 
 
 --
--- Name: trackers id; Type: DEFAULT; Schema: ml_app; Owner: -
---
-
-ALTER TABLE ONLY ml_app.trackers ALTER COLUMN id SET DEFAULT nextval('ml_app.trackers_id_seq'::regclass);
-
-
---
 -- Name: user_access_control_history id; Type: DEFAULT; Schema: ml_app; Owner: -
 --
 
@@ -16179,6 +16175,20 @@ ALTER TABLE ONLY ref_data.redcap_user_status_rec_history ALTER COLUMN id SET DEF
 --
 
 ALTER TABLE ONLY ref_data.redcap_user_status_recs ALTER COLUMN id SET DEFAULT nextval('ref_data.redcap_user_status_recs_id_seq'::regclass);
+
+
+--
+-- Name: test_long_line_history id; Type: DEFAULT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_line_history ALTER COLUMN id SET DEFAULT nextval('ref_data.test_long_line_history_id_seq'::regclass);
+
+
+--
+-- Name: test_long_lines id; Type: DEFAULT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_lines ALTER COLUMN id SET DEFAULT nextval('ref_data.test_long_lines_id_seq'::regclass);
 
 
 --
@@ -17134,10 +17144,10 @@ ALTER TABLE ONLY ml_app.tracker_history
 
 
 --
--- Name: trackers trackers_pkey; Type: CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old trackers_pkey; Type: CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT trackers_pkey PRIMARY KEY (id);
 
 
@@ -17395,6 +17405,22 @@ ALTER TABLE ONLY ref_data.redcap_user_status_rec_history
 
 ALTER TABLE ONLY ref_data.redcap_user_status_recs
     ADD CONSTRAINT redcap_user_status_recs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: test_long_line_history test_long_line_history_pkey; Type: CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_line_history
+    ADD CONSTRAINT test_long_line_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: test_long_lines test_long_lines_pkey; Type: CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_lines
+    ADD CONSTRAINT test_long_lines_pkey PRIMARY KEY (id);
 
 
 --
@@ -19190,6 +19216,13 @@ CREATE INDEX index_tracker_history_on_item_type_id ON ml_app.tracker_history USI
 
 
 --
+-- Name: index_tracker_history_on_latest_lookup; Type: INDEX; Schema: ml_app; Owner: -
+--
+
+CREATE INDEX index_tracker_history_on_latest_lookup ON ml_app.tracker_history USING btree (master_id, protocol_id, ((event_date)::date) DESC NULLS LAST, id DESC);
+
+
+--
 -- Name: index_tracker_history_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
@@ -19235,35 +19268,35 @@ CREATE INDEX index_tracker_history_on_user_id ON ml_app.tracker_history USING bt
 -- Name: index_trackers_on_master_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE INDEX index_trackers_on_master_id ON ml_app.trackers USING btree (master_id);
+CREATE INDEX index_trackers_on_master_id ON ml_app.trackers_old USING btree (master_id);
 
 
 --
 -- Name: index_trackers_on_protocol_event_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE INDEX index_trackers_on_protocol_event_id ON ml_app.trackers USING btree (protocol_event_id);
+CREATE INDEX index_trackers_on_protocol_event_id ON ml_app.trackers_old USING btree (protocol_event_id);
 
 
 --
 -- Name: index_trackers_on_protocol_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE INDEX index_trackers_on_protocol_id ON ml_app.trackers USING btree (protocol_id);
+CREATE INDEX index_trackers_on_protocol_id ON ml_app.trackers_old USING btree (protocol_id);
 
 
 --
 -- Name: index_trackers_on_sub_process_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE INDEX index_trackers_on_sub_process_id ON ml_app.trackers USING btree (sub_process_id);
+CREATE INDEX index_trackers_on_sub_process_id ON ml_app.trackers_old USING btree (sub_process_id);
 
 
 --
 -- Name: index_trackers_on_user_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE INDEX index_trackers_on_user_id ON ml_app.trackers USING btree (user_id);
+CREATE INDEX index_trackers_on_user_id ON ml_app.trackers_old USING btree (user_id);
 
 
 --
@@ -19410,7 +19443,7 @@ CREATE UNIQUE INDEX index_users_on_authentication_token ON ml_app.users USING bt
 -- Name: index_users_on_confirmation_token; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE UNIQUE INDEX index_users_on_confirmation_token ON ml_app.users USING btree (confirmation_token);
+CREATE UNIQUE INDEX index_users_on_confirmation_token ON ml_app.users USING btree (confirmation_token) WHERE (NULLIF((confirmation_token)::text, ''::text) IS NOT NULL);
 
 
 --
@@ -19445,14 +19478,14 @@ CREATE UNIQUE INDEX nfs_store_stored_files_unique_file ON ml_app.nfs_store_store
 -- Name: unique_master_protocol; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_master_protocol ON ml_app.trackers USING btree (master_id, protocol_id);
+CREATE UNIQUE INDEX unique_master_protocol ON ml_app.trackers_old USING btree (master_id, protocol_id);
 
 
 --
 -- Name: unique_master_protocol_id; Type: INDEX; Schema: ml_app; Owner: -
 --
 
-CREATE UNIQUE INDEX unique_master_protocol_id ON ml_app.trackers USING btree (master_id, protocol_id, id);
+CREATE UNIQUE INDEX unique_master_protocol_id ON ml_app.trackers_old USING btree (master_id, protocol_id, id);
 
 
 --
@@ -19516,6 +19549,27 @@ CREATE INDEX f8d33562_id_idx ON ref_data.domain_mapping_history USING btree (dom
 --
 
 CREATE INDEX f8d33562_user_idx ON ref_data.domain_mapping_history USING btree (user_id);
+
+
+--
+-- Name: fdb555d8_hist_user_idx; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX fdb555d8_hist_user_idx ON ref_data.test_long_line_history USING btree (user_id);
+
+
+--
+-- Name: fdb555d8_id_idx; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX fdb555d8_id_idx ON ref_data.test_long_line_history USING btree (test_long_line_id);
+
+
+--
+-- Name: fdb555d8_user_idx; Type: INDEX; Schema: ref_data; Owner: -
+--
+
+CREATE INDEX fdb555d8_user_idx ON ref_data.test_long_lines USING btree (user_id);
 
 
 --
@@ -20506,38 +20560,24 @@ CREATE TRIGGER test_ext_history_update AFTER UPDATE ON ml_app.test_exts FOR EACH
 
 
 --
--- Name: trackers tracker_history_insert; Type: TRIGGER; Schema: ml_app; Owner: -
+-- Name: trackers trackers_delete_trigger; Type: TRIGGER; Schema: ml_app; Owner: -
 --
 
-CREATE TRIGGER tracker_history_insert AFTER INSERT ON ml_app.trackers FOR EACH ROW EXECUTE FUNCTION ml_app.log_tracker_update();
-
-
---
--- Name: tracker_history tracker_history_update; Type: TRIGGER; Schema: ml_app; Owner: -
---
-
-CREATE TRIGGER tracker_history_update BEFORE UPDATE ON ml_app.tracker_history FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ml_app.handle_tracker_history_update();
+CREATE TRIGGER trackers_delete_trigger INSTEAD OF DELETE ON ml_app.trackers FOR EACH ROW EXECUTE FUNCTION ml_app.trackers_instead_of_delete();
 
 
 --
--- Name: trackers tracker_history_update; Type: TRIGGER; Schema: ml_app; Owner: -
+-- Name: trackers trackers_insert_trigger; Type: TRIGGER; Schema: ml_app; Owner: -
 --
 
-CREATE TRIGGER tracker_history_update AFTER UPDATE ON ml_app.trackers FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ml_app.log_tracker_update();
-
-
---
--- Name: tracker_history tracker_record_delete; Type: TRIGGER; Schema: ml_app; Owner: -
---
-
-CREATE TRIGGER tracker_record_delete AFTER DELETE ON ml_app.tracker_history FOR EACH ROW EXECUTE FUNCTION ml_app.handle_delete();
+CREATE TRIGGER trackers_insert_trigger INSTEAD OF INSERT ON ml_app.trackers FOR EACH ROW EXECUTE FUNCTION ml_app.trackers_instead_of_insert();
 
 
 --
--- Name: trackers tracker_upsert; Type: TRIGGER; Schema: ml_app; Owner: -
+-- Name: trackers trackers_update_trigger; Type: TRIGGER; Schema: ml_app; Owner: -
 --
 
-CREATE TRIGGER tracker_upsert BEFORE INSERT ON ml_app.trackers FOR EACH ROW EXECUTE FUNCTION ml_app.tracker_upsert();
+CREATE TRIGGER trackers_update_trigger INSTEAD OF UPDATE ON ml_app.trackers FOR EACH ROW EXECUTE FUNCTION ml_app.trackers_instead_of_update();
 
 
 --
@@ -20671,6 +20711,20 @@ CREATE TRIGGER log_domain_mapping_history_insert AFTER INSERT ON ref_data.domain
 --
 
 CREATE TRIGGER log_domain_mapping_history_update AFTER UPDATE ON ref_data.domain_mappings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_domain_mappings_update();
+
+
+--
+-- Name: test_long_lines log_history_insert; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_history_insert AFTER INSERT ON ref_data.test_long_lines FOR EACH ROW EXECUTE FUNCTION ref_data.log_test_long_lines_update();
+
+
+--
+-- Name: test_long_lines log_history_update; Type: TRIGGER; Schema: ref_data; Owner: -
+--
+
+CREATE TRIGGER log_history_update AFTER UPDATE ON ref_data.test_long_lines FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION ref_data.log_test_long_lines_update();
 
 
 --
@@ -21840,10 +21894,10 @@ ALTER TABLE ONLY ml_app.nfs_store_uploads
 
 
 --
--- Name: trackers fk_rails_447d125f63; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old fk_rails_447d125f63; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT fk_rails_447d125f63 FOREIGN KEY (master_id) REFERENCES ml_app.masters(id);
 
 
@@ -21992,10 +22046,10 @@ ALTER TABLE ONLY ml_app.role_description_history
 
 
 --
--- Name: trackers fk_rails_47b051d356; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old fk_rails_47b051d356; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT fk_rails_47b051d356 FOREIGN KEY (sub_process_id) REFERENCES ml_app.sub_processes(id);
 
 
@@ -22080,10 +22134,10 @@ ALTER TABLE ONLY ml_app.activity_log_player_contact_phones
 
 
 --
--- Name: trackers fk_rails_623e0ca5ac; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old fk_rails_623e0ca5ac; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT fk_rails_623e0ca5ac FOREIGN KEY (protocol_id) REFERENCES ml_app.protocols(id);
 
 
@@ -22125,14 +22179,6 @@ ALTER TABLE ONLY ml_app.users
 
 ALTER TABLE ONLY ml_app.protocols
     ADD CONSTRAINT fk_rails_6de4fd560d FOREIGN KEY (admin_id) REFERENCES ml_app.admins(id);
-
-
---
--- Name: tracker_history fk_rails_6e050927c2; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
---
-
-ALTER TABLE ONLY ml_app.tracker_history
-    ADD CONSTRAINT fk_rails_6e050927c2 FOREIGN KEY (tracker_id) REFERENCES ml_app.trackers(id);
 
 
 --
@@ -22376,18 +22422,18 @@ ALTER TABLE ONLY ml_app.user_roles
 
 
 --
--- Name: trackers fk_rails_b822840dc1; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old fk_rails_b822840dc1; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT fk_rails_b822840dc1 FOREIGN KEY (user_id) REFERENCES ml_app.users(id);
 
 
 --
--- Name: trackers fk_rails_bb6af37155; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old fk_rails_bb6af37155; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT fk_rails_bb6af37155 FOREIGN KEY (protocol_event_id) REFERENCES ml_app.protocol_events(id);
 
 
@@ -22944,14 +22990,6 @@ ALTER TABLE ONLY ml_app.rc_cis
 
 
 --
--- Name: tracker_history unique_master_protocol_tracker_id; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
---
-
-ALTER TABLE ONLY ml_app.tracker_history
-    ADD CONSTRAINT unique_master_protocol_tracker_id FOREIGN KEY (master_id, protocol_id, tracker_id) REFERENCES ml_app.trackers(master_id, protocol_id, id);
-
-
---
 -- Name: tracker_history valid_protocol_sub_process; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
@@ -22960,10 +22998,10 @@ ALTER TABLE ONLY ml_app.tracker_history
 
 
 --
--- Name: trackers valid_protocol_sub_process; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old valid_protocol_sub_process; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT valid_protocol_sub_process FOREIGN KEY (protocol_id, sub_process_id) REFERENCES ml_app.sub_processes(protocol_id, id) MATCH FULL;
 
 
@@ -22976,10 +23014,10 @@ ALTER TABLE ONLY ml_app.tracker_history
 
 
 --
--- Name: trackers valid_sub_process_event; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
+-- Name: trackers_old valid_sub_process_event; Type: FK CONSTRAINT; Schema: ml_app; Owner: -
 --
 
-ALTER TABLE ONLY ml_app.trackers
+ALTER TABLE ONLY ml_app.trackers_old
     ADD CONSTRAINT valid_sub_process_event FOREIGN KEY (sub_process_id, protocol_event_id) REFERENCES ml_app.protocol_events(sub_process_id, id);
 
 
@@ -23216,6 +23254,14 @@ ALTER TABLE ONLY ref_data.redcap_project_user_history
 
 
 --
+-- Name: test_long_line_history fk_rails_a5c2503015; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_line_history
+    ADD CONSTRAINT fk_rails_a5c2503015 FOREIGN KEY (user_id) REFERENCES ml_app.users(id);
+
+
+--
 -- Name: redcap_project_users fk_rails_a6952cc0e8; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
 --
 
@@ -23280,6 +23326,14 @@ ALTER TABLE ONLY ref_data.datadic_variable_history
 
 
 --
+-- Name: test_long_lines fk_rails_d8e929b736; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
+--
+
+ALTER TABLE ONLY ref_data.test_long_lines
+    ADD CONSTRAINT fk_rails_d8e929b736 FOREIGN KEY (user_id) REFERENCES ml_app.users(id);
+
+
+--
 -- Name: datadic_choices fk_rails_f5497a3583; Type: FK CONSTRAINT; Schema: ref_data; Owner: -
 --
 
@@ -23299,6 +23353,6 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict KzkcwY1HfBmbnGXfovkWN8FaJ7prd8JvIzR7VrFTfLoy73aycQgxe21cKt1j7Sc
+\unrestrict 7Rtfjtln8if8CP797mzUr4FXUSCygBqRzwFJi3WhhaGR7nglYg5wrwF5lje5ENV
 
 commit;
