@@ -153,6 +153,12 @@ div.help-view-doc,
     h4 {
       font-size: 18px;
     }
+
+    h1+h2 {
+      margin-top: -18px;
+      font-size: 20px;
+      color: gray;
+    }
   }
 
   .default-layout-rows,
@@ -306,6 +312,7 @@ div.help-view-doc,
     color: #444;
     background-color: transparent;
     font-weight: bold;
+    padding-left: 0;
   }
 }
 
