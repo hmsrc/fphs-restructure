@@ -1,3 +1,4 @@
+# embed options
   # embed can be defined in one of three styles:
   embed: default_embed_resource 
     # Simply embeds the dynamic model matching the default_embed_resource_name for this activity

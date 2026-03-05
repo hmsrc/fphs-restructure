@@ -1,3 +1,4 @@
+# view_options options
   view_options:
     show_embedded_at_top: |
       true | false to position a single auto loaded embedded item

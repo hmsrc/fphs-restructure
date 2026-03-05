@@ -1,3 +1,4 @@
+# nfs_store options
   nfs_store:
     always_use_this_for_access_control: false(default) | true 
                                         # use this activity log to enforce access control, 

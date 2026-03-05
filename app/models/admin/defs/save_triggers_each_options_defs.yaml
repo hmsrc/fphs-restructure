@@ -1,4 +1,6 @@
-          value: # list of literal values, triple curly substitution returning a list, or hash conditional result returning a list
+# Save Trigger: Each options
+          each:
+            value: # list of literal values, triple curly substitution returning a list, or hash conditional result returning a list
           do:
             - <trigger 1> # a trigger configuration such as update_this:
             - <trigger 2>

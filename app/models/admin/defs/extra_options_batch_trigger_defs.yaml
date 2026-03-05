@@ -1,3 +1,4 @@
+# batch_trigger options
   batch_trigger:
     on_record:
       # On each record in the batch perform an appropriate trigger task, which is just the same as for save_trigger

@@ -1,3 +1,4 @@
+# caption_before options
   caption_before:
     field_name: |
       String caption to appear before field. Use markdown formatting if needed.
