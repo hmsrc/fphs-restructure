@@ -1,4 +1,5 @@
-# `log` — Log a Message
+# `log`
+## Log a Message
 
 Write a log entry when this trigger fires. Useful for debugging and audit trails.
 

@@ -1,4 +1,5 @@
-# `create_master` — Create a Master Record
+# `create_master`
+## Create a Master Record
 
 Create a new master record when this trigger fires.
 

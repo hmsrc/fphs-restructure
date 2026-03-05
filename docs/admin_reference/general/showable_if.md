@@ -1,4 +1,5 @@
-# `showable_if` — Conditional Record Visibility
+# `showable_if`
+## Conditional Record Visibility
 
 Control whether a record is shown in the list, based on a [conditions](conditions.md) reference evaluated at runtime.
 

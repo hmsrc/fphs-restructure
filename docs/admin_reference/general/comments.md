@@ -1,4 +1,5 @@
-# `_comments` — Database Table and Field Comments
+# `_comments`
+## Database Table and Field Comments
 
 Add descriptive comments to the underlying database table and its fields. If not set, defaults are generated from the definition name and field captions/labels.
 

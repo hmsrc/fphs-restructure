@@ -1,4 +1,5 @@
-# `_constants` — Runtime Constant Substitutions
+# `_constants`
+## Runtime Constant Substitutions
 
 Define key-value pairs that are included in every record object, accessible via `\{\{constants.constant_name\}\}` substitutions at runtime.
 

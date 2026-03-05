@@ -1,4 +1,5 @@
-# `update_reference` — Update a Referenced Record
+# `update_reference`
+## Update a Referenced Record
 
 Update attributes on a referenced record when this trigger fires.
 

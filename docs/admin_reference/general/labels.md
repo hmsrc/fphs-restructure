@@ -1,4 +1,5 @@
-# `labels` — Field Label Overrides
+# `labels`
+## Field Label Overrides
 
 Override the display label for individual fields, replacing the default label derived from the field name.
 

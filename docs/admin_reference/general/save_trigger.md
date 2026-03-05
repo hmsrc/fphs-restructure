@@ -1,4 +1,5 @@
-# `save_trigger` — Save Trigger Actions
+# `save_trigger`
+## Save Trigger Actions
 
 Define actions to perform automatically when a record is created, updated, saved, disabled, uploaded, or before saving. Each event key (`on_create`, `on_update`, `on_save`, `on_disable`, `on_upload`, `before_save`) takes an ordered list of trigger tasks.
 

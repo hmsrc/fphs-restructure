@@ -1,4 +1,5 @@
-# `notify` — Send a Notification
+# `notify`
+## Send a Notification
 
 Send a notification (email, SMS, etc.) using a configured message template when this trigger fires.
 

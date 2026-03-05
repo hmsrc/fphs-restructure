@@ -1,4 +1,5 @@
-# `_db_columns` — Database Column Type and Index Overrides
+# `_db_columns`
+## Database Column Type and Index Overrides
 
 Override the inferred database column type for specific fields, mark them as array-type columns, or add database indexes.
 

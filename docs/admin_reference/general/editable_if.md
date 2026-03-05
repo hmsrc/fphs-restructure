@@ -1,4 +1,5 @@
-# `editable_if` — Conditional Edit Access
+# `editable_if`
+## Conditional Edit Access
 
 Control whether an existing record can be edited, based on a [conditions](conditions.md) reference evaluated at runtime.
 

@@ -1,4 +1,5 @@
-# `add_tracker` — Add Tracker Entry
+# `add_tracker`
+## Add Tracker Entry
 
 Add a tracker entry (protocol event) when this trigger fires.
 

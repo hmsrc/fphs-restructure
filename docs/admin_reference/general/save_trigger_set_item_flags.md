@@ -1,4 +1,5 @@
-# `set_item_flags` — Set Item Flags
+# `set_item_flags`
+## Set Item Flags
 
 Set or update item flags on the current or related record when this trigger fires.
 

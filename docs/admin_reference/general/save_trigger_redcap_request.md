@@ -1,4 +1,5 @@
-# `redcap_request` — Make a REDCap API Request
+# `redcap_request`
+## Make a REDCap API Request
 
 Send a request to a REDCap project via the REDCap API when this trigger fires.
 

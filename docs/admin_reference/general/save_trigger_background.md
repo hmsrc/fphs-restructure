@@ -1,4 +1,5 @@
-# `background` — Run a Trigger in the Background
+# `background`
+## Run a Trigger in the Background
 
 Defer a trigger task to run asynchronously in the background, outside the current request/response cycle.
 

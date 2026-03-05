@@ -1,4 +1,5 @@
-# `_merge_override` — Deep-Merge Overrides into All Definitions
+# `_merge_override`
+## Deep-Merge Overrides into All Definitions
 
 Keys are deep-merged into all dynamic definitions. These inner items take precedence over the later per-definition inner items, while the rest of each key definition remains untouched.
 

@@ -1,4 +1,5 @@
-# `dialog_before` — Confirmation Dialogs Before Actions
+# `dialog_before`
+## Confirmation Dialogs Before Actions
 
 Display a confirmation dialog (driven by a message template) before a user can submit a form field, all fields, or the submit button.
 

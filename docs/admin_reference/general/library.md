@@ -1,4 +1,5 @@
-# `@library` — Config Library Include
+# `@library`
+## Config Library Include
 
 Include reusable content from the Config Library anywhere within a configuration by adding the following directive (including the `#` comment symbol):
 

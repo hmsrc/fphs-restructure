@@ -1,4 +1,5 @@
-# `_override` — Override Keys Across All Definitions
+# `_override`
+## Override Keys Across All Definitions
 
 Keys to be applied to all dynamic definitions with highest precedence — these definitions take precedence by replacing the later per-definition key definitions.
 

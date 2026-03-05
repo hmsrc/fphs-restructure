@@ -1,4 +1,5 @@
-# `run_batch_trigger` — Run a Batch Trigger
+# `run_batch_trigger`
+## Run a Batch Trigger
 
 Schedule or immediately run a batch trigger for a defined set of records when this trigger fires.
 

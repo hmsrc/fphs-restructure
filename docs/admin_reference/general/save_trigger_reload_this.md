@@ -1,4 +1,5 @@
-# `reload_this` — Reload the Current Record
+# `reload_this`
+## Reload the Current Record
 
 Reload the current record from the database after other trigger tasks have run, ensuring downstream triggers see the latest persisted state.
 
