@@ -255,6 +255,16 @@ div.help-view-doc,
     padding: 15px;
     background-color: rgb(221, 221, 221);
     text-align: center;
+
+    .help-open-in-new-tab {
+      font-size: 1.1em;
+      vertical-align: middle;
+      opacity: 0.6;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
   }
 
   pre {

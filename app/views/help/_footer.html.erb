@@ -4,6 +4,12 @@
       toggle: 'scrollto-target'
     }, 
     class: 'help-scrollto-top' %>
-    &nbsp; 
+    &nbsp;
   <%= render partial: 'help/home_link' %>
+  <% if display_embedded? %>
+    &nbsp;
+    <%= link_to help_page_path(library: library, section: section, subsection: subsection) + '#open-in-new-tab',
+          title: 'open in new tab',
+          class: 'help-open-in-new-tab glyphicon glyphicon-new-window' do %><% end %>
+  <% end %>
 </div>

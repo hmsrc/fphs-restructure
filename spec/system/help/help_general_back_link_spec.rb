@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# Help Sidebar: "back to main section" navigation from general option pages
+# Help Sidebar: "back to main section" navigation from general option pages,
+# and "open in new tab" link in the embedded help footer.
 #
 # When an admin navigates from a section-specific help page (e.g. activity_logs/detailed_options)
 # into a shared general option page (e.g. general/constants), clicking "back to main section"
@@ -15,11 +16,16 @@
 #   3. HelpHelper#main_section reads and validates `params[:back_path]` to build the
 #      correct "back to main section" href.
 #
+# Additionally, when a help page is shown embedded, the footer shows a glyphicon link
+# that opens the current page (without display_as=embedded) in a new browser tab.
+#
 # Test coverage:
 #   - Full AJAX sidebar flow: detailed_options → general option page → back
 #   - Validates `data-help-path` is emitted and JS adds `back_path` to general links
 #   - Validates "back to main section" link renders with correct target href
 #   - Validates clicking back returns to the detailed_options page
+#   - Validates "open in new tab" icon link is present in the embedded footer
+#   - Validates the open-in-new-tab href points to the clean (non-embedded) URL
 
 require 'rails_helper'
 
@@ -98,6 +104,25 @@ describe 'help sidebar back link from general option pages', js: true, driver: $
       # Wait for detailed_options content to reload in the sidebar
       expect(page).to have_css('[data-help-path*="/activity_logs/"]', wait: 15)
       expect(page).to have_content('Activity Log: Detailed Options', wait: 10)
+    end
+  end
+
+  it 'shows an open-in-new-tab icon link in the embedded footer pointing to the clean URL' do
+    admin_sign_in_with_2fa
+    open_activity_log_help_sidebar
+
+    within '#help-sidebar-body' do
+      # The footer should contain the open-in-new-tab icon link
+      open_link = find('.help-footer .help-open-in-new-tab', wait: 10)
+      href = open_link[:href]
+
+      # Href should point to the help page without display_as=embedded
+      expect(href).to include('/help/admin_reference/activity_logs/'),
+        "Expected open-in-new-tab href to be a clean help URL, but was: #{href}"
+      expect(href).not_to include('display_as=embedded'),
+        "Expected open-in-new-tab href to not include display_as=embedded, but was: #{href}"
+      expect(href).to include('#open-in-new-tab'),
+        "Expected open-in-new-tab href to include #open-in-new-tab fragment, but was: #{href}"
     end
   end
 end
