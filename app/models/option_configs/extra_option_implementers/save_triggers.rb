@@ -24,7 +24,9 @@ module OptionConfigs
                              background
                              reload_this
                              case
-                             set_save_trigger_results].freeze
+                             set_save_trigger_results
+                             set_variables
+                             generate_document].freeze
 
       class_methods do
         #
