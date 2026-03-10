@@ -3,7 +3,7 @@ begin;
 -- PostgreSQL database dump
 --
 
-\restrict 7Rtfjtln8if8CP797mzUr4FXUSCygBqRzwFJi3WhhaGR7nglYg5wrwF5lje5ENV
+\restrict RnbaVby4niPldSYo1nj5g4K5LhZTshao8UrWVV97913fdfsZDhfbYepcZBge1EW
 
 -- Dumped from database version 15.15
 -- Dumped by pg_dump version 15.15
@@ -38,61 +38,6 @@ COMMENT ON SCHEMA ml_app IS 'The primary Zeus application, player contact and tr
 --
 
 CREATE SCHEMA ref_data;
-
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- Name: nfs_store_archived_files; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_archived_files (
-    id integer NOT NULL,
-    file_hash character varying,
-    file_name character varying NOT NULL,
-    content_type character varying NOT NULL,
-    archive_file character varying NOT NULL,
-    path character varying NOT NULL,
-    file_size bigint NOT NULL,
-    file_updated_at timestamp without time zone,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    nfs_store_container_id integer,
-    user_id integer,
-    title character varying,
-    description character varying,
-    nfs_store_stored_file_id integer,
-    file_metadata jsonb,
-    embed_resource_name character varying,
-    embed_resource_id bigint
-);
-
-
---
--- Name: nfs_store_stored_files; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_stored_files (
-    id integer NOT NULL,
-    file_hash character varying NOT NULL,
-    file_name character varying NOT NULL,
-    content_type character varying NOT NULL,
-    file_size bigint NOT NULL,
-    path character varying,
-    file_updated_at timestamp without time zone,
-    user_id integer,
-    nfs_store_container_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    title character varying,
-    description character varying,
-    last_process_name_run character varying,
-    file_metadata jsonb,
-    embed_resource_name character varying,
-    embed_resource_id bigint
-);
 
 
 --
@@ -825,6 +770,10 @@ CREATE FUNCTION ml_app.create_message_notification_job(message_notification_id i
     END;
     $$;
 
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
 
 --
 -- Name: player_contacts; Type: TABLE; Schema: ml_app; Owner: -
@@ -1938,6 +1887,57 @@ END IF;
 end;
 
 $$;
+
+
+--
+-- Name: nfs_store_archived_files; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_archived_files (
+    id integer NOT NULL,
+    file_hash character varying,
+    file_name character varying NOT NULL,
+    content_type character varying NOT NULL,
+    archive_file character varying NOT NULL,
+    path character varying NOT NULL,
+    file_size bigint NOT NULL,
+    file_updated_at timestamp without time zone,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    nfs_store_container_id integer,
+    user_id integer,
+    title character varying,
+    description character varying,
+    nfs_store_stored_file_id integer,
+    file_metadata jsonb,
+    embed_resource_name character varying,
+    embed_resource_id bigint
+);
+
+
+--
+-- Name: nfs_store_stored_files; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_stored_files (
+    id integer NOT NULL,
+    file_hash character varying NOT NULL,
+    file_name character varying NOT NULL,
+    content_type character varying NOT NULL,
+    file_size bigint NOT NULL,
+    path character varying,
+    file_updated_at timestamp without time zone,
+    user_id integer,
+    nfs_store_container_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    title character varying,
+    description character varying,
+    last_process_name_run character varying,
+    file_metadata jsonb,
+    embed_resource_name character varying,
+    embed_resource_id bigint
+);
 
 
 --
@@ -7744,131 +7744,6 @@ $_$;
 
 
 --
--- Name: model_references; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.model_references (
-    id integer NOT NULL,
-    from_record_type character varying,
-    from_record_id integer,
-    from_record_master_id integer,
-    to_record_type character varying,
-    to_record_id integer,
-    to_record_master_id integer,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    disabled boolean
-);
-
-
---
--- Name: masters; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.masters (
-    id integer NOT NULL,
-    msid integer,
-    pro_id integer,
-    pro_info_id integer,
-    rank integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    user_id integer,
-    contact_id integer,
-    created_by_user_id bigint
-);
-
-
---
--- Name: tracker_history; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.tracker_history (
-    id integer NOT NULL,
-    master_id integer,
-    protocol_id integer,
-    tracker_id integer,
-    event_date timestamp without time zone,
-    user_id integer,
-    notes character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    sub_process_id integer,
-    protocol_event_id integer,
-    item_id integer,
-    item_type character varying
-);
-
-
---
--- Name: nfs_store_containers; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.nfs_store_containers (
-    id integer NOT NULL,
-    name character varying,
-    user_id integer,
-    app_type_id integer,
-    nfs_store_container_id integer,
-    master_id integer,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    created_by_user_id bigint
-);
-
-
---
--- Name: scantrons; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.scantrons (
-    id integer NOT NULL,
-    master_id integer,
-    scantron_id integer,
-    user_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: activity_logs; Type: TABLE; Schema: ml_app; Owner: -
---
-
-CREATE TABLE ml_app.activity_logs (
-    id integer NOT NULL,
-    name character varying,
-    item_type character varying,
-    rec_type character varying,
-    admin_id integer,
-    disabled boolean,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
-    action_when_attribute character varying,
-    field_list character varying,
-    blank_log_field_list character varying,
-    blank_log_name character varying,
-    extra_log_types character varying,
-    hide_item_list_panel boolean,
-    main_log_name character varying,
-    process_name character varying,
-    table_name character varying,
-    category character varying,
-    schema_name character varying
-);
-
-
---
--- Name: next_msid_values; Type: VIEW; Schema: ref_data; Owner: -
---
-
-CREATE VIEW ref_data.next_msid_values AS
- SELECT (max(masters.msid) + 1) AS msid
-   FROM ml_app.masters;
-
-
---
 -- Name: accuracy_score_history; Type: TABLE; Schema: ml_app; Owner: -
 --
 
@@ -8407,6 +8282,33 @@ CREATE SEQUENCE ml_app.activity_log_player_infos_id_seq
 --
 
 ALTER SEQUENCE ml_app.activity_log_player_infos_id_seq OWNED BY ml_app.activity_log_player_infos.id;
+
+
+--
+-- Name: activity_logs; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.activity_logs (
+    id integer NOT NULL,
+    name character varying,
+    item_type character varying,
+    rec_type character varying,
+    admin_id integer,
+    disabled boolean,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    action_when_attribute character varying,
+    field_list character varying,
+    blank_log_field_list character varying,
+    blank_log_name character varying,
+    extra_log_types character varying,
+    hide_item_list_panel boolean,
+    main_log_name character varying,
+    process_name character varying,
+    table_name character varying,
+    category character varying,
+    schema_name character varying
+);
 
 
 --
@@ -9927,6 +9829,24 @@ CREATE VIEW ml_app.marketo_master_ids AS
 
 
 --
+-- Name: masters; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.masters (
+    id integer NOT NULL,
+    msid integer,
+    pro_id integer,
+    pro_info_id integer,
+    rank integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    user_id integer,
+    contact_id integer,
+    created_by_user_id bigint
+);
+
+
+--
 -- Name: masters_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -10147,6 +10067,25 @@ CREATE TABLE ml_app.ml_copy (
 
 
 --
+-- Name: model_references; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.model_references (
+    id integer NOT NULL,
+    from_record_type character varying,
+    from_record_id integer,
+    from_record_master_id integer,
+    to_record_type character varying,
+    to_record_id integer,
+    to_record_master_id integer,
+    user_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    disabled boolean
+);
+
+
+--
 -- Name: model_references_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -10346,6 +10285,23 @@ CREATE SEQUENCE ml_app.nfs_store_container_history_id_seq
 --
 
 ALTER SEQUENCE ml_app.nfs_store_container_history_id_seq OWNED BY ml_app.nfs_store_container_history.id;
+
+
+--
+-- Name: nfs_store_containers; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.nfs_store_containers (
+    id integer NOT NULL,
+    name character varying,
+    user_id integer,
+    app_type_id integer,
+    nfs_store_container_id integer,
+    master_id integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    created_by_user_id bigint
+);
 
 
 --
@@ -11671,6 +11627,20 @@ ALTER SEQUENCE ml_app.scantron_series_twos_id_seq OWNED BY ml_app.scantron_serie
 
 
 --
+-- Name: scantrons; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.scantrons (
+    id integer NOT NULL,
+    master_id integer,
+    scantron_id integer,
+    user_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
 -- Name: scantrons_id_seq; Type: SEQUENCE; Schema: ml_app; Owner: -
 --
 
@@ -12321,6 +12291,27 @@ CREATE SEQUENCE ml_app.test_items_id_seq
 --
 
 ALTER SEQUENCE ml_app.test_items_id_seq OWNED BY ml_app.test_items.id;
+
+
+--
+-- Name: tracker_history; Type: TABLE; Schema: ml_app; Owner: -
+--
+
+CREATE TABLE ml_app.tracker_history (
+    id integer NOT NULL,
+    master_id integer,
+    protocol_id integer,
+    tracker_id integer,
+    event_date timestamp without time zone,
+    user_id integer,
+    notes character varying,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    sub_process_id integer,
+    protocol_event_id integer,
+    item_id integer,
+    item_type character varying
+);
 
 
 --
@@ -14316,6 +14307,15 @@ CREATE SEQUENCE ref_data.domain_mappings_id_seq
 --
 
 ALTER SEQUENCE ref_data.domain_mappings_id_seq OWNED BY ref_data.domain_mappings.id;
+
+
+--
+-- Name: next_msid_values; Type: VIEW; Schema: ref_data; Owner: -
+--
+
+CREATE VIEW ref_data.next_msid_values AS
+ SELECT (max(masters.msid) + 1) AS msid
+   FROM ml_app.masters;
 
 
 --
@@ -23353,6 +23353,6 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 7Rtfjtln8if8CP797mzUr4FXUSCygBqRzwFJi3WhhaGR7nglYg5wrwF5lje5ENV
+\unrestrict RnbaVby4niPldSYo1nj5g4K5LhZTshao8UrWVV97913fdfsZDhfbYepcZBge1EW
 
 commit;
