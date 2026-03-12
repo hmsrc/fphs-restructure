@@ -10,13 +10,13 @@
 5. **If requirements are not clear, ask for clarification before proceeding**
 6. **Never commit directly to `up-develop` or `develop` branches** - always create feature branches and pull requests
 7. **Focus on configuration over code** - most features should be achievable through admin panel settings rather than new Ruby code
-8. **Create new files and edit directly in the editor**; avoid using command line file operations unless absolutely necessary
+8. **Create new files and edit directly in the editor**; avoid using command line file operations to generate source code
 
 
 ### Critical Rules for Running Terminal Commands
 1. **Never set environment variables** - use app-scripts instead
-2. **Always run tests after making changes** to verify functionality
-3. **Never redirect scripts stdout or stderr to /dev/null**
+2. **Always wait for commands to complete before proceeding** - use `awaitTerminal` if needed
+3. **Never redirect scripts stdout or stderr to /dev/null or /tmp**
 4. **Never run commands in the background** - all commands exit when complete with success or failure codes
 
 ### Git and GitHub Usage
@@ -72,6 +72,39 @@ For Rspec System Specs Refer to: [Rspec System Specs project coding standards](i
 - DO NOT run commands that redirect output to `/dev/null` or `/tmp/`
 - DO NOT run commands in the background using `&` or `nohup`
 - DO NOT run commands with `timeout` unless absolutely necessary
+
+```bash
+# Let test output stream, then analyze the saved log
+bundle exec rspec spec/system/ 2>&1 | tee /tmp/rspec_output.log | tail -100
+grep -E "pattern" /tmp/rspec_output.log | tail -15
+grep -E --after-context=100 "other pattern" /tmp/rspec_output.log | tail -200
+
+# NOTE: the arguments after the script are the same as you would pass to the underlying command
+# Replace `RAILS_ENV=test bundle exec rails runner ...` with: 
+app-scripts/rails_runner_test.sh "puts User.count"
+# or use the rails environment argument
+bundle exec rails runner -e test "puts Rails.env"
+
+# Replace `RUN_APP_SPECS=true FEATURE_DEBUG=true bundle exec rspec ...` with:
+app-scripts/headless_rspec.sh spec/system/my_spec.rb -e 'the example to test'
+
+# Replace `NOT_HEADLESS=true RUN_APP_SPECS=true FEATURE_DEBUG=true bundle exec rspec ...` with:
+app-scripts/not_headless_rspec.sh spec/system/my_spec.rb -e 'the example to test'
+
+# Clean the test database (creates a fresh one)
+app-scripts/clean-test-db.sh 
+
+# Clean test assets and cache
+app-scripts/clean-test-assets-and-cache.sh
+```
+
+#### Why These Rules Exist
+
+- **Terminal tools can lose output** if commands pipe before completion
+- **Background processes hide errors** and completion status from the agent
+- **Environment variables must be consistent** - app-scripts ensure this
+- **Tee allows both viewing and analyzing** output without losing information
+- **Agents need full output** to diagnose failures accurately
 
 ## Project-Specific Conventions
 
