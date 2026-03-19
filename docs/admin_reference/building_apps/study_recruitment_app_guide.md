@@ -61,6 +61,7 @@ Navigate to **Admin > App Types** and create a new app type.
 |---|---|
 | **Name** | `study-recruitment` |
 | **Label** | Study Recruitment |
+| **Default Schema** | `study_rec` |
 
 The app type is the top-level container. All activity logs, dynamic models, external
 identifiers, and user access controls are scoped to this app type.
@@ -89,7 +90,7 @@ Automatically expands the details panel and the tracker tab when a participant r
 |---|---|
 | **App Type** | study-recruitment |
 | **Name** | `open panels` |
-| **Value** | `details, activity_log__study_recruitment_assignments` |
+| **Value** | `details, activity_log__study_rec_ids` |
 
 ### Create Master Record With External Identifier
 
@@ -256,7 +257,7 @@ Navigate to **Admin > Activity Logs** and create a new entry.
 | Field | Value |
 |---|---|
 | **Name** | `Study Recruitment Tracker` |
-| **Item Type** | `study_recruitment_assignment` |
+| **Item Type** | `study_rec_id` |
 | **Schema Name** | `study_rec` |
 | **Category** | `study-recruitment` |
 | **Action When Attribute** | `activity_date` |
@@ -337,7 +338,7 @@ schedule_call:
     all_fields:
       show_caption: |
         Call scheduled for **{{follow_up_when::date}}**.
-        View the **[Screening](#click-target-tab-activity-log-study-recruitment-screening)** tab
+        View the **[Screening](#click-target-tab-activity-log--study-rec-id-screenings)** tab
         for the screening script.
     select_who: Who will perform the call?
     select_record_from_player_contacts: Phone number to call
@@ -529,15 +530,15 @@ Navigate to **Admin > Activity Logs** and create a new entry.
 | Field | Value |
 |---|---|
 | **Name** | `Study Recruitment Screening` |
-| **Item Type** | `study_recruitment_assignment` (same as tracker) |
+| **Item Type** | `study_rec_id` (same as tracker) |
 | **Process Name** | `screenings` |
 | **Schema Name** | `study_rec` |
 | **Category** | `study-recruitment` |
 | **Action When Attribute** | `created_at` |
 
 **Important**: The `Item Type` must match the tracker's item type so both activity logs
-reference the same assignment record. The `Process Name` differentiates this log from
-the tracker (which has no process name).
+reference the same external identifier record. The `Process Name` differentiates this
+log from the tracker (which has no process name).
 
 Set the **Options** field to define the screening steps.
 
@@ -582,7 +583,7 @@ initial_contact:
   save_trigger:
     on_create:
       create_reference:
-        - activity_log__study_recruitment_assignments:
+        - activity_log__study_rec_ids:
             force_create: true
             in: master
             with:
@@ -622,14 +623,14 @@ save_trigger:
   on_create:
     create_reference:
       # Create a "Screening Started" entry in the tracker
-      - activity_log__study_recruitment_assignments:
+      - activity_log__study_rec_ids:
           force_create: true
           in: master
           with:
             extra_log_type: screening_started
 
       # Create a "Contacted" entry only if select_still_interested is 'yes'
-      - activity_log__study_recruitment_assignments:
+      - activity_log__study_rec_ids:
           force_create: true
           in: master
           with:
@@ -644,7 +645,7 @@ Key properties:
 
 | Property | Description |
 |---|---|
-| `model_name` | Resource name of the target (e.g., `activity_log__study_recruitment_assignments`) |
+| `model_name` | Resource name of the target (e.g., `activity_log__study_rec_ids`) |
 | `in: master` | Create the reference in the same master record |
 | `force_create: true` | Bypass UAC checks (the trigger runs as the system) |
 | `with:` | Set field values on the created record |
@@ -660,6 +661,10 @@ save_action:
   on_save:
     create_next_creatable: true
 ```
+
+> **Note**: `on_save` is shorthand that applies to both create and update events.
+> If you need different behavior, use `on_create` and `on_update` separately — these
+> override `on_save` for their respective events.
 
 This creates a smooth workflow where the screener saves one step and the next step
 automatically opens, without manual button clicking.
@@ -781,14 +786,14 @@ finalize:
     on_create:
       create_reference:
         # Always create a "Screening Complete" tracker entry
-        - activity_log__study_recruitment_assignments:
+        - activity_log__study_rec_ids:
             force_create: true
             in: master
             with:
               extra_log_type: screening_complete
 
         # Create "Eligible" only if result is 'eligible'
-        - activity_log__study_recruitment_assignments:
+        - activity_log__study_rec_ids:
             force_create: true
             in: master
             with:
@@ -799,7 +804,7 @@ finalize:
                   select_result: 'eligible'
 
         # Create "Ineligible" if result is 'ineligible'
-        - activity_log__study_recruitment_assignments:
+        - activity_log__study_rec_ids:
             force_create: true
             in: master
             with:
@@ -812,7 +817,7 @@ finalize:
   save_action:
     on_save:
       refresh_panel:
-        - value: activity_log__study_recruitment_assignments
+        - value: activity_log__study_rec_ids
 ```
 
 ### Key Pattern: `save_action.refresh_panel` — Refresh Another Tab
@@ -824,13 +829,17 @@ so the user immediately sees the auto-created status entries.
 save_action:
   on_save:
     refresh_panel:
-      - value: activity_log__study_recruitment_assignments
+      - value: activity_log__study_rec_ids
 ```
 
 ### Key Pattern: `editable_if: never` — Lock After Creation
 
 Setting `editable_if: never: true` prevents the record from being edited after creation.
 This is used for finalization steps where the data should be locked once submitted.
+
+> **Note**: If `editable_if` is not defined at all, the default behavior is to only allow
+> editing the most recently created item in the list. Use `always: true` to make all items
+> always editable.
 
 ---
 
@@ -843,9 +852,10 @@ Controls (UACs). Each UAC grants a specific access level for a specific resource
 
 | Resource Type | Resource Name Pattern | Controls |
 |---|---|---|
-| `table` | `activity_log__study_recruitment_assignments` | Access to the entire tracker log |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__schedule_call` | Access to a specific extra log type |
+| `table` | `activity_log__study_rec_ids` | Access to the entire tracker log |
+| `activity_log_type` | `activity_log__study_rec_id__schedule_call` | Access to a specific extra log type |
 | `table` | `dynamic_model__study_rec_initial_calls` | Access to a dynamic model |
+| `table` | `trackers` | Required for any role with create/update access |
 | `general` | `app_type` | Access to the app type itself |
 
 ### Access Levels
@@ -863,24 +873,28 @@ Navigate to **Admin > User Access Controls** and create entries for the coordina
 | Resource Type | Resource Name | Role | Access |
 |---|---|---|---|
 | `general` | `app_type` | coordinator | `read` |
-| `table` | `activity_log__study_recruitment_assignments` | coordinator | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__schedule_call` | coordinator | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__enrolled` | coordinator | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__opted_out` | coordinator | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__screening_started` | coordinator | `read` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__screening_complete` | coordinator | `read` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment__eligible` | coordinator | `read` |
+| `table` | `trackers` | coordinator | `create` |
+| `table` | `tracker_histories` | coordinator | `read` |
+| `table` | `activity_log__study_rec_ids` | coordinator | `create` |
+| `activity_log_type` | `activity_log__study_rec_id__schedule_call` | coordinator | `create` |
+| `activity_log_type` | `activity_log__study_rec_id__enrolled` | coordinator | `create` |
+| `activity_log_type` | `activity_log__study_rec_id__opted_out` | coordinator | `create` |
+| `activity_log_type` | `activity_log__study_rec_id__screening_started` | coordinator | `read` |
+| `activity_log_type` | `activity_log__study_rec_id__screening_complete` | coordinator | `read` |
+| `activity_log_type` | `activity_log__study_rec_id__eligible` | coordinator | `read` |
 
 ### Example: Screener Role
 
 | Resource Type | Resource Name | Role | Access |
 |---|---|---|---|
 | `general` | `app_type` | screener | `read` |
-| `table` | `activity_log__study_recruitment_assignment_screenings` | screener | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment_screening__initial_contact` | screener | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment_screening__eligibility_questions` | screener | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment_screening__consent` | screener | `create` |
-| `activity_log_type` | `activity_log__study_recruitment_assignment_screening__finalize` | screener | `create` |
+| `table` | `trackers` | screener | `create` |
+| `table` | `tracker_histories` | screener | `read` |
+| `table` | `activity_log__study_rec_id_screenings` | screener | `create` |
+| `activity_log_type` | `activity_log__study_rec_id_screening__initial_contact` | screener | `create` |
+| `activity_log_type` | `activity_log__study_rec_id_screening__eligibility_questions` | screener | `create` |
+| `activity_log_type` | `activity_log__study_rec_id_screening__consent` | screener | `create` |
+| `activity_log_type` | `activity_log__study_rec_id_screening__finalize` | screener | `create` |
 | `table` | `dynamic_model__study_rec_initial_calls` | screener | `create` |
 
 ### Assigning Roles to Users
