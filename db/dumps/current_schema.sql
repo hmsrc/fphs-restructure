@@ -3,10 +3,10 @@ begin;
 -- PostgreSQL database dump
 --
 
-\restrict nY8ijccegovSGeWgaWDywTZhfL2AsTpE3vAavUZg3y6VEtjHQRkvUojNyJSPZ0U
+\restrict 8aI4aeP9hdLITC1ivLrapId10LjReeE8KqAB5h5Ttq8pidgYSJGtd65ZRFNebbi
 
--- Dumped from database version 15.15
--- Dumped by pg_dump version 15.15
+-- Dumped from database version 15.16
+-- Dumped by pg_dump version 15.16
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -2153,7 +2153,8 @@ CREATE TABLE ml_app.users (
     confirmation_sent_at timestamp without time zone,
     country_code character varying,
     terms_of_use_accepted character varying,
-    otp_secret character varying
+    otp_secret character varying,
+    expire_datetime timestamp without time zone
 );
 
 
@@ -8511,7 +8512,8 @@ CREATE TABLE ml_app.admins (
     do_not_email boolean DEFAULT false,
     admin_id bigint,
     capabilities character varying[],
-    otp_secret character varying
+    otp_secret character varying,
+    expire_datetime timestamp without time zone
 );
 
 
@@ -23353,6 +23355,6 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict nY8ijccegovSGeWgaWDywTZhfL2AsTpE3vAavUZg3y6VEtjHQRkvUojNyJSPZ0U
+\unrestrict 8aI4aeP9hdLITC1ivLrapId10LjReeE8KqAB5h5Ttq8pidgYSJGtd65ZRFNebbi
 
 commit;
