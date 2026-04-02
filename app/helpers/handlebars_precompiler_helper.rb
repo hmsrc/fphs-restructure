@@ -218,27 +218,6 @@ module HandlebarsPrecompilerHelper
     req_digest = Digest::SHA256.hexdigest([handlebars_template_ids, handlebars_partial_ids].join(','))
     filename = "requested-templates-#{u&.id}-#{app_type_id}-#{req_digest}-#{access_control_version}.js"
     url_path = HandlebarsPrecompiler::URL_RELATIVE_PATH
-    multi_file = HandlebarsPrecompiler::MULTI_PUBLIC_DIR.join(filename)
-
-    if File.exist?(multi_file)
-      Rails.logger.info { "Serving existing multi file: #{filename}" }
-    else
-      template_html = requested_handlebars_templates.map do |template_info|
-        read_handlebars_template(template_info[:id], is_partial: template_info[:is_partial])
-      end
-
-      # Add initialization header to ensure Handlebars.partials exists before partials register themselves
-      # The CLI-compiled partials assume Handlebars.partials already exists
-      init_header = <<~JS
-        (function() {
-          Handlebars.partials = Handlebars.partials || {};
-          Handlebars.templates = Handlebars.templates || {};
-        })();
-      JS
-      File.write(multi_file, (init_header + template_html.join("\n")).html_safe)
-      Rails.logger.info { "Generated multi file: #{filename}" }
-    end
-
     ["#{url_path}multi/#{filename}", handlebars_template_ids, handlebars_partial_ids]
   end
 
