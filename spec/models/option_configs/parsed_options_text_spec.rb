@@ -20,15 +20,27 @@ RSpec.describe OptionConfigs::ExtraOptions, '.parsed_options_text', type: :model
 
   before :all do
     change_setting('AllowDynamicMigrations', true)
+    create_admin
+    create_user
+
+    # Create the DynamicModel and its table once to avoid repeated migration timeouts
+    DynamicModel.active.where(table_name: 'test_parsed_opts').reload.each { |d| d.disable!(@admin) }
+    DynamicModel.send(:remove_const, :TestParsedOpt) if DynamicModel.const_defined?(:TestParsedOpt, false)
+    @dm_def = DynamicModel.create!(
+      current_admin: @admin,
+      name: 'test parsed opts',
+      table_name: 'test_parsed_opts',
+      schema_name: 'dynamic_test',
+      primary_key_name: :id,
+      foreign_key_name: :master_id,
+      category: :test,
+      field_list: 'field_1 field_2',
+      options: nil
+    )
   end
 
   after :all do
     change_setting('AllowDynamicMigrations', false)
-  end
-
-  before :each do
-    create_admin
-    create_user
   end
 
   describe 'resolving YAML anchors' do
@@ -223,21 +235,11 @@ RSpec.describe OptionConfigs::ExtraOptions, '.parsed_options_text', type: :model
 
   private
 
-  # Create a DynamicModel definition with the given options YAML for testing
+  # Update the existing DynamicModel definition's options without triggering a migration.
+  # The table was already created in before(:all).
   def generate_dm_with_options(options_yaml)
-    DynamicModel.active.where(table_name: 'test_parsed_opts').reload.each { |d| d.disable!(@admin) }
-    DynamicModel.send(:remove_const, :TestParsedOpt) if DynamicModel.const_defined?(:TestParsedOpt, false)
-
-    DynamicModel.create!(
-      current_admin: @admin,
-      name: 'test parsed opts',
-      table_name: 'test_parsed_opts',
-      schema_name: 'dynamic_test',
-      primary_key_name: :id,
-      foreign_key_name: :master_id,
-      category: :test,
-      field_list: 'field_1 field_2',
-      options: options_yaml
-    )
+    @dm_def.update_columns(options: options_yaml)
+    @dm_def.reload
+    @dm_def
   end
 end
