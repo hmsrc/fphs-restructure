@@ -322,7 +322,10 @@ module FeatureSupport
       raise "Could not find panel tab #{name.id_underscore.inspect}. Available tabs: #{available_tabs.join(', ')}"
     end
 
-    tab_link = find(tab_selector, visible: :all, wait: 0)
+    tab_link = all('.master-main-panel.in a[data-panel-tab]', visible: :all, wait: 0)
+               .find { |tab| tab['data-panel-tab'] == name.id_underscore }
+    tab_link ||= all(tab_selector, visible: :all, wait: 0).find(&:visible?)
+    tab_link ||= find(tab_selector, visible: :all, wait: 0)
     expect(tab_link).not_to be nil
     scroll_into_view(tab_link)
     tab_link.click if tab_link['aria-expanded'] != 'true'
