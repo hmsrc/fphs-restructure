@@ -531,7 +531,7 @@ Navigate to **Admin > Activity Logs** and create a new entry.
 |---|---|
 | **Name** | `Study Recruitment Screening` |
 | **Item Type** | `study_rec_id` (same as tracker) |
-| **Process Name** | `screenings` |
+| **Process Name** | `screening` |
 | **Schema Name** | `study_rec` |
 | **Category** | `study-recruitment` |
 | **Action When Attribute** | `created_at` |
@@ -890,7 +890,7 @@ Navigate to **Admin > User Access Controls** and create entries for the coordina
 | `general` | `app_type` | screener | `read` |
 | `table` | `trackers` | screener | `create` |
 | `table` | `tracker_histories` | screener | `read` |
-| `table` | `activity_log__study_rec_id_screenings` | screener | `create` |
+| `table` | `activity_log__study_rec_id_screenings` | screener | `read` |
 | `activity_log_type` | `activity_log__study_rec_id_screening__initial_contact` | screener | `create` |
 | `activity_log_type` | `activity_log__study_rec_id_screening__eligibility_questions` | screener | `create` |
 | `activity_log_type` | `activity_log__study_rec_id_screening__consent` | screener | `create` |
