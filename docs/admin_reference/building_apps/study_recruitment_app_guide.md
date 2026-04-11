@@ -260,8 +260,7 @@ Navigate to **Admin > Activity Logs** and create a new entry.
 | **Item Type** | `study_rec_id` |
 | **Schema Name** | `study_rec` |
 | **Category** | `study-recruitment` |
-| **Action When Attribute** | `activity_date` |
-| **Hide Item List Panel** | `true` |
+| **Action When Attribute** | `created_at` |
 
 The **Options** field will contain all the extra log type definitions. Start with the
 structural settings:
@@ -329,34 +328,26 @@ schedule_call:
 
   fields:
     - select_who
-    - select_record_from_player_contacts
     - follow_up_when
-    - follow_up_time
     - notes
-
-  caption_before:
-    all_fields:
-      show_caption: |
-        Call scheduled for **{{follow_up_when::date}}**.
-        View the **[Screening](#click-target-tab-activity-log--study-rec-id-screenings)** tab
-        for the screening script.
-    select_who: Who will perform the call?
-    select_record_from_player_contacts: Phone number to call
-    follow_up_when: Scheduled date
-    follow_up_time: Scheduled time
-    notes: Additional notes for the screener
-
-  creatable_if:
-    <<: *enabled_if
-    has_not_created_activity: screening_started
 
   field_options:
     select_who:
       edit_as:
         field_type: select_user_with_role_screener
-    select_record_from_player_contacts:
-      edit_as:
-        field_type: select_record_from_player_contact_phone
+
+  caption_before:
+    all_fields:
+      show_caption: |
+        Call scheduled for **{{follow_up_when::date}}**.
+        View the **Screening** tab for the screening script.
+    select_who: Who will perform the call?
+    follow_up_when: Scheduled date
+    notes: Additional notes for the screener
+
+  creatable_if:
+    <<: *enabled_if
+    has_not_created_activity: screening_started
 
   showable_if:
     always: true
@@ -441,8 +432,6 @@ screening_complete:
     all_fields: |
       The screening has been completed.
 
-      The participant should be sent a $20 gift card as a thank-you.
-
   showable_if:
     always: true
 ```
@@ -498,14 +487,11 @@ opted_out:
   label: Exit (Opt-Out)
 
   fields:
-    - select_next_step
     - notes
 
   caption_before:
     all_fields: |
-      The participant opted out at: {{select_next_step}}.
-
-      All records are locked down after 14 days.
+      The participant opted out.
 
   creatable_if:
     <<: *enabled_if
@@ -705,9 +691,6 @@ eligibility_questions:
         Complete the eligibility questions below.
       show_caption: |
         Eligibility responses have been recorded.
-    age_eligible: Is the participant within the study age range?
-    health_eligible: Does the participant meet health criteria?
-    location_eligible: Is the participant in the study area?
 
   creatable_if:
     has_created_activity: initial_contact
