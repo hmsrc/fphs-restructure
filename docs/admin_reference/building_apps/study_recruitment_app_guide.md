@@ -16,7 +16,7 @@ or custom Ruby code is required.
 2. [Create the App Type](#2-create-the-app-type)
 3. [Set Up App Configurations](#3-set-up-app-configurations)
 4. [Create an External Identifier](#4-create-an-external-identifier)
-5. [Create Dynamic Models for Participant Data](#5-create-dynamic-models-for-participant-data)
+5. [Embedded Dynamic Models via `config_trigger` and `default_embed_resource`](#5-embedded-dynamic-models-via-config_trigger-and-default_embed_resource)
 6. [Create a Tracker Activity Log](#6-create-a-tracker-activity-log)
 7. [Define Tracker Extra Log Types](#7-define-tracker-extra-log-types)
 8. [Create a Screening Activity Log](#8-create-a-screening-activity-log)
@@ -133,25 +133,57 @@ This creates a `study_rec_ids` table with auto-incrementing IDs in the specified
 
 ---
 
-## 5. Create Dynamic Models for Participant Data
+## 5. Embedded Dynamic Models via `config_trigger` and `default_embed_resource`
 
-Dynamic models provide additional data tables for storing participant-specific information.
-These can be embedded inside activity log steps to collect structured data.
+When an activity log step needs its own data collection form, the recommended approach
+is to let the system auto-create the dynamic model using `config_trigger` and
+`default_embed_resource`, then edit the resulting dynamic model to add fields and logic.
 
-### Example: Initial Call Data
+### How It Works
 
-Navigate to **Admin > Dynamic Models** and create a new entry.
+1. In the screening activity log options, add `config_trigger` and
+   `embed: default_embed_resource` to the extra log type that needs embedded data
+2. When the activity log configuration is saved, `config_trigger.on_define.create_defaults`
+   automatically:
+   - Creates a dynamic model with a table name derived from the activity log's category,
+     process name, and extra log type (e.g., `study_recruitment_screening_initial_contact_recs`)
+   - Creates UACs for the specified role
+3. Navigate to **Admin > Dynamic Models**, find the auto-created model, and edit its
+   **Options** to add the fields, field_options, and show_if logic you need
 
-| Field | Value |
-|---|---|
-| **Name** | `study rec initial calls` |
-| **Table Name** | `study_rec_initial_calls` |
-| **Schema Name** | `study_rec` |
-| **Primary Key Name** | `id` |
-| **Foreign Key Name** | `master_id` |
-| **Category** | `study-recruitment` |
+### The `config_trigger` Definition
 
-Then configure the **Options** field to define columns and UI behavior:
+Define a reusable anchor in the screening activity log's `_definitions`:
+
+```yaml
+_definitions:
+  config_trigger_create_embed: &create_embed
+    on_define:
+      create_defaults:
+        user_access_control:
+          role_name: screener
+        embed:
+          fields:
+            - select_still_interested
+            - select_continue_now
+            - callback_date
+            - callback_time
+            - notes
+```
+
+Then reference it in the extra log type:
+
+```yaml
+initial_contact:
+  config_trigger: *create_embed
+  embed: default_embed_resource
+  # ... rest of the extra log type options
+```
+
+### Editing the Auto-Created Dynamic Model
+
+After saving the activity log, navigate to the auto-created dynamic model and set its
+**Options** to define field behavior:
 
 > **Important: Field Naming Convention for Dropdowns**
 >
@@ -161,28 +193,6 @@ Then configure the **Options** field to define columns and UI behavior:
 > using the `alt_options` values. Fields without this prefix render as plain text inputs.
 
 ```yaml
-_db_columns:
-  id:
-    type: integer
-  master_id:
-    type: integer
-  select_still_interested:
-    type: string
-  select_continue_now:
-    type: string
-  callback_date:
-    type: date
-  callback_time:
-    type: string
-  notes:
-    type: string
-  user_id:
-    type: integer
-  created_at:
-    type: datetime
-  updated_at:
-    type: datetime
-
 default:
   label: Initial Call Data
   fields:
@@ -211,6 +221,9 @@ default:
     callback_time:
       select_continue_now: 'no - schedule callback'
 ```
+
+> **Note**: You do not need to specify `_db_columns` — the system automatically creates
+> the database columns based on the fields listed in `config_trigger.on_define.create_defaults.embed.fields`.
 
 ### Key Pattern: `show_if` — Conditional Field Visibility
 
@@ -542,6 +555,19 @@ _definitions:
   never_create: &never_create
     never: true
 
+  config_trigger_create_embed: &create_embed
+    on_define:
+      create_defaults:
+        user_access_control:
+          role_name: screener
+        embed:
+          fields:
+            - select_still_interested
+            - select_continue_now
+            - callback_date
+            - callback_time
+            - notes
+
 _default:
   showable_if:
     always: true
@@ -560,7 +586,8 @@ initial_contact:
       edit_as:
         field_type: select_user_with_role_screener
 
-  embed: dynamic_model__study_rec_initial_calls
+  config_trigger: *create_embed
+  embed: default_embed_resource
 
   caption_before:
     select_who: Screener performing the call
@@ -586,14 +613,22 @@ The `embed` option directly embeds a dynamic model form inside the activity log 
 When the user opens the step, the embedded model's fields appear inline.
 
 ```yaml
-# Embed by resource name (creates/shows one record)
-embed: dynamic_model__study_rec_initial_calls
+# Use default_embed_resource to automatically embed the DM created by config_trigger
+embed: default_embed_resource
+
+# Or embed any specific dynamic model by resource name
+embed: dynamic_model__some_other_model
 
 # Or use the expanded form for more control
 embed:
-  resource_name: dynamic_model__study_rec_initial_calls
-  resource_id: initial_call_id
+  resource_name: dynamic_model__some_other_model
+  resource_id: some_field_id
 ```
+
+When using `default_embed_resource`, the system looks up the dynamic model named by
+the activity log's category, process name, and extra log type — for example,
+an `initial_contact` step in a `screening` process with category `study-recruitment`
+auto-resolves to `dynamic_model__study_recruitment_screening_initial_contact_recs`.
 
 The embedded model displays its own `fields`, `show_if`, and `field_options` as defined
 in its own options. The parent activity log step simply provides the container.
@@ -837,7 +872,7 @@ Controls (UACs). Each UAC grants a specific access level for a specific resource
 |---|---|---|
 | `table` | `activity_log__study_rec_ids` | Access to the entire tracker log |
 | `activity_log_type` | `activity_log__study_rec_id__schedule_call` | Access to a specific extra log type |
-| `table` | `dynamic_model__study_rec_initial_calls` | Access to a dynamic model |
+| `table` | `dynamic_model__study_recruitment_screening_initial_contact_recs` | Access to an embedded dynamic model |
 | `table` | `trackers` | Required for any role with create/update access |
 | `general` | `app_type` | Access to the app type itself |
 
@@ -878,7 +913,12 @@ Navigate to **Admin > User Access Controls** and create entries for the coordina
 | `activity_log_type` | `activity_log__study_rec_id_screening__eligibility_questions` | screener | `create` |
 | `activity_log_type` | `activity_log__study_rec_id_screening__consent` | screener | `create` |
 | `activity_log_type` | `activity_log__study_rec_id_screening__finalize` | screener | `create` |
-| `table` | `dynamic_model__study_rec_initial_calls` | screener | `create` |
+| `table` | `dynamic_model__study_recruitment_screening_initial_contact_recs` | screener | `create` |
+
+> **Note**: The embedded dynamic model UAC
+> (`dynamic_model__study_recruitment_screening_initial_contact_recs`) is auto-created
+> by `config_trigger.on_define.create_defaults` when the screening activity log is saved.
+> You only need to manually create it if the auto-created access level needs adjustment.
 
 ### Assigning Roles to Users
 
@@ -908,7 +948,8 @@ Navigate to **Admin > User Roles** and assign roles to individual users.
 | `creatable_if` | Extra log type | When the add button is available |
 | `editable_if` | Extra log type | When editing is allowed |
 | `showable_if` | Extra log type | When the entry is visible |
-| `embed` | Extra log type | Embed a dynamic model form |
+| `embed` | Extra log type | Embed a dynamic model form (`default_embed_resource` or explicit name) |
+| `config_trigger` | Extra log type / `_definitions` | Auto-create dynamic models and UACs on save |
 | `save_trigger.create_reference` | Extra log type | Auto-create records in other logs |
 | `save_action.create_next_creatable` | Extra log type | Auto-advance to next step |
 | `save_action.refresh_panel` | Extra log type | Refresh another tab after save |
