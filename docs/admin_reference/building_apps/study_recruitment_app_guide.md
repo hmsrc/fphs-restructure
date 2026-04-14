@@ -14,13 +14,13 @@ or custom Ruby code is required.
 
 1. [Overview](#1-overview)
 2. [Create the App Type](#2-create-the-app-type)
-3. [Set Up App Configurations](#3-set-up-app-configurations)
-4. [Create an External Identifier](#4-create-an-external-identifier)
-5. [Embedded Dynamic Models via `config_trigger` and `default_embed_resource`](#5-embedded-dynamic-models-via-config_trigger-and-default_embed_resource)
-6. [Create a Tracker Activity Log](#6-create-a-tracker-activity-log)
-7. [Define Tracker Extra Log Types](#7-define-tracker-extra-log-types)
-8. [Create a Screening Activity Log](#8-create-a-screening-activity-log)
-9. [Define Screening Extra Log Types](#9-define-screening-extra-log-types)
+3. [Create an External Identifier](#3-create-an-external-identifier)
+4. [Embedded Dynamic Models via `config_trigger` and `default_embed_resource`](#4-embedded-dynamic-models-via-config_trigger-and-default_embed_resource)
+5. [Create a Tracker Activity Log](#5-create-a-tracker-activity-log)
+6. [Define Tracker Extra Log Types](#6-define-tracker-extra-log-types)
+7. [Create a Screening Activity Log](#7-create-a-screening-activity-log)
+8. [Define Screening Extra Log Types](#8-define-screening-extra-log-types)
+9. [Set Up App Configurations](#9-set-up-app-configurations)
 10. [Configure User Access Controls](#10-configure-user-access-controls)
 11. [Summary of Patterns](#11-summary-of-patterns)
 
@@ -68,53 +68,7 @@ identifiers, and user access controls are scoped to this app type.
 
 ---
 
-## 3. Set Up App Configurations
-
-Navigate to **Admin > App Configurations** and add entries for the new app type.
-
-### Hide the Default Search Navbar
-
-Prevents participants from being searched by the default player name search.
-
-| Field | Value |
-|---|---|
-| **App Type** | study-recruitment |
-| **Name** | `hide navbar search` |
-| **Value** | `true` |
-
-### Auto-Open Panels on Master Record Load
-
-Automatically expands the details panel and the tracker tab when a participant record opens.
-
-| Field | Value |
-|---|---|
-| **App Type** | study-recruitment |
-| **Name** | `open panels` |
-| **Value** | `details, activity_log__study_rec_ids` |
-
-### Create Master Record With External Identifier
-
-When creating a new master record, automatically prompt for the study ID.
-
-| Field | Value |
-|---|---|
-| **App Type** | study-recruitment |
-| **Name** | `create master with` |
-| **Value** | `study_rec_id_number` |
-
-### Show External IDs in Search Results
-
-Display the study ID in the master record header.
-
-| Field | Value |
-|---|---|
-| **App Type** | study-recruitment |
-| **Name** | `show ids in master result` |
-| **Value** | `study_rec_ids` |
-
----
-
-## 4. Create an External Identifier
+## 3. Create an External Identifier
 
 Navigate to **Admin > External Identifiers** and create a new entry. This gives each
 participant a unique study ID.
@@ -133,7 +87,7 @@ This creates a `study_rec_ids` table with auto-incrementing IDs in the specified
 
 ---
 
-## 5. Embedded Dynamic Models via `config_trigger` and `default_embed_resource`
+## 4. Embedded Dynamic Models via `config_trigger` and `default_embed_resource`
 
 When an activity log step needs its own data collection form, the recommended approach
 is to let the system auto-create the dynamic model using `config_trigger` and
@@ -259,7 +213,7 @@ show_if:
 
 ---
 
-## 6. Create a Tracker Activity Log
+## 5. Create a Tracker Activity Log
 
 The **Tracker** is the central status board for a participant. Each entry represents a
 status change or milestone. Many entries are auto-created by save triggers from other
@@ -326,7 +280,7 @@ by only showing relevant actions.
 
 ---
 
-## 7. Define Tracker Extra Log Types
+## 6. Define Tracker Extra Log Types
 
 Each extra log type in the tracker options represents a different status or action.
 Add these to the **Options** field of the tracker activity log.
@@ -519,7 +473,7 @@ opted_out:
 
 ---
 
-## 8. Create a Screening Activity Log
+## 7. Create a Screening Activity Log
 
 The **Screening** activity log manages the multi-step screening workflow. Each step
 is an extra log type that guides the screener through the interview.
@@ -543,7 +497,7 @@ Set the **Options** field to define the screening steps.
 
 ---
 
-## 9. Define Screening Extra Log Types
+## 8. Define Screening Extra Log Types
 
 ### 9.1 Initial Contact — First Step with Embedded Data
 
@@ -858,6 +812,55 @@ This is used for finalization steps where the data should be locked once submitt
 > **Note**: If `editable_if` is not defined at all, the default behavior is to only allow
 > editing the most recently created item in the list. Use `always: true` to make all items
 > always editable.
+
+---
+
+## 9. Set Up App Configurations
+
+Now that all dynamic definitions (external identifiers, activity logs, and dynamic models)
+have been created, configure the app type's runtime settings.
+
+Navigate to **Admin > App Configurations** and add entries for the app type.
+
+### Hide the Default Search Navbar
+
+Prevents participants from being searched by the default player name search.
+
+| Field | Value |
+|---|---|
+| **App Type** | study-recruitment |
+| **Name** | `hide navbar search` |
+| **Value** | `true` |
+
+### Auto-Open Panels on Master Record Load
+
+Automatically expands the details panel and the tracker tab when a participant record opens.
+
+| Field | Value |
+|---|---|
+| **App Type** | study-recruitment |
+| **Name** | `open panels` |
+| **Value** | `details, activity_log__study_rec_ids` |
+
+### Create Master Record With External Identifier
+
+When creating a new master record, automatically prompt for the study ID.
+
+| Field | Value |
+|---|---|
+| **App Type** | study-recruitment |
+| **Name** | `create master with` |
+| **Value** | `study_rec_id_number` |
+
+### Show External IDs in Search Results
+
+Display the study ID in the master record header.
+
+| Field | Value |
+|---|---|
+| **App Type** | study-recruitment |
+| **Name** | `show ids in master result` |
+| **Value** | `study_rec_ids` |
 
 ---
 
