@@ -55,5 +55,6 @@ A separate developer's reference, including API samples, is available in the [De
 
 ### General Concepts
 
+- [Building Apps](../building_apps/study_recruitment_app_guide.md) walks through building a meaningful app using common configuration patterns
 - [Substitutions](../general/substitutions.md) provide insertion of data into calculated conditions, captions, message templates and dialogs
 - [Full Text Search](../general/full_text_search.md) outlines end-to-end configuration for indexing and searching file and record content
