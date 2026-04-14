@@ -964,23 +964,42 @@ Navigate to **Admin > User Roles** and assign roles to individual users.
 
 ### Workflow Summary
 
-```
-Coordinator: Schedule Call (tracker)
-    ↓
-Screener: Initial Contact (screening, embeds dynamic model)
-    → save_trigger → creates "Screening Started" in tracker
-    → save_action → auto-opens Eligibility Questions
-    ↓
-Screener: Eligibility Questions (screening)
-    → save_action → auto-opens Consent
-    ↓
-Screener: Consent (screening)
-    → save_action → auto-opens Finalize
-    ↓
-Screener: Finalize (screening, locked after creation)
-    → save_trigger → creates "Screening Complete" in tracker
-    → save_trigger → creates "Eligible" or "Ineligible" in tracker (conditional)
-    → save_action → refreshes tracker panel
-    ↓
-Coordinator: Enrolled / Opted Out (tracker, manual)
+```mermaid
+flowchart TD
+    Start([Coordinator creates<br>Master Record + Study ID])
+    ScheduleCall[Schedule Call<br><i>tracker — coordinator</i>]
+    InitialContact[Initial Contact<br><i>screening — screener</i><br>embeds dynamic model]
+    ScreeningStarted[/Screening Started<br><i>tracker — auto-created</i>/]
+    EligQuestions[Eligibility Questions<br><i>screening — screener</i>]
+    Consent[Consent<br><i>screening — screener</i>]
+    Finalize[Finalize<br><i>screening — screener</i><br>locked after creation]
+    ScreeningComplete[/Screening Complete<br><i>tracker — auto-created</i>/]
+    Eligible[/Eligible<br><i>tracker — auto-created</i>/]
+    Ineligible[/Ineligible<br><i>tracker — auto-created</i>/]
+    Enrolled([Enrolled<br><i>tracker — coordinator</i>])
+    OptedOut([Exit · Opt-Out<br><i>tracker — coordinator</i>])
+
+    Start --> ScheduleCall
+    ScheduleCall --> InitialContact
+
+    InitialContact -- save_trigger --> ScreeningStarted
+    InitialContact -- create_next_creatable --> EligQuestions
+
+    EligQuestions -- create_next_creatable --> Consent
+    Consent -- create_next_creatable --> Finalize
+
+    Finalize -- save_trigger --> ScreeningComplete
+    Finalize -- "save_trigger (all eligible)" --> Eligible
+    Finalize -- "save_trigger (any ineligible)" --> Ineligible
+
+    Eligible --> Enrolled
+    Eligible --> OptedOut
+    Ineligible --> OptedOut
+
+    style ScreeningStarted fill:#e0e0e0,stroke:#888
+    style ScreeningComplete fill:#e0e0e0,stroke:#888
+    style Eligible fill:#c8e6c9,stroke:#4caf50
+    style Ineligible fill:#ffcdd2,stroke:#e53935
+    style Enrolled fill:#c8e6c9,stroke:#4caf50
+    style OptedOut fill:#ffcdd2,stroke:#e53935
 ```
