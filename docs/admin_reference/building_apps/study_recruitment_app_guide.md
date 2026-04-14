@@ -1003,3 +1003,24 @@ flowchart TD
     style Enrolled fill:#c8e6c9,stroke:#4caf50
     style OptedOut fill:#ffcdd2,stroke:#e53935
 ```
+
+```
+Coordinator: Schedule Call (tracker)
+    ↓
+Screener: Initial Contact (screening, embeds dynamic model)
+    → save_trigger → creates "Screening Started" in tracker
+    → save_action → auto-opens Eligibility Questions
+    ↓
+Screener: Eligibility Questions (screening)
+    → save_action → auto-opens Consent
+    ↓
+Screener: Consent (screening)
+    → save_action → auto-opens Finalize
+    ↓
+Screener: Finalize (screening, locked after creation)
+    → save_trigger → creates "Screening Complete" in tracker
+    → save_trigger → creates "Eligible" or "Ineligible" in tracker (conditional)
+    → save_action → refreshes tracker panel
+    ↓
+Coordinator: Enrolled / Opted Out (tracker, manual)
+```
