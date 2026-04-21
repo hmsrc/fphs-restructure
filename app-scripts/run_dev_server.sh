@@ -1,0 +1,3 @@
+#!/bin/bash
+
+FPHS_PASSWORD_AGE_LIMIT=5000 FPHS_LOG_LEVEL=info FPHS_POSTGRESQL_DATABASE=fpa_development REGISTRATION_ADMIN_EMAIL=phil_ayres@test.com FROM_EMAIL=phil_ayres@test.com USER_TIMEOUT_MINS=300 ADMIN_TIMEOUT_MINS=300 INVITATION_CODE=1234 ALLOW_ADMINS_TO_MANAGE_ADMINS=true FPHS_ADMIN_EMAIL=phil_ayres@test.com FPHS_RC_JOB_ADMIN=redcap-admin@template NOTIFY_ON_REGISTRATION=user ALLOW_USERS_TO_REGISTER=true FPHS_LOAD_APP_TYPES=1, a=95,88 FPHS_2FA_AUTH_DISABLED=true RUBY_DEBUG_OPEN=true FPHS_POSTGRESQL_SCHEMA='ml_app,extra_app,fem,data_requests,study_info,sleep,ref_data,redcap,dynamic,ipa_ops,organization,play_ipa' bundle exec bin/rails s --port 3002
