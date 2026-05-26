@@ -217,9 +217,10 @@ RSpec.describe NfsStore::Upload, type: :model do
 
     res = @container.upload_done(ids)
     expect(res).to be true
+    expected_error = "No recipients based on role: upload notify role, users or specified phones/emails in SaveTriggers::Notify (user: #{@user.email}, app_type: #{@user.app_type&.id})"
     exp = { 'iterator_index' => 0,
             'iterator_value' => nil,
-            'notify_errors' => ['No recipients based on role: upload notify role, users or specified phones/emails in SaveTriggers::Notify'],
+            'notify_errors' => [expected_error],
             'notify_results' => [false],
             'notify_messages' => [] }
     expect(@container.save_trigger_results).to eq exp
