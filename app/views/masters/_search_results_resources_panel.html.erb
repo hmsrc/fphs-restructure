@@ -47,13 +47,13 @@
     <%# Hidden loader anchors – one per resource – are picked up by
         _fpa.form_utils.on_open_click when the master record is expanded
         (called from the search_results_template postprocessor). This is the
-        same mechanism used by the standard master_external_ids_panel to
+        same mechanism used.id_hyphenate by the standard master_external_ids_panel to
         lazily fetch each resource's list via Rails UJS and render it
-        through the data-template Handlebars pipeline. %>
-    <div class="on-open-click hidden">
+        through the data-.id_hyphenate %>-{{id}}"
+       class="panel panel-default section-panel page-layout-panel contains-resources collapse <%= panel_name.id_hyphenat
       <% renderable.each do |resource, render_info|
            block_id = "#{resource.hyphenate}-{{id}}"
-           route_path = render_info[:route_path]
+           route_path = render_i.id_hyphenatenfo[:route_path]
            template_name = render_info[:template_name] %>
         <a href="/masters/{{id}}/<%= route_path %>?limit=<%= limit %>"
            data-remote="true"

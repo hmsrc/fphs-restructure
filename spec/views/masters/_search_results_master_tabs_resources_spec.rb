@@ -162,4 +162,36 @@ RSpec.describe 'masters/_search_results_master_tabs_resources', type: :view do
       expect(rendered).not_to include('<a ')
     end
   end
+
+  # --- Panel name with spaces (regression: panel IDs must be valid CSS) ---
+
+  context 'with a panel_name that contains spaces (e.g. "phone log")' do
+    before do
+      render partial: 'masters/search_results_master_tabs_resources',
+             locals: base_locals.merge(
+               panel_name: 'phone log',
+               panel_label: 'Phone Log',
+               resources: ['activity_log__case_reviews']
+             )
+    end
+
+    it 'uses a hyphenated id on the tab anchor (no spaces in id attribute)' do
+      expect(rendered).to include('id="tab-resources-phone-log"')
+      expect(rendered).not_to include('id="tab-resources-phone log"')
+    end
+
+    it 'uses a hyphenated fragment in href (valid CSS selector)' do
+      expect(rendered).to include('href="#phone-log-{{id}}"')
+      expect(rendered).not_to include('href="#phone log-')
+    end
+
+    it 'uses a hyphenated fragment in data-target (valid CSS selector)' do
+      expect(rendered).to include('data-target="#phone-log-{{id}}"')
+      expect(rendered).not_to include('data-target="#phone log-')
+    end
+
+    it 'keeps the raw panel_name in data-panel-tab (used for value comparison, not as a selector)' do
+      expect(rendered).to include('data-panel-tab="phone log"')
+    end
+  end
 end

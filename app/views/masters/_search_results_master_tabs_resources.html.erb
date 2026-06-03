@@ -33,7 +33,7 @@
   %>
   {{#if (or (not (params 'only_tabs')) (params 'only_tabs' '<%= panel_name %>')) }}
   <li role="presentation" class="<%= extra_classes %> <%= class_for_open_panels(open_panel_key, default_panels.length) %>" data-open-panels="{{open_panels}}">
-    <a id="tab-resources-<%= panel_name %>" href="#<%= panel_name %>-{{id}}" data-panel-tab="<%= panel_name %>" data-toggle="collapse" data-target="#<%= panel_name %>-{{id}}" aria-expanded="false" class="scroll-to-expanded collapsed"><%= panel_label %></a>
+    <a id="tab-resources-<%= panel_name.id_hyphenate %>" href="#<%= panel_name.id_hyphenate %>-{{id}}" data-panel-tab="<%= panel_name %>" data-toggle="collapse" data-target="#<%= panel_name.id_hyphenate %>-{{id}}" aria-expanded="false" class="scroll-to-expanded collapsed"><%= panel_label %></a>
   </li>
   {{/if}}
 <% end %>
