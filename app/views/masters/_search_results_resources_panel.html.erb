@@ -51,12 +51,18 @@
   <%= render partial: 'reports/insert_options_css', locals: { outer: outer, view_css: view_css } %>
   <div id="<%= panel_name.id_hyphenate %>-{{id}}"
        class="panel panel-default section-panel page-layout-panel contains-resources collapse <%= panel_name.id_hyphenate %>-block format-block-on-expand <%= hide_sl_class %> <%= hide_al_header_class %>">
+    <%# Only render the outer panel header when multiple resources share this panel.
+        For a single resource the Handlebars activity-logs-header already provides
+        the title, close button and action buttons, so a second outer header is
+        redundant. The collapsing tab link itself labels the panel in that case. %>
+    <% if renderable.length > 1 %>
     <div class="is-header default-header section-panel-header">
       <% unless hide_player_tabs? %>
         <a href="#<%= panel_name.id_hyphenate %>-{{id}}" data-toggle="collapse" class="dropup scroll-to-master pull-right glyphicon glyphicon-remove-sign show-entity btn-close-panel" title="close panel"></a>
       <% end %>
       <h4 class="list-group-item-heading panel-heading--<%= panel_label.to_s.id_hyphenate %>"><%= panel_label %></h4>
     </div>
+    <% end %>
     <%# Hidden loader anchors – one per resource – are picked up by
         _fpa.form_utils.on_open_click when the master record is expanded
         (called from the search_results_template postprocessor). This is the

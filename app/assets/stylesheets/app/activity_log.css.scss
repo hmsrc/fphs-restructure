@@ -57,11 +57,6 @@
   line-height: normal !important;
 }
 
-// The contains-resources outer panel already has its own header (is-header.default-header).
-// Hide the duplicate inner activity-logs-header rendered by the Handlebars template.
-.contains-resources .activity-logs-header {
-  display: none;
-}
 
 // Match the responsive size increase applied to .filter-switch at wider breakpoints.
 @media only screen and (min-width: 1400px) {

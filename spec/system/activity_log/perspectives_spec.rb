@@ -315,4 +315,37 @@ describe 'activity log panel perspectives', js: true, driver: $browser_driver do
 
     expect(page).not_to have_css(".activity-log-perspectives[data-resource='#{PERSP_RESOURCE}']")
   end
+
+  # ---------------------------------------------------------------------------
+  # Header deduplication inside contains-resources panels
+  # ---------------------------------------------------------------------------
+  # The panel renders as a contains-resources outer div. The outer default-header
+  # provides the panel title; the inner Handlebars activity-logs-header must NOT
+  # show a duplicate h4 title. This holds regardless of whether perspectives are set.
+
+  it 'does not render the outer default-header for a single-resource panel' do
+    navigate_and_expand
+
+    outer = "##{PERSP_PANEL_NAME}-#{@master.id}"
+    within(outer) do
+      expect(page).not_to have_css('.is-header.default-header', visible: true),
+                           'Expected no outer default-header when only one resource is in the panel'
+      expect(page).to have_css('.activity-logs-header', visible: true, wait: 10),
+                      'Expected inner activity-logs-header to be visible (it is the only heading)'
+    end
+  end
+
+  it 'does not render the outer default-header when no perspectives are configured (single resource)' do
+    update_panel_options(base_panel_options_yaml(perspectives: false))
+
+    navigate_and_expand
+
+    outer = "##{PERSP_PANEL_NAME}-#{@master.id}"
+    within(outer) do
+      expect(page).not_to have_css('.is-header.default-header', visible: true),
+                           'Expected no outer default-header for a single-resource panel without perspectives'
+      expect(page).to have_css('.activity-logs-header', visible: true, wait: 10),
+                      'Expected inner activity-logs-header to be visible'
+    end
+  end
 end
