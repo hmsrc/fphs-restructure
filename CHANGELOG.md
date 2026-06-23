@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.44.14] - 2026-06-23
+
 - [Merged] release 9.44.13 back to develop
 - [Fixed] broken historical version templates and added use_current_version guard - fixes #1238
 
