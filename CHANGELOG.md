@@ -14,6 +14,20 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.44.12 back to develop
+- [Fixed] activity log item_type_exists validation to skip disabled records; cleaned up perspectives spec pollution - fixes #1235
+- [Added] bundler update to release script
+- [Updated] agent prompts
+- [Added] new details and scripts for managing up-develop and PRs
+- [Updated] merge script
+- [Added] better instructions to agents in how to use debugging for system spec issues and development
+- [Added] interactive debugging and development notes for system specs
+- [Fixed] missing filename persistence in REDCap file capture skip branch
+- [Fixed] embedded DM show mode for versioned definitions - fixes #1238
+- [Fixed] activity log historical-version templates breaking page render - refs #1238
+- [Added] external identifier versioned field templates and coexistence test - refs #1238
+- [Added] versioned field list render guards for DMs - refs #665 #1238
+
 ## [9.44.12] - 2026-06-17
 
 - [Merged] release 9.44.11 back to develop
