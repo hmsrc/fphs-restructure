@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.44.13] - 2026-06-23
+
 - [Merged] release 9.44.12 back to develop
 - [Fixed] activity log item_type_exists validation to skip disabled records; cleaned up perspectives spec pollution - fixes #1235
 - [Added] bundler update to release script
