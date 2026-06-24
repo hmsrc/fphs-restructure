@@ -14,6 +14,11 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.44.14 back to develop
+- [Added] failing specs for historical version loop removal - fixes #1238 perf
+- [Fixed] historical DM version config injection for on-demand template_config - fixes #1238
+- [Fixed] notes field entry in phone log specs to use markdown editor helper - fixes #1238
+
 ## [9.44.14] - 2026-06-23
 
 - [Merged] release 9.44.13 back to develop
