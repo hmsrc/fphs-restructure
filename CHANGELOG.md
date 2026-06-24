@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.44.15] - 2026-06-24
+
 - [Merged] release 9.44.14 back to develop
 - [Added] failing specs for historical version loop removal - fixes #1238 perf
 - [Fixed] historical DM version config injection for on-demand template_config - fixes #1238
