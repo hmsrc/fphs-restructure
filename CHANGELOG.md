@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.46.1] - 2026-06-27
+
 - [Merged] release 9.44.15 back to develop
 - [Updated] CHANGELOG.md with git commits
 - [Changed] release scripts to get PRs for CHANGELOG if "minor" release
