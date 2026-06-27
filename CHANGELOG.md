@@ -14,6 +14,17 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.44.15 back to develop
+- [Updated] CHANGELOG.md with git commits
+- [Changed] release scripts to get PRs for CHANGELOG if "minor" release
+- [Fixed] CHANGELOG
+- [Updated] CHANGELOG.md with git commits
+- [Updated] gems
+- [Merged] release 9.46.0 back to develop
+- [Added] permission for agents to use interactive debugging tools
+- [Fixed] YAML corruption and config library cycle expansion in dynamic model options - fixes #676
+- [Updated] gems
+
 ## [9.46.0] - 2026-06-25
 
 ### From FPHS - PR #1244 - 2026-06-24
