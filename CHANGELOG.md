@@ -14,6 +14,10 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.46.1 back to develop
+- [Fixed] Chartjs datalabels plugin appearing on all charts - fixes #1249
+- [Added] documentation for Chartjs datalabels and disabling legends
+
 ## [9.46.1] - 2026-06-27
 
 - [Merged] release 9.44.15 back to develop
