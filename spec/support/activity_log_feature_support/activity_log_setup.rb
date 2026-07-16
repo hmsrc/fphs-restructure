@@ -26,5 +26,21 @@ module ActivityLogSetup
       a.current_admin = admin
       a.update_tracker_events
     end
+
+    # Ensure notes field always uses plain text, regardless of the app config
+    # notes_field_format setting (which other specs may set to 'markdown').
+    al = ActivityLog.active.where(name: 'Phone Log').first
+    if al && al.extra_log_types.blank?
+      al.update!(current_admin: admin, extra_log_types: <<~YAML)
+        primary:
+          field_options:
+            notes:
+              format: plain
+        blank_log:
+          field_options:
+            notes:
+              format: plain
+      YAML
+    end
   end
 end

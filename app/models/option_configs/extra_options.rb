@@ -345,50 +345,45 @@ module OptionConfigs
         self.bad_ref_items = []
         refitem.each do |mn, conf|
           to_class = ModelReference.to_record_class_for_type(mn)
-          unresolved = to_class.nil? || (to_class.respond_to?(:definition) && !to_class.definition)
 
-          if unresolved
-            if Admin::AppTypeImport.import_in_progress?
-              # Avoid breaking app type imports if the resource being pointed to in the reference
-              # hasn't been set up yet. Leave the raw entry untouched and don't report it, since
-              # we are not able to control the order of items being created in an app import, and
-              # many references to underlying definitions will not yet have been created.
-              Rails.logger.info "Definition for class #{to_class} is not set yet - leaving reference " \
-                                "#{mn} untouched while an app type import is in progress"
-            else
-              bad_ref_items << mn
-              Rails.logger.warn "extra log type reference for #{mn} does not exist as a class in #{name} / #{config_obj.name}"
-              Rails.logger.info 'Will clean up reference to avoid it being used again in this session'
-              # Log this as a warning, not an error, since an :error would populate config_errors and
-              # trip raise_bad_configs, potentially halting startup's option config parse. Reporting
-              # it as a warning still surfaces the problem to an admin via the admin panel.
-              failed_config :references,
-                            "reference for #{mn} does not exist as a class in #{name} / #{config_obj.name}",
-                            level: :warn
+          # Avoid breaking app type imports if the resource being pointed to in the reference
+          # hasn't been set up yet.
+          if to_class.nil? || (to_class.respond_to?(:definition) && !to_class.definition)
+            Rails.logger.warn "Definition for class #{to_class} is not set - skipping reference setup for #{mn}"
+            break
+          end
+
+          if to_class
+            elt = conf[:add_with] && conf[:add_with][:extra_log_type]
+            add_with_elt = nil
+            add_with_elt = to_class.human_name_for(elt) if elt && to_class.respond_to?(:human_name_for)
+            refitem[mn][:to_record_label] = conf[:result_label] || conf[:label] || add_with_elt || to_class.human_name
+
+            if to_class.respond_to?(:no_master_association)
+              refitem[mn][:no_master_association] = to_class.no_master_association
             end
 
-            next
-          end
+            refitem[mn][:to_model_name_us] = to_class.to_s.ns_underscore
+            refitem[mn][:to_model_class_name] = to_class.to_s
+            refitem[mn][:to_table_name] = to_class.table_name
+            nil
 
-          elt = conf[:add_with] && conf[:add_with][:extra_log_type]
-          add_with_elt = nil
-          add_with_elt = to_class.human_name_for(elt) if elt && to_class.respond_to?(:human_name_for)
-          refitem[mn][:to_record_label] = conf[:result_label] || conf[:label] || add_with_elt || to_class.human_name
-
-          if to_class.respond_to?(:no_master_association)
-            refitem[mn][:no_master_association] = to_class.no_master_association
-          end
-
-          refitem[mn][:to_model_name_us] = to_class.to_s.ns_underscore
-          refitem[mn][:to_model_class_name] = to_class.to_s
-          refitem[mn][:to_table_name] = to_class.table_name
-
-          if to_class.respond_to?(:definition)
-            cd = to_class.definition
-            tsn = cd.schema_name
-            tct = cd.class.to_s
-            refitem[mn][:to_schema_name] = tsn
-            refitem[mn][:to_class_type] = tct
+            if to_class.respond_to?(:definition)
+              cd = to_class.definition
+              tsn = cd.schema_name
+              tct = cd.class.to_s
+              refitem[mn][:to_schema_name] = tsn
+              refitem[mn][:to_class_type] = tct
+            end
+          else
+            bad_ref_items << mn
+            Rails.logger.warn "extra log type reference for #{mn} does not exist as a class in #{name} / #{config_obj.name}"
+            Rails.logger.info 'Will clean up reference to avoid it being used again in this session'
+            # Log this as a warning, not an error, since we are not able to control the order of items being created
+            # in an app import, and many references to underlying definitions will not yet have been created
+            failed_config :references,
+                          "reference for #{mn} does not exist as a class in #{name} / #{config_obj.name}",
+                          level: :warn
           end
         end
 
@@ -730,15 +725,6 @@ module OptionConfigs
       String.yaml_dump(hash_results)
     end
 
-    # Top-level configuration sections that describe the underlying database
-    # table (field comments, column types and the data dictionary) rather than
-    # the runtime option type configurations. They are consumed only by admin
-    # and migration flows and are deleted from the loaded config before any
-    # runtime use (see parse_config). If a previous corruption (issue #676)
-    # damaged one of these sections, the whole YAML document fails to parse even
-    # though the runtime configuration is intact.
-    DbDefinitionOnlySections = %w[_comments _db_columns _data_dictionary].freeze
-
     #
     # Parse the options text from the dynamic definition, producing an initial Hash
     # @param [ActiveRecord::Base] config_obj - dynamic definition record
@@ -752,14 +738,7 @@ module OptionConfigs
           loaded_config = YAML.safe_load(config_text, permitted_classes: [],
                                                       permitted_symbols: [],
                                                       aliases: true)
-        rescue Psych::Exception => e
-          # The DB-definition-only sections are not required for runtime usage.
-          # Strip them and retry so a corruption confined to (or removable with)
-          # those sections cannot break rendering for an otherwise-valid runtime
-          # configuration. Genuine runtime config errors still raise below.
-          recovered = recover_runtime_config(config_text, config_obj, e)
-          return recovered.deep_symbolize_keys! unless recovered.nil?
-
+        rescue Psych::SyntaxError, Psych::DisallowedClass, Psych::Exception => e
           linei = 0
           errtext = config_text.split("\n").map { |l| "#{linei += 1}: #{l}" }.join("\n")
           Rails.logger.warn e
@@ -768,8 +747,7 @@ module OptionConfigs
             $stderr.puts e
             $stderr.puts errtext
           end
-          Rails.logger.warn 'Failed configuration YAML at:'
-          Rails.logger.warn(ExceptionExtensions.short_string_backtrace(caller))
+
           bt = ["#{e.class.name} #{e}"] + [errtext]
           raise FphsOptionsParseError, "#{e.class.name} #{e} -- review failed configuration YAML", bt
         end
@@ -784,56 +762,6 @@ module OptionConfigs
       Rails.logger.error e.short_string_backtrace
       raise FphsException,
             "Error occurred in parse_options_text in #{config_obj}: #{e}"
-    end
-
-    #
-    # Attempt to recover a parseable runtime configuration from options text that
-    # failed to load, by removing the DB-definition-only sections
-    # (_comments, _db_columns, _data_dictionary). These describe the database
-    # table, not the runtime configuration, and are discarded before runtime use.
-    # @param [String] config_text - the full prepared options text that failed to parse
-    # @param [ActiveRecord::Base] config_obj - dynamic definition record (for logging)
-    # @param [Exception] original_error - the original parse failure (for logging)
-    # @return [Hash, nil] the recovered config hash, or nil if recovery was not possible
-    def self.recover_runtime_config(config_text, config_obj, original_error)
-      stripped = strip_db_definition_sections(config_text)
-      return nil if stripped == config_text
-
-      recovered = YAML.safe_load(stripped, permitted_classes: [], permitted_symbols: [], aliases: true)
-      return nil unless recovered.is_a?(Hash)
-
-      Rails.logger.warn(
-        "Recovered runtime configuration for #{config_obj} by ignoring corrupt DB-definition sections " \
-        "(#{original_error.class.name}: #{original_error.message}). The stored options need to be repaired."
-      )
-      recovered
-    rescue Psych::Exception
-      # The runtime configuration is genuinely broken (not just the DB-definition
-      # sections), so recovery is not possible. Let the caller raise the original error.
-      nil
-    end
-
-    #
-    # Remove the DB-definition-only top-level sections from options text using
-    # line-based scanning. A section starts at a line whose first character is one
-    # of the section keys followed by ':' (column 0) and continues until the next
-    # line that begins with a non-whitespace character (the next top-level key).
-    # Line scanning is used (rather than YAML parsing) precisely because the text
-    # may be malformed.
-    # @param [String] config_text
-    # @return [String] config_text with the DB-definition sections removed
-    def self.strip_db_definition_sections(config_text)
-      section_start = /\A(#{DbDefinitionOnlySections.join('|')}):/
-      skipping = false
-
-      config_text.lines.reject do |line|
-        if line.match?(section_start)
-          skipping = true
-        elsif skipping && line.match?(/\A\S/)
-          skipping = false
-        end
-        skipping
-      end.join
     end
 
     #
@@ -1180,40 +1108,19 @@ module OptionConfigs
 
       content_to_update = content_to_update.dup
       reg = LibraryMatchRegex
-      # Track libraries already sourced so a cyclic or self-referencing library
-      # (e.g. A -> B -> A, possible when resolving a historical library version
-      # with version_at) cannot be expanded repeatedly. Without this guard the
-      # while loop below grows the text without bound — exponentially when a
-      # cycle reintroduces more than one directive, since gsub! replaces every
-      # occurrence on each pass. See issue #676. This mirrors the cycle
-      # protection already present in requested_libraries.
-      seen = Set.new
       res = content_to_update.match reg
 
       while res
         category = res[1].strip
         name = res[2].strip
-        key = [category, name]
-
-        if seen.include?(key)
-          # Already sourced: neutralise the repeated reference rather than
-          # expanding it again. The replacement intentionally does not match
-          # LibraryMatchRegex, so the loop makes progress and terminates.
-          Rails.logger.warn "Skipped cyclic config library reference '#{category} #{name}' while including libraries"
-          content_to_update.gsub!(res[0], "# @library_cycle_skipped #{category} #{name}")
-          res = content_to_update.match reg
-          next
-        end
-        seen.add(key)
-
         lib = if version_at
                 Admin::ConfigLibrary.content_named_at(category, name, format: :yaml, at: version_at)
               else
                 Admin::ConfigLibrary.content_named(category, name, format: :yaml)
               end
         lib = (lib || '').dup
-        LibraryKeyRenamePatterns.each do |key_pattern|
-          lib.gsub!(/^#{key_pattern}:.*/, "#{key_pattern}__#{category}_#{name}:")
+        LibraryKeyRenamePatterns.each do |key|
+          lib.gsub!(/^#{key}:.*/, "#{key}__#{category}_#{name}:")
         end
         lib = "# @sourced_library_start #{category} #{name}\n#{lib}\n# @sourced_library_end #{category} #{name}\n"
         content_to_update.gsub!(res[0], lib)

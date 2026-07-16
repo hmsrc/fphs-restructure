@@ -194,10 +194,15 @@ describe 'admin API definitions panel', js: true, driver: $browser_driver do
         find('a.edit-entity.glyphicon-pencil').click
       end
 
-      expect(page).to have_css('.nav-tabs', wait: 10)
+      expect(page).to have_css('.admin-edit-form', wait: 10)
+      sleep 1
 
-      find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
-      expect(page).to have_css('#api-definitions', visible: true)
+      within '.admin-edit-form' do
+        expect(page).to have_css('.nav-tabs', wait: 10)
+        find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
+      end
+
+      expect(page).to have_css('#api-definitions', visible: true, wait: 10)
       finish_page_loading
 
       within '#api-definitions' do
@@ -445,10 +450,14 @@ describe 'admin API definitions panel', js: true, driver: $browser_driver do
       within "#admin-item-#{first_report.id}" do
         find('a.edit-entity.glyphicon-pencil').click
       end
-      expect(page).to have_css('.nav-tabs', wait: 10)
+      expect(page).to have_css('.admin-edit-form', wait: 10)
+      sleep 1
 
-      find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
-      expect(page).to have_css('#api-definitions', visible: true)
+      within '.admin-edit-form' do
+        find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
+      end
+
+      expect(page).to have_css('#api-definitions', visible: true, wait: 10)
       finish_page_loading
 
       # Clear any pre-existing flash notices
@@ -472,10 +481,14 @@ describe 'admin API definitions panel', js: true, driver: $browser_driver do
       within "#admin-item-#{second_report.id}" do
         find('a.edit-entity.glyphicon-pencil').click
       end
-      expect(page).to have_css('.nav-tabs', wait: 10)
+      expect(page).to have_css('.admin-edit-form', wait: 10)
+      sleep 1
 
-      find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
-      expect(page).to have_css('#api-definitions', visible: true)
+      within '.admin-edit-form' do
+        find('.nav-tabs a[aria-controls="api-definitions"]', visible: true).click
+      end
+
+      expect(page).to have_css('#api-definitions', visible: true, wait: 10)
       finish_page_loading
 
       within '#api-definitions' do

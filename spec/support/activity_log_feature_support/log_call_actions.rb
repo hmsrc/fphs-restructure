@@ -83,7 +83,7 @@ module LogCallActions
 
   def add_free_text_notes text
     within phone_log_block_css do
-      edit_rich_text_editor_field 'notes', text
+      fill_in 'Notes', with: text
     end
   end
 
