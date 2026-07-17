@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.46.3] - 2026-07-17
+
 - [Merged] release 9.46.2 back to develop
 - [Fixed] missing library in sidebar embedded page view - fixes #1252
 - [Fixed] show_if hiding of read-only field values for option-typed dynamic models - fixes #1254
