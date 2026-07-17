@@ -14,6 +14,21 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.46.2 back to develop
+- [Fixed] missing library in sidebar embedded page view - fixes #1252
+- [Fixed] show_if hiding of read-only field values for option-typed dynamic models - fixes #1254
+- [Fixed] clean_references_def unresolved reference handling and suppressed spurious startup WARN logging - fixes #1246
+- [Added] system spec for edit-mode show_if with custom option_type_attr_name - resolves #1256
+- [Fixed] active_model_configurations fail-open when FPHS_LOAD_APP_TYPES matches no active app type - fixes #1263
+- [Fixed] AppSettingsVars NfsStoreJobDefaultAppTypeId typo and added method fallback in app_settings - fixes #1248
+- [Fixed] Delayed::Job job_id lookup fragility that broke Admin Job UUID search - fixes #1232
+- [Fixed] various spec issues causing flakiness in tests
+- [Added] yaml_parse curly substitution method - fixes #1267
+- [Added] REDCap Users admin report with Search Project Users admin link - resolves #1258
+- [Documented] and fixed ColTypeJson YAML-to-JSON field behaviour - fixes #1268
+- [Added] ability to remove a Redcap user from a project in project admin - fixes #1260
+- [Scoped] handlebars_cache_key per app_type and per user to prevent cross-context cache poisoning - fixes #1279
+
 ## [9.46.2] - 2026-06-30
 
 - [Merged] release 9.46.1 back to develop
