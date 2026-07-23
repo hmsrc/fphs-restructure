@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.46.4] - 2026-07-23
+
 - [Merged] release 9.46.3 back to develop
 - [Fixed] under-scoped access-control cache keys causing missing master panel tabs after in-session app type switch - fixes #1279
 - [Fixed] pages#template honoring version token to prevent browser cache poisoning - fixes #1287
