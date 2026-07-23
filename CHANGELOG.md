@@ -14,6 +14,19 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.46.3 back to develop
+- [Fixed] under-scoped access-control cache keys causing missing master panel tabs after in-session app type switch - fixes #1279
+- [Fixed] pages#template honoring version token to prevent browser cache poisoning - fixes #1287
+- [Changed] parallel test scripts to limit processes and improve DB setup
+- [Fixed] system spec issues
+- [Added] notes field format support for specs
+- [Fixed] spec
+- [Fixed] force_not_valid not bypassing PlayerInfo source and PlayerContact rec_type validation - fixes #1281
+- [Updated] agent instructions for terminals
+- [Fixed] pre-existing memoization test-isolation failures in external_identifier_spec and container_file_spec - fixes #1303
+- [Fixed] spec setup and common handling to improve reliability
+- [Added] per-type trigger validation and ExtraOptionConfigs BaseConfiguration refactoring - fixes #986 fixes #1058
+
 ## [9.46.3] - 2026-07-17
 
 - [Merged] release 9.46.2 back to develop

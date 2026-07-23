@@ -17,7 +17,7 @@
 
 ### Critical Rules for Running Terminal Commands
 1. **Never set environment variables inline** - use app-scripts instead or `export` them in the terminal before running commands
-2. **Always wait for commands to complete before proceeding** - load the `execute/awaitTerminal` tool first
+2. **Always wait for commands to complete before proceeding** - for long-running commands (such as rspec tests), don't poll - call the `get_terminal_output` once so you can be notified automatically when the command exits
 3. **Never redirect scripts stdout or stderr to /dev/null or /tmp**
 4. **Never run commands in the background** - all commands exit when complete with success or failure codes
 
@@ -98,6 +98,15 @@ app-scripts/clean-test-db.sh
 
 # Clean test assets and cache
 app-scripts/clean-test-assets-and-cache.sh
+
+# Extract an app config YAML. Analyse all models from a previous error run
+app-scripts/inspect_app_config.rb --config 'db/app_configs/app_config.yaml' --diff --errors tmp/agent-tmp/config_errors_app.log
+
+# Extract an app config YAML. Inspect a single model
+app-scripts/inspect_app_config.rb --config 'db/app_configs/app_config.yaml' --diff play_ipa_initial_call
+
+# Extract an app config YAML. Show just show_if and labels for models matching "phone_screen"
+app-scripts/inspect_app_config.rb --config 'db/app_configs/app_config.yaml' --sections show_if,labels phone_screen
 ```
 
 #### Why These Rules Exist

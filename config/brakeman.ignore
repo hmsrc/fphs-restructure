@@ -618,18 +618,18 @@
     {
       "warning_type": "Remote Code Execution",
       "warning_code": 25,
-      "fingerprint": "c7c6c1154ec87f956418d64e1b4b9c513d5970d648dcf5b3cdbba080a42b50ee",
+      "fingerprint": "c8e48122b64abba29841124b59e0a6f4deb63dd39df727c344f1bb9f33feb66e",
       "check_name": "Deserialize",
       "message": "Use of `Marshal.load` may be dangerous",
-      "file": "app/models/option_configs/extra_options.rb",
-      "line": 93,
+      "file": "app/models/option_configs/extra_option_configs/field_configs.rb",
+      "line": 97,
       "link": "https://brakemanscanner.org/docs/warning_types/unsafe_deserialization",
-      "code": "Marshal.load(Marshal.dump(field_configs))",
+      "code": "Marshal.load(Marshal.dump(raw.symbolize_keys))",
       "render_path": null,
       "location": {
         "type": "method",
-        "class": "OptionConfigs::ExtraOptions",
-        "method": "initialize"
+        "class": "OptionConfigs::ExtraOptionConfigs::FieldConfigs",
+        "method": "OptionConfigs::ExtraOptionConfigs::FieldConfigs.prepare_config"
       },
       "user_input": null,
       "confidence": "Weak",
