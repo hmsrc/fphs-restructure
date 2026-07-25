@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.46.5] - 2026-07-25
+
 - [Merged] release 9.46.4 back to develop
 - [Fixed] preset_value and related field options to allow array values - fixes #1313
 - [Fixed] spec failures and implementation bugs following trigger-tasks-validation refactoring
