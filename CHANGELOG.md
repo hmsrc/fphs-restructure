@@ -14,6 +14,11 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.46.4 back to develop
+- [Fixed] preset_value and related field options to allow array values - fixes #1313
+- [Fixed] spec failures and implementation bugs following trigger-tasks-validation refactoring
+- [Added] typed conditional access regression tests - fixes #1316
+
 ## [9.46.4] - 2026-07-23
 
 - [Merged] release 9.46.3 back to develop
