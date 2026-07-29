@@ -71,7 +71,7 @@ module MasterHandler
       set_additional_attributes object_instance
       translate_params_to_persistable
       if object_instance.save
-        reload_objects(latest: true)
+        reload_objects
         handle_additional_updates
         create_embedded_item_reference
         @id = object_instance.id
@@ -223,10 +223,14 @@ module MasterHandler
   # differently once the save just performed has changed reference/limit counts. :latest is only
   # ever populated for :creating evaluations (see #embedded_item), so #update must NOT use it here -
   # it needs the normal :editing lookup instead.
-  def reload_objects(latest: false)
+  def reload_objects
     object_instance.reload
     object_instance.current_user = current_user
-    ei = latest ? object_instance.embedded_item(embed_action_type: :latest) : object_instance.embedded_item
+    ei = if action_name == 'create'
+           object_instance.embedded_item(embed_action_type: :latest)
+         else
+           object_instance.embedded_item
+         end
     return unless ei&.persisted?
 
     ei.reload
