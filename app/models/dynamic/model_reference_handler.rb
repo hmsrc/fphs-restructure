@@ -795,10 +795,28 @@ module Dynamic
       # the existing linked record for that SAME reference type - never an unrelated
       # reference that happens to be the only one currently linked (e.g. when other
       # references are also configured alongside it).
-      matching_mrs = mrs.select { |m| m.to_record_type == always_embed_creatable.to_s.ns_camelize }
+      matching_mrs = mrs.select { |m| m.to_record_type == always_embed_creatable_record_type }
       return unless matching_mrs.length == 1
 
-      matching_mrs.first.to_record
+      rec = matching_mrs.first.to_record
+      # We don't have the capability to handle embedded items that are activity logs - see the
+      # #embedded_item docstring. Mirrors the same guard applied to the "build" path above.
+      return if rec.class.class_parent_name == 'ActivityLog'
+
+      rec
+    end
+
+    #
+    # The actual to_record_type (class name) that always_embed_creatable resolves to, derived
+    # from the full reference configuration - NOT by camelizing the reference key directly, since
+    # reference keys can be composite (e.g. "modelname_extralogtype" for add_with: extra_log_type
+    # references, or activity_selector-generated keys) and would not match to_record_type at all.
+    # @return [String, nil]
+    def always_embed_creatable_record_type
+      ref_type = creatable_model_references(only_creatables: false)[always_embed_creatable.to_sym]&.keys&.first
+      return unless ref_type
+
+      ModelReference.to_record_class_for_type(ref_type)&.name
     end
 
     #
