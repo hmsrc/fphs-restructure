@@ -790,13 +790,15 @@ module Dynamic
         return res
       end
 
-      return unless mrs.length == 1
-
       # The always_embed_creatable_reference target is genuinely configured, but is not
-      # currently creatable (for example its limit has already been reached), and exactly
-      # one matching record has already been linked. Fall back to showing that existing
-      # record instead of raising a hard failure.
-      mrs.first.to_record
+      # currently creatable (for example its limit has already been reached). Fall back to
+      # the existing linked record for that SAME reference type - never an unrelated
+      # reference that happens to be the only one currently linked (e.g. when other
+      # references are also configured alongside it).
+      matching_mrs = mrs.select { |m| m.to_record_type == always_embed_creatable.to_s.ns_camelize }
+      return unless matching_mrs.length == 1
+
+      matching_mrs.first.to_record
     end
 
     #

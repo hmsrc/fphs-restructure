@@ -254,6 +254,26 @@ RSpec.describe 'Model reference implementation', type: :model do
               limit: 1
               also_disable_record: true
 
+        always_embed_limited_multi:
+          label: Always Embed Limited Multi
+          fields:
+            - select_call_direction
+            - select_who
+          editable_if:
+            always: true
+          view_options:
+            always_embed_creatable_reference: address
+          references:
+            player_contact:
+              from: master
+              add: many
+              limit: 2
+            address:
+              from: this
+              add: many
+              limit: 1
+              also_disable_record: true
+
         avoid_missing:
           label: Avoid Missing
           fields:
@@ -427,13 +447,14 @@ RSpec.describe 'Model reference implementation', type: :model do
       setup_option_config 7, 'Creatable on Master Test', %w[select_call_direction select_who]
       setup_option_config 8, 'Always Embed', %w[select_call_direction select_who]
       setup_option_config 9, 'Always Embed Limited', %w[select_call_direction select_who]
-      setup_option_config 10, 'Avoid Missing', %w[select_call_direction select_who]
-      setup_option_config 11, 'Reference Showable Test2', %w[select_call_direction select_who tag_select_allowed]
-      setup_option_config 12, 'User is Creator', %w[select_call_direction select_who]
-      setup_option_config 13, 'Prevent Disable', %w[select_call_direction select_who]
-      setup_option_config 14, 'Filter By Hash', %w[select_call_direction select_who]
-      setup_option_config 15, 'Filter By This Hash', %w[select_call_direction select_who]
-      setup_option_config 16, 'Filter By Substitution', %w[select_call_direction select_who]
+      setup_option_config 10, 'Always Embed Limited Multi', %w[select_call_direction select_who]
+      setup_option_config 11, 'Avoid Missing', %w[select_call_direction select_who]
+      setup_option_config 12, 'Reference Showable Test2', %w[select_call_direction select_who tag_select_allowed]
+      setup_option_config 13, 'User is Creator', %w[select_call_direction select_who]
+      setup_option_config 14, 'Prevent Disable', %w[select_call_direction select_who]
+      setup_option_config 15, 'Filter By Hash', %w[select_call_direction select_who]
+      setup_option_config 16, 'Filter By This Hash', %w[select_call_direction select_who]
+      setup_option_config 17, 'Filter By Substitution', %w[select_call_direction select_who]
     end
 
     it 'evaluates rules to optionally show references' do
@@ -799,6 +820,43 @@ RSpec.describe 'Model reference implementation', type: :model do
       # has been linked as a model reference yet).
       expect(al_simple.embedded_item(embed_action_type: :viewing)).to be_nil
       expect(al_simple.embedded_item(embed_action_type: :latest)).to eq created
+    end
+
+    # Regression test for a review finding on #1319's fix: when always_embed_creatable_reference
+    # has reached its limit, and OTHER reference types are also configured, the fallback must not
+    # mistake an unrelated linked reference for the configured target - it should behave as if
+    # nothing of that type is embeddable (nil), not return the wrong record.
+    it 'does not fall back to an unrelated reference type when the always_embed_creatable_reference has reached its limit' do
+      @player_contact.current_user = @user
+      @player_contact.master.current_user = @user
+
+      al_simple = @player_contact.activity_log__player_contact_elts.build(select_call_direction: 'from staff',
+                                                                          extra_log_type: 'always_embed_limited_multi',
+                                                                          select_who: 'abc')
+      al_simple.save!
+
+      # Fill the address limit (1) at the MASTER level, not linked to al_simple itself - so
+      # al_simple's own model_references (from: this) never sees an address reference, while the
+      # limit check (which always counts references from the master) correctly sees it as full.
+      address = Address.create!(master: @player_contact.master, rank: -1)
+      ModelReference.create_from_master_with(@player_contact.master, address)
+
+      # Link a player_contact reference TO al_simple - a DIFFERENT reference type than the
+      # always_embed_creatable_reference target ('address') - so al_simple's own mrs has exactly
+      # one entry, but it is not of the preferred type.
+      ModelReference.create_with(al_simple, @player_contact3)
+      al_simple.reset_model_references
+
+      cmrs = al_simple.creatable_model_references(only_creatables: true, force_reload: true)
+      expect(cmrs.keys).to eq %i[player_contact]
+
+      # address has reached its limit (via the master, not al_simple) - the fallback must not
+      # raise, AND must not incorrectly return the unrelated player_contact reference.
+      result = nil
+      expect do
+        result = al_simple.embedded_item(embed_action_type: :creating, force_reload: true)
+      end.not_to raise_error
+      expect(result).to be_nil
     end
 
     it 'handles embedded references without a view_options definition' do
