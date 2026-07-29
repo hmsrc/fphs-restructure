@@ -71,7 +71,7 @@ module MasterHandler
       set_additional_attributes object_instance
       translate_params_to_persistable
       if object_instance.save
-        reload_objects
+        reload_objects(latest: true)
         handle_additional_updates
         create_embedded_item_reference
         @id = object_instance.id
@@ -217,14 +217,16 @@ module MasterHandler
   # being called. These changes are not reflected in the attributes of the object or embedded intem
   # and therefore a careful reload must be performed.
   #
-  # Uses embed_action_type: :latest to retrieve whatever embedded item was already established
-  # earlier in this request (e.g. by handle_embedded_item / link_embedded_item), rather than
-  # asking #embedded_item to make a fresh :creating decision - which could behave differently
-  # once the save just performed has changed reference/limit counts.
-  def reload_objects
+  # When called from #create, uses embed_action_type: :latest to retrieve whatever embedded item
+  # was already established earlier in this request (e.g. by handle_embedded_item / link_embedded_item),
+  # rather than asking #embedded_item to make a fresh :creating decision - which could behave
+  # differently once the save just performed has changed reference/limit counts. :latest is only
+  # ever populated for :creating evaluations (see #embedded_item), so #update must NOT use it here -
+  # it needs the normal :editing lookup instead.
+  def reload_objects(latest: false)
     object_instance.reload
     object_instance.current_user = current_user
-    ei = object_instance.embedded_item(embed_action_type: :latest)
+    ei = latest ? object_instance.embedded_item(embed_action_type: :latest) : object_instance.embedded_item
     return unless ei&.persisted?
 
     ei.reload
