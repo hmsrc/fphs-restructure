@@ -67,6 +67,9 @@ require 'rspec/rails'
 put_now 'Require setup_helper'
 require 'setup_helper'
 
+put_now 'Require factory_helper'
+require 'factory_helper'
+
 if ENV['QUICK'] == 'true'
   put_now 'Running QUICK'
   ENV['SKIP_BROWSER_SETUP'] = 'true'
@@ -162,6 +165,12 @@ put_now 'RSpec configure'
 
 RSpec.configure do |config|
   config.before(:suite) do
+    put_now 'Started before suite'
+
+    put_now 'Setup factories'
+    FactoryHelper.setup_factory
+    put_now 'Done factories'
+
     SetupHelper.check_bhs_assignments_table
     SetupHelper.clear_delayed_job
     SetupHelper.setup_template_user
@@ -176,6 +185,11 @@ RSpec.configure do |config|
       Rake::Task['assets:precompile'].invoke
     end
     put_now 'Done before suite'
+  end
+
+  config.after(:suite) do
+    put_now "Factory Cache Hits:\n#{FactoryHelper.factory_hits.to_yaml}"
+    put_now "Factory Cache Misses:\n#{FactoryHelper.factory_misses.to_yaml}"
   end
 
   put_now 'Fixtures'

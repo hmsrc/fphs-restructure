@@ -4,30 +4,102 @@ module UserSupport
   UserPrefix = 'g-ttuser-'
   UserDomain = 'testing.com'
 
+  def self.get_next_factory_user(part = nil, extra = '', opt = {})
+    return # unless part.nil? && extra.blank?
+
+    FactoryHelper.get_next_factory_item(:user)
+  end
+
+  def self.generate_factory_users(count)
+    count.times do |i|
+      part = "f#{i}"
+      good_email = generate_username("#{part}--")
+      user = User.find_by(email: good_email)
+      if user
+        good_password = UserSupport.generate_user_password(user.email)
+        user.disabled = false
+        admin, = create_admin
+        if user.changed?
+          user.current_admin = admin
+          user.save!
+        end
+      else
+        user, good_password = FactoryHelper.factory.create_user(part, nil, skip_if_exists: true)
+      end
+      FactoryHelper.add(:user, [user, good_password])
+    end
+  end
+
+  def self.get_next_factory_admin(part = nil, with_matching_user: false)
+    return # unless part.nil?
+
+    FactoryHelper.get_next_factory_item(:admin)
+  end
+
+  def self.generate_factory_admins(count)
+    count.times do |i|
+      part = "f#{i}"
+      good_email = UserSupport.generate_adminname(part)
+      admin = Admin.find_by(email: good_email)
+      if admin
+        good_password = UserSupport.generate_user_password(admin.email)
+        admin.disabled = false
+        admin.save! if admin.changed?
+      else
+        admin, good_password = create_admin(part)
+      end
+      FactoryHelper.add(:admin, [admin, good_password])
+    end
+  end
+
   def create_user(part = nil, extra = '', opt = {})
     start_time = Time.now
-    if part.is_a? Hash
-      opt = part
-      part = nil
+
+    if opt[:email]
+      user = User.find_by(email: opt[:email])
+      good_password = UserSupport.generate_user_password(user.email)
+    else
+      user, good_password = UserSupport.get_next_factory_user(part, extra, opt)
     end
-    part ||= SecureRandom.hex(10)
-    good_email = opt[:email] || gen_username("#{part}-#{extra}-")
-    admin, = @admin || create_admin
 
-    attr = {
-      email: good_email, current_admin: admin, first_name: "fn#{part}", last_name: "ln#{part}",
-      password: Devise.friendly_token(30)
-    }
+    if @admin
+      admin = @admin
+    else
+      admin, = create_admin
+    end
 
-    good_password = attr[:password] if opt[:with_password]
+    if user
+      FactoryHelper.factory_hit(:user)
+      if opt[:email]
+        user.current_admin = admin
+        user.email = opt[:email]
+        user.save! if user.changed?
+      end
+    else
+      new_user = true
+      FactoryHelper.factory_miss(:user)
 
-    user = User.create! attr
+      if part.is_a? Hash
+        opt = part
+        part = nil
+      end
+      part ||= SecureRandom.hex(10)
+      good_email = opt[:email] || UserSupport.generate_username("#{part}-#{extra}-")
+      attr = {
+        email: good_email, current_admin: admin, first_name: "fn#{part}", last_name: "ln#{part}",
+        password: UserSupport.generate_user_password(good_email)
+      }
+
+      good_password = attr[:password] if opt[:with_password]
+
+      user = User.create! attr
+    end
 
     # Save a new password, as required to handle temp passwords
     unless opt[:no_password_change]
       user = User.find(user.id)
       user.current_admin = admin
-      good_password = user.generate_password
+      good_password = UserSupport.generate_user_password(user.email)
       if Settings::TwoFactorAuthDisabledForUser
         user.otp_required_for_login = false
         user.new_two_factor_auth_code = false
@@ -48,9 +120,9 @@ module UserSupport
 
     # Set confirmed for system tests
     user.confirmed_at ||= Time.now if respond_to?(:page) && !opt[:not_confirmed]
+    user.save! if user.changed?
 
-    user.save!
-    expect(user.two_factor_setup_required?).to be_falsey
+    raise 'Two factor setup required!' if user.two_factor_setup_required?
 
     @user_authentication_token = user.authentication_token
 
@@ -61,8 +133,13 @@ module UserSupport
     raise 'No active app type!' unless app_type
 
     unless opt[:no_app_type_setup]
-      Admin::UserAccessControl.create! user:, app_type:, access: :read, resource_type: :general,
-                                       resource_name: :app_type, current_admin: admin
+      uac = Admin::UserAccessControl.find_or_initialize_by(
+        user:, app_type:, resource_type: :general,
+        resource_name: :app_type
+      )
+      unless uac.access == :read && uac.disabled == user.disabled
+        uac.update! access: :read, current_admin: admin, disabled: user.disabled
+      end
     end
 
     # Set a default app_type to use to allow non-interactive tests to continue
@@ -72,8 +149,14 @@ module UserSupport
     end
 
     if opt[:create_master]
-      Admin::UserAccessControl.create! app_type:, access: :read, resource_type: :general,
-                                       resource_name: :create_master, current_admin: @admin, user:
+      uac = Admin::UserAccessControl.find_or_initialize_by(
+        app_type:, resource_type: :general,
+        resource_name: :create_master, user:
+      )
+
+      unless uac.access == :read && uac.disabled == user.disabled
+        uac.update!(access: :read, current_admin: @admin, disabled: user.disabled)
+      end
     end
     @user = user
     @good_email = user.email
@@ -86,25 +169,48 @@ module UserSupport
     [user, good_password]
   end
 
+  #
+  # Generates a test password based on the email address, so that it can be regenerated later if needed
+  def self.generate_user_password(good_email)
+    Digest::SHA256.hexdigest(good_email)
+  end
+
   def grant_user_app_access(user, app_type = nil)
     app_type = app_type || user&.app_type || Admin::AppType.active.first
     raise 'No app type set' unless app_type
 
-    Admin::UserAccessControl.create app_type:, access: :read, resource_type: :general,
-                                    resource_name: :app_type, current_admin: @admin, user:
+    uac = Admin::UserAccessControl.find_or_initialize_by(
+      app_type:, resource_type: :general,
+      resource_name: :app_type, user:
+    )
+
+    return if uac.access == :read && uac.disabled == user.disabled
+
+    uac.update!(access: :read, current_admin: @admin, disabled: user.disabled)
+  end
+
+  def self.generate_adminname(part)
+    "e-testadmin-tester#{part}@testing.com"
   end
 
   def self.create_admin(part = nil, with_matching_user: false)
-    a = Admin.order(id: :desc).first
+    admin, good_admin_password = get_next_factory_admin(part, with_matching_user: with_matching_user)
+    if admin
+      FactoryHelper.factory_hit(:admin)
+    else
+      new_admin = true
+      FactoryHelper.factory_miss(:admin)
 
-    part ||= SecureRandom.hex(10)
-    good_admin_email = "e-testadmin-tester#{part}@testing.com"
+      part ||= SecureRandom.hex(10)
+      good_admin_email = UserSupport.generate_adminname(part)
 
-    admin = Admin.create! email: good_admin_email
+      admin = Admin.create! email: good_admin_email
 
-    # Save a new password, as required to handle temp passwords
-    admin = Admin.find(admin.id)
-    good_admin_password = admin.generate_password
+      # Save a new password, as required to handle temp passwords
+      admin = Admin.find(admin.id)
+      good_admin_password = UserSupport.generate_user_password(admin.email)
+      # admin.generate_password
+    end
 
     # Only set up 2FA if it's not disabled
     unless Admin.two_factor_auth_disabled
@@ -113,7 +219,8 @@ module UserSupport
       admin.new_two_factor_auth_code = false
     end
 
-    admin.save!
+    admin.disabled = false if admin.disabled
+    admin.save! if admin.changed?
 
     # # Can't reload, as that doesn't clear non-db attributes
     admin = Admin.find(admin.id)
@@ -123,10 +230,14 @@ module UserSupport
       attr = {
         email: admin.email, current_admin: admin, first_name: admin.first_name, last_name: admin.last_name
       }
-
-      good_password = attr[:password] = Devise.friendly_token(30)
-
-      user = User.create! attr
+      good_password = attr[:password] = good_admin_password
+      attr[:disabled] = false
+      user = User.find_by(email: admin.email)
+      if user
+        User.update! attr
+      else
+        user = User.create attr
+      end
       raise 'Not a user' unless user.is_a?(User)
       raise "User email #{user.email} does not match admin email #{admin.email}" unless user.email == admin.email
     end
@@ -137,13 +248,16 @@ module UserSupport
   def create_admin(part = nil, with_matching_user: false)
     admin, good_admin_password = UserSupport.create_admin(part)
     @admin = admin
+    admin_email = admin.email
 
     if with_matching_user
-      user, good_user_password = create_user(nil, nil, email: admin.email)
+      user, good_user_password = create_user(nil, nil, email: admin_email)
       expect(user).to be_a User
-      expect(user.email).to eq admin.email
+      expect(user.email).to eq admin_email
+      @user = user
     end
 
+    @admin = admin
     [admin, good_admin_password]
   end
 
@@ -153,7 +267,7 @@ module UserSupport
     Admin::UserRole.create! current_admin: @admin, app_type:, role_name:, user:
   end
 
-  def gen_username(part)
+  def self.generate_username(part)
     "#{UserPrefix}#{part}@#{UserDomain}"
   end
 
@@ -203,17 +317,19 @@ module UserSupport
 
     uac.active.update_all(disabled: true) if uac.active.length > 1
     uac = uac.active.first || uac.first
+    admin = auto_admin
+    admin.disabled = false
     if uac
       disabled = uac.user&.disabled # The UAC must be disabled if the user is disabled
       uac.access = access
       uac.disabled = disabled
-      uac.current_admin = auto_admin
+      uac.current_admin = admin
       uac.updated_at = DateTime.now
       uac.save!
     else
       disabled = user&.disabled # The UAC must be disabled if the user is disabled
       uac = Admin::UserAccessControl.create! app_type:, access:, resource_type:,
-                                             resource_name:, user:, current_admin: auto_admin,
+                                             resource_name:, user:, current_admin: admin,
                                              disabled: disabled
     end
 
@@ -268,16 +384,20 @@ module UserSupport
       res = Admin::UserAccessControl.find(res.id)
       res.disabled = true
       res.current_admin = @admin
-      res.save!
+      res.save! unless res.disabled
     end
 
     in_app_type ||= user.app_type
     return unless in_app_type
 
-    Admin::UserAccessControl.create! current_admin: @admin, app_type: in_app_type, user:, access: :create,
-                                     resource_type: :table, resource_name:
-
-    # expect(user.has_access_to?(:create, :table, resource_name)).to be_truthy
+    uac = Admin::UserAccessControl.find_or_initialize_by(
+      app_type: in_app_type, user:,
+      resource_type: :table, resource_name: resource_name
+    )
+    unless uac.access == :create && uac.disabled == user.disabled
+      uac.update! access: :create, current_admin: @admin, disabled: user.disabled
+    end
+    uac
   end
 
   def revoke_user_create(resource_name, in_app_type: nil, alt_user: nil)

@@ -7,10 +7,13 @@ describe 'csrf protection' do
   include ModelSupport
 
   def login_user(user = nil)
-    user ||= @user || create_user.first
-    user.confirmed_at ||= Time.now
-    user.current_admin ||= @admin
-    user.save
+    @user = create_user.first
+    user = @user
+    # user.confirmed_at ||= Time.now
+    # if user.changed?
+    #   user.current_admin ||= @admin
+    #   user.save!
+    # end
     get '/users/sign_in'
     expect(response.status).to eq 200
     sign_in user
@@ -31,11 +34,11 @@ describe 'csrf protection' do
   end
 
   def put_with_token(path, params, token = nil)
-    put path, params: params.merge('authenticity_token' => (token || retrieve_authenticity_token)), xhr: true
+    put path, params: params.merge('authenticity_token' => token || retrieve_authenticity_token), xhr: true
   end
 
   def post_with_token(path, params, token = nil)
-    post path, params: params.merge(authenticity_token: (token || retrieve_authenticity_token)), xhr: true
+    post path, params: params.merge(authenticity_token: token || retrieve_authenticity_token), xhr: true
   end
 
   def form_authenticity_token
