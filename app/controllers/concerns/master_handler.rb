@@ -3,7 +3,7 @@
 module MasterHandler
   extend ActiveSupport::Concern
 
-  UseMasterParam = %w[new create index template_config].freeze
+  UseMasterParam = %w[new create index template_config].freeze unless defined? UseMasterParam
 
   included do
     before_action :init_vars_master_handler
