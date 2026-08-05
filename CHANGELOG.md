@@ -14,6 +14,16 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 9.46.5 back to develop
+- [Fixed] admin components panel cache not varying by app type - fixes #1323
+- [Fixed] tracker_history rows written outside the app leaving tracker_id null - fixes #1309
+- [Changed] spec tests to improve reliability and increase performance Added better agent prompts
+- [Fixed] always_embed_creatable_reference raising when a direct embed is at capacity - fixes #1319
+- [Fixed] XSS payload spec template-name collisions
+- [Updated] user access overview report navigation and highlighting - fixes #1330
+- [Fixed] spec bug
+- [Fixed] blank primary_key_name causing PG::SyntaxError in view_sql dynamic models - fixes #1304
+
 ## [9.46.5] - 2026-07-25
 
 - [Merged] release 9.46.4 back to develop
