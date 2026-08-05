@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [9.46.6] - 2026-08-05
+
 - [Merged] release 9.46.5 back to develop
 - [Fixed] admin components panel cache not varying by app type - fixes #1323
 - [Fixed] tracker_history rows written outside the app leaving tracker_id null - fixes #1309
