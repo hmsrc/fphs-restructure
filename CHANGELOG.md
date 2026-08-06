@@ -14,75 +14,172 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
-## [9.46.6] - 2026-08-05
+## [9.47.0] - 2026-08-05
 
-- [Merged] release 9.46.5 back to develop
-- [Fixed] admin components panel cache not varying by app type - fixes #1323
-- [Fixed] tracker_history rows written outside the app leaving tracker_id null - fixes #1309
-- [Changed] spec tests to improve reliability and increase performance Added better agent prompts
-- [Fixed] always_embed_creatable_reference raising when a direct embed is at capacity - fixes #1319
-- [Fixed] XSS payload spec template-name collisions
-- [Updated] user access overview report navigation and highlighting - fixes #1330
-- [Fixed] spec bug
+- [DB-Migration] required before upgrade
+- [DB-Seeds] update required from admin panel
+- [Security][Updated] gems to address activestorage CVE: CVE-2026-66066
+
+### From FPHS - PR #1336 - 2026-08-04
+
 - [Fixed] blank primary_key_name causing PG::SyntaxError in view_sql dynamic models - fixes #1304
 
-## [9.46.5] - 2026-07-25
+### From FPHS - PR #1320 - 2026-08-04
 
-- [Merged] release 9.46.4 back to develop
-- [Fixed] preset_value and related field options to allow array values - fixes #1313
-- [Fixed] spec failures and implementation bugs following trigger-tasks-validation refactoring
+- [Fixed] always_embed_creatable_reference raising when a direct embed is at capacity - fixes #1319
+
+### From FPHS - PR #1334 - 2026-08-04
+
+- [Changed] user access overview report navigation and highlighting - fixes #1330
+- [Fixed] Seeding of user access overview reports to allow updates - fixes #1330
+
+### From FPHS - PR #1331 - 2026-08-04
+
+- [Changed] spec tests to improve reliability and increase performance
+- [Added] better agent prompts
+
+### From FPHS - PR #1321 - 2026-08-04
+
+- [Fixed] tracker_history rows written outside the app leaving tracker_id null - fixes #1309
+
+### From FPHS - PR #1324 - 2026-07-30
+
+- [Fixed] admin components panel cache not varying by app type - fixes #1323
+
+### From FPHS - PR #1322 - 2026-07-29
+
+- [Changed] handling of configurations to allow Hash-based app_type/user references across save triggers - fixes #1318
+
+### From FPHS - PR #1317 - 2026-07-25
+
 - [Added] typed conditional access regression tests - fixes #1316
 
-## [9.46.4] - 2026-07-23
+### From FPHS - PR #1315 - 2026-07-25
 
-- [Merged] release 9.46.3 back to develop
-- [Fixed] under-scoped access-control cache keys causing missing master panel tabs after in-session app type switch - fixes #1279
-- [Fixed] pages#template honoring version token to prevent browser cache poisoning - fixes #1287
-- [Changed] parallel test scripts to limit processes and improve DB setup
-- [Fixed] system spec issues
-- [Added] notes field format support for specs
-- [Fixed] spec
-- [Fixed] force_not_valid not bypassing PlayerInfo source and PlayerContact rec_type validation - fixes #1281
-- [Updated] agent instructions for terminals
-- [Fixed] pre-existing memoization test-isolation failures in external_identifier_spec and container_file_spec - fixes #1303
-- [Fixed] spec setup and common handling to improve reliability
+- [Fixed] implementation bugs following trigger-tasks-validation refactoring
+- [Fixed] spec failures
+
+### From FPHS - PR #1314 - 2026-07-25
+
+- [Fixed] preset_value and related field options to allow array values - fixes #1313
+
+### From FPHS - PR #1306 - 2026-07-23
+
+- [Note] this represents a large refactor of the dynamic definitions configuration.
 - [Added] per-type trigger validation and ExtraOptionConfigs BaseConfiguration refactoring - fixes #986 fixes #1058
 
-## [9.46.3] - 2026-07-17
+### From FPHS - 2026-07-23
 
-- [Merged] release 9.46.2 back to develop
-- [Fixed] missing library in sidebar embedded page view - fixes #1252
-- [Fixed] show_if hiding of read-only field values for option-typed dynamic models - fixes #1254
-- [Fixed] clean_references_def unresolved reference handling and suppressed spurious startup WARN logging - fixes #1246
-- [Added] system spec for edit-mode show_if with custom option_type_attr_name - resolves #1256
-- [Fixed] active_model_configurations fail-open when FPHS_LOAD_APP_TYPES matches no active app type - fixes #1263
-- [Fixed] AppSettingsVars NfsStoreJobDefaultAppTypeId typo and added method fallback in app_settings - fixes #1248
-- [Fixed] Delayed::Job job_id lookup fragility that broke Admin Job UUID search - fixes #1232
-- [Fixed] various spec issues causing flakiness in tests
-- [Added] yaml_parse curly substitution method - fixes #1267
-- [Added] REDCap Users admin report with Search Project Users admin link - resolves #1258
-- [Documented] and fixed ColTypeJson YAML-to-JSON field behaviour - fixes #1268
+- [Fixed] spec setup and common handling to improve reliability
+
+### From FPHS - PR #1307 - 2026-07-22
+
+- [Fixed] pre-existing memoization test-isolation failures in external_identifier_spec and container_file_spec - fixes #1303
+
+### From FPHS - PR #1301 - 2026-07-22
+
+- [Fixed] force_not_valid not bypassing PlayerInfo source and PlayerContact rec_type validation - fixes #1281
+
+### From FPHS - 2026-07-21
+
+- [Added] notes field format support for specs
+
+### From FPHS - 2026-07-21
+
+- [Fixed] system spec issues
+
+### From FPHS - PR #1292 - 2026-07-21
+
+- [Changed] parallel test scripts to limit processes and improve DB setup
+
+### From FPHS - PR #1291 - 2026-07-21
+
+- [Fixed] pages#template honoring version token to prevent browser cache poisoning - fixes #1287
+
+### From Viva - PR #1290 - 2026-07-20
+
+- [Added] testrelated app config inspector modes for page layouts/access controls and fixed flaky Rspec support helpers
+
+### From FPHS - PR #1288 - 2026-07-20
+
+- [Fixed] under-scoped access-control cache keys causing missing master panel tabs after in-session app type switch - fixes #1279
+
+### From FPHS - PR #1286 - 2026-07-20
+
+- [Fixed] col_type_json blank textarea clearing empty json/jsonb Hash/Array values - fixes #1285
+
+### From Viva - PR #1283 - 2026-07-16
+
+- [Fixed] handlebars_cache_key to be app_type- and user-aware, preventing cross-app_type and user cache poisoning - fixes #1279
+
+### From FPHS - PR #1282 - 2026-07-16
+
 - [Added] ability to remove a Redcap user from a project in project admin - fixes #1260
-- [Scoped] handlebars_cache_key per app_type and per user to prevent cross-context cache poisoning - fixes #1279
 
-## [9.46.2] - 2026-06-30
+### From Viva - PR #1280 - 2026-07-16
 
-- [Merged] release 9.46.1 back to develop
+- [Fixed] spec flakiness in register_call, admin_parsed_config, and API association specs
+
+### From FPHS - PR #1278 - 2026-07-16
+
+- [Fixed] and documented  ColTypeJson YAML-to-JSON field behaviour - fixes #1268
+
+### From FPHS - PR #1277 - 2026-07-16
+
+- [Added] import_project_user to REDCap API client and save/batch trigger support - resolves #1276
+
+### From FPHS - PR #1275 - 2016-07-16
+
+- [Added] REDCap Users admin report with Search Project Users admin link - resolves #1258
+
+### From FPHS - PR #1274 - 2026-07-16
+
+- [Added] yaml_parse substitution and fix json/yaml_parse top-level array indexing - fixed #1267 and #1273
+
+### From FPHS - PR #1272 - 2026-07-16
+
+- [Added] remove_project_user REDCap API method for save/batch triggers - resolves #1259
+
+### From FPHS - PR #1271 - 2026-07-16
+
+- [Fixed] whole-cache clear on routine User/Admin saves - fixes #1270
+
+### From FPHS - PR #1266 - 2026-07-15
+
+- [Fixed] Delayed::Job job_id lookup fragility that broke Admin Job UUID search - fixes #1232
+
+### From FPHS - PR #1265 - 2026-07-15
+
+- [Fixed] AppSettingsVars NfsStoreJobDefaultAppTypeId typo and added method fallback in app_settings - fixes #1248
+
+### From FPHS - PR #1264 - 2026-07-15
+
+- [Fixed] active_model_configurations fail-open when FPHS_LOAD_APP_TYPES matches no active app type - fixes #1263
+
+### From FPHS - PR #1261 - 2026-07-15
+
+- [Fixed] clean_references_def unresolved reference handling and suppressed spurious startup WARN logging - fixes #1246
+
+### From Viva - PR #1262 - 2026-07-14
+
+- [Added] system spec for edit-mode show_if with custom option_type_attr_name - resolves #1256
+
+### From Viva - PR #1257 - 2026-07-14
+
+- [Fixed] show_if hiding of read-only field values for option-typed dynamic models - fixes #1254
+
+### From Viva - PR #1255 - 2026-07-14
+
+- [Fixed] missing `library` definition in sidebar embedded page view - fixes #1252
+
+### From FPHS - PR #1250 - 2026-06-30
+
 - [Fixed] Chartjs datalabels plugin appearing on all charts - fixes #1249
 - [Added] documentation for Chartjs datalabels and disabling legends
 
-## [9.46.1] - 2026-06-27
+### From FPHS - PR #1247 - 2026-06-27
 
-- [Merged] release 9.44.15 back to develop
-- [Updated] CHANGELOG.md with git commits
-- [Changed] release scripts to get PRs for CHANGELOG if "minor" release
-- [Fixed] CHANGELOG
-- [Updated] CHANGELOG.md with git commits
-- [Updated] gems
-- [Merged] release 9.46.0 back to develop
-- [Added] permission for agents to use interactive debugging tools
 - [Fixed] YAML corruption and config library cycle expansion in dynamic model options - fixes #676
-- [Updated] gems
 
 ## [9.46.0] - 2026-06-25
 
@@ -363,7 +460,6 @@ Fixed notes field format: plain newlines overridden by app config markdown setti
 ### From FPHS - PR #1113 - 2026-05-06
 
 - [Fixed] tracker history protocol casing in history view - fixes #1112
-
 
 ## [9.44.0] - 2026-05-02
 
