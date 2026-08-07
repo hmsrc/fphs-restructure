@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.3] - 2026-08-07
+
 - [Merged] release 9.46.6 back to develop
 - [Updated] CHANGELOG.md with git commits
 - [Updated] brakeman ignore list
