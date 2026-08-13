@@ -14,6 +14,17 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.3 back to develop
+- [Limited] admin versions panel to 100 rows and fixed slow diff rendering - fixes #1343
+- [Fixed] reversed heading date order and duplicate updated_at diff row - fixes #1343
+- [Added] load-more paging link to admin versions panel - fixes #1343
+- [Changed] default admin versions panel page size to 10 - fixes #1343
+- [Fixed] blank schema migration generation - fixes #1339
+- [Added] fixes for spec relaibility
+- [Added] versions panels to reports, external identifiers, and message templates - fixes #1346
+- [Fixed] admin session timing out during active use - fixes #1345
+- [Fixed] session inactivity timer not persisting due to activerecord-session_store dirty-tracking bug - fixes #1345
+
 ## [10.0.3] - 2026-08-07
 
 - [Merged] release 9.46.6 back to develop
