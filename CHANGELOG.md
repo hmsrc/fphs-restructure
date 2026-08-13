@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.4] - 2026-08-13
+
 - [Merged] release 10.0.3 back to develop
 - [Limited] admin versions panel to 100 rows and fixed slow diff rendering - fixes #1343
 - [Fixed] reversed heading date order and duplicate updated_at diff row - fixes #1343
