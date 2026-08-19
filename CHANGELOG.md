@@ -14,6 +14,14 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.4 back to develop
+- [Changed] raising of exceptions in pull_external_data to avoid leaking sensitive URL params
+- [Fixed] API header auth checks - fixes #1342
+- [Fixed] item_flags conditional actions for dynamic model associations - fixes #1355
+- [Changed] batch jobs header, removed position column, added id filter on dynamic models index
+- [Fixed] in_current_app_type filter dropdown always showing All despite filtering correctly
+- [Fixed] Not set vs All filter dropdown ambiguity and hid Not set for non-column filters
+
 ## [10.0.4] - 2026-08-13
 
 - [Merged] release 10.0.3 back to develop
