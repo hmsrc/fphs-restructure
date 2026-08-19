@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.5] - 2026-08-19
+
 - [Merged] release 10.0.4 back to develop
 - [Changed] raising of exceptions in pull_external_data to avoid leaking sensitive URL params
 - [Fixed] API header auth checks - fixes #1342
