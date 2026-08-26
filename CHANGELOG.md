@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.6] - 2026-08-26
+
 - [Merged] release 10.0.5 back to develop
 - [Updated] gems to address "mail" GHSA: GHSA-mvxr-6m87-mv2q -  "Email address spoofing via malformed RFC 2047 encoded-words in mail"
 - [Updated] config validation checks - fixes #0
