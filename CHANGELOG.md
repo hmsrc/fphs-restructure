@@ -14,6 +14,19 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.5 back to develop
+- [Updated] gems to address "mail" GHSA: GHSA-mvxr-6m87-mv2q -  "Email address spoofing via malformed RFC 2047 encoded-words in mail"
+- [Updated] config validation checks - fixes #0
+- [Added] conditions documentation reference pages and verification harness - fixes #0
+- [Added] exception save trigger and changed on_failure default behavior - fixes #1365
+- [Fixed] no_masters conditional calculations with tracker_history - fixes #1367
+- [Added] redcap request config validation - fixes #1364
+- [Added] notify save_trigger option validation - fixes #1370
+- [Added] REDCap definition archive export - fixes #794
+- [Hardened] and shared the on-disk Handlebars template compile cache across users - refs #1362
+- [Added] recipient validation and expiry filtering - fixes #1374
+- [Sped] up extra_option_configs and save_trigger specs by consolidating expensive setup into before(:all)
+
 ## [10.0.5] - 2026-08-19
 
 - [Merged] release 10.0.4 back to develop

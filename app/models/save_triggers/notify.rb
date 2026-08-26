@@ -68,7 +68,9 @@ class SaveTriggers::Notify < SaveTriggers::SaveTriggersBase
         next
       end
 
-      new_mn = create_message_notification
+      new_mn = create_message_notification_or_record_error
+      next unless new_mn
+
       res = queue_job
       @item.save_trigger_results['notify_messages'] << new_mn
       @item.save_trigger_results['notify_results'] << true
@@ -166,9 +168,9 @@ class SaveTriggers::Notify < SaveTriggers::SaveTriggersBase
     @receiving_user_ids.uniq!
 
     # Clean up user list to remove users that are set to no-send emails (if an email is being sent)
-    # or are template users
+    # or are template users or have expired accounts
     rusers = User.active.where(id: @receiving_user_ids)
-    rusers = rusers.reject { |u| u.a_template_or_batch_user? || (email? && u.do_not_email) }
+    rusers = rusers.reject { |u| u.a_template_or_batch_user? || u.account_expired? || (email? && u.do_not_email) }
     @receiving_user_ids = rusers.map(&:id)
   end
 
@@ -380,6 +382,17 @@ class SaveTriggers::Notify < SaveTriggers::SaveTriggersBase
   # @return [<Type>] <description>
   def importance
     @importance ||= calc_field_or_return(@config[:importance]) if @config[:importance]
+  end
+
+  # Rescues MessageNotification validation failures so one bad notify entry doesn't abort the rest.
+  def create_message_notification_or_record_error
+    create_message_notification
+  rescue ActiveRecord::RecordInvalid => e
+    msg = "Failed to create message notification: #{e.message}"
+    Rails.logger.warn msg
+    @item.save_trigger_results['notify_results'] << false
+    @item.save_trigger_results['notify_errors'] << msg
+    nil
   end
 
   def create_message_notification
