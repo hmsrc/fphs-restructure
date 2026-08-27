@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.7] - 2026-08-27
+
 - [Merged] release 10.0.6 back to develop
 - [Fixed] handlebars multi-bundle permanently missing when same template id has different content in one request - fixes #1379
 
