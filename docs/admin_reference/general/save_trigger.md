@@ -95,6 +95,8 @@ All save trigger types support `on_complete` and `on_failure` lifecycle hooks. T
 
 Both accept a single trigger hash or an array of trigger configurations.
 
+NOTE: if an exception is re-raised in `on_failure` be aware that a database rollback will occur. No record updates or reference creations will actually be persisted, so can't be relied upon to record errors.
+
 ### Top-level usage
 
 Place `on_complete` / `on_failure` alongside the trigger's own configuration keys:
@@ -131,6 +133,14 @@ save_trigger:
             - log:
                 message: 'Tracker Q1 added'
                 severity: info
+          on_failure:
+            - log:
+                message: 'Tracker Q1 failed'
+                severity: error
+            - update_this:
+                one:
+                  with:
+                    status: failed
       - Q2:
           with:
             sub_process_name: Review
@@ -139,6 +149,9 @@ save_trigger:
             - log:
                 message: 'Tracker Q2 failed'
                 severity: error
+            - exception:
+                original_failure: true
+
 ```
 
 ### Transaction & Rollback Behavior

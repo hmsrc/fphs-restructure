@@ -21,12 +21,3 @@
 # Pattern 2: Map attributes from a related item using with_result (save_triggers_update_this_pattern_2_with_result_defs.yaml)
 # See save_trigger_update_this.md for the worked examples.
 
-#!defs(save_triggers_with_attribute_values_defs.yaml)
-#!defs(save_triggers_lifecycle_hooks_defs.yaml)
-
-# Notes:
-# - update_this is commonly used with before_save (so computed values are set before the
-#   save completes) but works with any save_trigger event.
-# - with: fields take precedence over with_result: fields when both set the same attribute.
-# - force_not_editable_save: true allows the update to succeed even if the item is set as
-#   not_editable. force_not_valid: true allows the update to succeed even if valid_if checks fail.
