@@ -14,6 +14,36 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Updated] API authentication documentation
+- [Merged] release 10.0.7 back to develop
+- [Added] save_trigger before_save test coverage and documentation - resolves #1382
+- [Added] ID column and filter to Usernames and Passwords admin page - fixes #1386
+- [Fixed] admin disabled filter All option always reverting to enabled - fixes #1387
+- [Updated] API authentication documentation
+- [Added] view_skip_updates config for view-backed dynamic models - fixes #1203
+- [Fixed] reentrant save from before_save triggers targeting this - fixes #1384
+- [Added] template pre-warming (Stage 2) - refs #1362
+- [Fixed] dynamic model admin dialogs section not listing dialog_before entries - fixes #1394
+- [Added] prewarm logging, robustness and cross-process cache-version fixes - refs #1362
+- [Added] admin documentation for record scoping of conditions, substitutions and save triggers - resolves #1381
+- [Fixed] global role and access-control rows not rotating partial cache keys - refs #1400
+- [Added] continue_on_record_error option for REDCap pulls - fixes #1383
+- [Added] dynamic model crosswalk associations - fixes #1399
+- [Fixed] selector cache invalidation - fixes #1312
+- [Added] REDCap Data Entry Trigger endpoint - fixes #1403
+- [Fixed] dynamic model validation transaction error - fixes #1416
+- [Fixed] stale definitions in background save triggers - fixes #1406
+- [Fixed] trigger task spec setup dependency - fixes #1419
+- [Fixed] master template cache churn on login - fixes #1400
+- [Fixed] pull_external_data error bodies - fixes #1418
+- [Fixed] API-only user creation when 2FA is disabled - fixes #1410
+- [Changed] CSRF failure status to 403 - fixes #1414
+- [Fixed] current config library cache refresh - fixes #1409
+- [Fixed] admin API definitions panel spec selection - fixes #1424
+- [Updated] DB schema dump
+- [Fixed] Redcap pull caching and status reporting - fixes #1405
+- [Added] pull external response headers - fixes #1430
+
 ## [10.0.7] - 2026-08-27
 
 - [Merged] release 10.0.6 back to develop
