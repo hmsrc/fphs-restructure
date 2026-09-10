@@ -14,6 +14,9 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.8 back to develop
+- [Added] X-ReStructure-Error header and fixed header-based API auth CSRF gap - fixes #1440
+
 ## [10.0.8] - 2026-09-10
 
 - [Updated] API authentication documentation
