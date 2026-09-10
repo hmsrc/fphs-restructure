@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.8] - 2026-09-10
+
 - [Updated] API authentication documentation
 - [Merged] release 10.0.7 back to develop
 - [Added] save_trigger before_save test coverage and documentation - resolves #1382

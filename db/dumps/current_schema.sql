@@ -3,7 +3,7 @@ begin;
 -- PostgreSQL database dump
 --
 
-\restrict hWW0cvnvf4rfWm0YfE3jzdMLxe41sxhLhykdtAMgvWca97w5c2qiBi7JFdzLTmP
+\restrict 1TXqcWBkGOPbEksmh3eRKmsj8c8oajrAoGVdNNgQy5EHc4H2GbtA4cZCwz3OkCc
 
 -- Dumped from database version 15.18
 -- Dumped by pg_dump version 15.18
@@ -7210,6 +7210,19 @@ BEGIN
     NEW.id;
   RETURN NEW;
 END;
+$$;
+
+
+--
+-- Name: view_skip_updates(); Type: FUNCTION; Schema: ml_app; Owner: -
+--
+
+CREATE FUNCTION ml_app.view_skip_updates() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+  begin
+    return new;
+  end
 $$;
 
 
@@ -23385,6 +23398,6 @@ ALTER TABLE ONLY ref_data.redcap_data_dictionary_history
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hWW0cvnvf4rfWm0YfE3jzdMLxe41sxhLhykdtAMgvWca97w5c2qiBi7JFdzLTmP
+\unrestrict 1TXqcWBkGOPbEksmh3eRKmsj8c8oajrAoGVdNNgQy5EHc4H2GbtA4cZCwz3OkCc
 
 commit;
