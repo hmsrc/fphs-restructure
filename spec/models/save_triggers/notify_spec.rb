@@ -5,7 +5,10 @@
 # template substitutions, conditional actions, return_value_list references,
 # calendar invite integration (#953), NfsStore file attachment config parsing (#954),
 # inline data URI image conversion (#1148), literal/template/array phones+emails (#1152),
-# and config app_type for role lookup + error message improvements (#1172).
+# config app_type for role lookup + error message improvements (#1172), and when
+# substitutions are made - content_template_text is resolved as the trigger fires, with
+# missing tags blanked, while a named content template is resolved when the message is
+# sent, where a missing tag raises (#1381).
 
 require 'rails_helper'
 
@@ -106,6 +109,31 @@ RSpec.describe SaveTriggers::Notify, type: :model do
       expected_text = "<html><head><style>body {font-family: sans-serif;}</style></head><body><h1>Test Email</h1><div><p>This is some content.</p><p>Related to master_id #{master.id}. This is a name: #{expected_name}.</p></div></body></html>"
 
       expect(res).to eq expected_text
+    end
+
+    # Issue #1384 - when notify queues a background job for an item that tracks
+    # background_job_ref, it persists that ref via a genuine @item.save, which is
+    # reentrant (and silently corrupts on_create/on_update/on_disable dispatch) when
+    # run from a before_save trigger, since the record isn't (fully) saved yet.
+    it 'raises instead of persisting background_job_ref when invoked from a before_save trigger' do
+      config = {
+        type: 'email',
+        role: 'test',
+        layout_template: @layout.name,
+        content_template: @content.name,
+        subject: 'subject text'
+      }
+
+      @al.in_before_save_trigger = true
+      allow(@al).to receive(:respond_to?).and_call_original
+      allow(@al).to receive(:respond_to?).with(:background_job_ref).and_return(true)
+      @al.define_singleton_method(:background_job_ref=) { |value| value }
+
+      @trigger = SaveTriggers::Notify.new(config, @al)
+      provider_job = double('provider_job', id: 123)
+      allow(@trigger).to receive(:queue_job).and_return(double('job', provider_job:))
+
+      expect { @trigger.perform }.to raise_error(FphsException, /before_save/)
     end
 
     it 'generates a message notification and job with referring_record substitutions' do
@@ -223,6 +251,66 @@ RSpec.describe SaveTriggers::Notify, type: :model do
       expected_text = "<html><head><style>body {font-family: sans-serif;}</style></head><body><h1>Test Email</h1><div><p>This is some content in a text template.</p><p>Related to master_id #{master.id}. This is a name: #{expected_name}.</p></div></body></html>"
 
       expect(res).to eq expected_text
+    end
+
+    # Substitutions in content_template_text are made when the trigger fires, ignoring
+    # missing tags, while a named content template is only substituted when the message is
+    # sent, where a missing tag raises. Jobs are deferred so the two stages are separate -
+    # they run inline by default in test.
+    it 'blanks an unresolvable tag in content_template_text when the trigger fires' do
+      Delayed::Worker.delay_jobs = true
+
+      config = {
+        type: 'email',
+        role: 'test',
+        layout_template: @layout.name,
+        content_template_text: '<p>Value is [{{no_such_field_xyz}}] for {{select_who}}.</p>',
+        subject: 'subject text'
+      }
+
+      SaveTriggers::Notify.new(config, @al).perform
+
+      new_mn = MessageNotification.order(id: :desc).first
+      expect(new_mn.generated_content).to be_blank
+
+      # Resolved against the in-memory item before the notification record was stored
+      expect(new_mn.content_template_text).to eq "<p>Value is [] for #{@al.select_who}.</p>"
+
+      new_mn.generate
+      expect(new_mn.generated_text).to include 'Value is [] for'
+    ensure
+      Delayed::Worker.delay_jobs = false
+    end
+
+    it 'raises for an unresolvable tag in a named content template when the message is sent' do
+      Delayed::Worker.delay_jobs = true
+
+      bad_content = Admin::MessageTemplate.create! name: 'test email content missing tag',
+                                                   message_type: :email,
+                                                   template_type: :content,
+                                                   template: '<p>Value is [{{no_such_field_xyz}}].</p>',
+                                                   current_admin: @admin
+
+      config = {
+        type: 'email',
+        role: 'test',
+        layout_template: @layout.name,
+        content_template: bad_content.name,
+        subject: 'subject text'
+      }
+
+      SaveTriggers::Notify.new(config, @al).perform
+
+      new_mn = MessageNotification.order(id: :desc).first
+
+      # Only the template name is stored, so the tag is not resolved until the message is sent
+      expect(new_mn.content_template_name).to eq bad_content.name
+      expect(new_mn.generated_content).to be_blank
+
+      expect { new_mn.generate }
+        .to raise_error(FphsException, /does not contain the tag 'no_such_field_xyz'/)
+    ensure
+      Delayed::Worker.delay_jobs = false
     end
 
     it 'generates an sms notification with phone numbers' do

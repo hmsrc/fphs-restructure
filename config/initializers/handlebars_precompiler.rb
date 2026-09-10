@@ -64,6 +64,36 @@ module HandlebarsPrecompiler
       item_update_classes.map { |c| c.reorder(updated_at: :desc).limit(1).pluck(:updated_at)&.first.to_i.to_s }.join('-')
     end
 
+    # Look up the latest updated_at timestamps for Admin::UserRole and
+    # Admin::UserAccessControl scoped to a given app_type_id. Used to derive cache keys
+    # that must change whenever access control for that app_type changes. Single source of
+    # truth for both HandlebarsPrecompilerHelper (handlebars_cache_key/access_control_version)
+    # and ApplicationHelper (partial_cache_key/template_version) - issue #1400 Phase 1
+    # consolidated what had been two independently-drifting copies of this query.
+    # Includes app_type_id: nil rows too (global/shared roles and access controls that
+    # apply across all app types via role_name matching), matching the scoping pattern
+    # used elsewhere for this purpose (see UserAndRoles#where_user_and_role and
+    # PageLayoutsHelper#page_layout_panels) — otherwise a change to a global role/access
+    # control would not be reflected in any app_type-scoped cache key. Not memoized here
+    # (callers needing per-request stability memoize their own copy).
+    # @param app_type_id [Integer, nil] the app_type to scope the queries to
+    # @return [Array(String, String)] [userrole_timestamp, uac_timestamp] as epoch-integer strings
+    def app_type_access_control_timestamps(app_type_id)
+      userrole = Admin::UserRole.where(app_type_id: [app_type_id, nil])
+                                .reorder(updated_at: :desc)
+                                .limit(1)
+                                .pluck(:updated_at)
+                                &.first.to_i.to_s
+
+      uac = Admin::UserAccessControl.where(app_type_id: [app_type_id, nil])
+                                    .reorder(updated_at: :desc)
+                                    .limit(1)
+                                    .pluck(:updated_at)
+                                    &.first.to_i.to_s
+
+      [userrole, uac]
+    end
+
     # Non-user-specific generation key: identical for every user, rotates exactly when
     # server_cache_version changes (deploy/restart) or a dynamic definition/config class is
     # touched.
@@ -150,8 +180,9 @@ module HandlebarsPrecompiler
     end
 
     # Runs the startup compiled-output cleanup, UNLESS this process is the delayed_job
-    # worker or a `rails console`/`rails runner` invocation (issue #1362) - extracted from
-    # the after_initialize block below so the guard is independently testable.
+    # worker or a `rails console`/`rails runner` invocation (issue #1362). Production
+    # Puma must retain preload_app! so this destructive startup step runs once in the
+    # parent before workers fork, rather than independently in every worker.
     def startup_cleanup!
       if delayed_job_worker? || rails_console_or_runner?
         Rails.logger.info 'HandlebarsPrecompiler: skipping compiled-template cleanup in a ' \
@@ -268,4 +299,11 @@ Rails.application.config.after_initialize do
   end
 
   Rails.logger.info "HandlebarsPrecompiler initialized. CLI: #{HandlebarsPrecompiler.cli_path}"
+
+  # Must run AFTER startup_cleanup! above (issue #1362 Stage 2): server_cache_version is
+  # shared (memcached) and startup_cleanup! deletes it on web boot. If the prewarm child
+  # process ran first, it would resolve/set a value that the web process then deletes,
+  # picking a different one - every artifact the child warms would land in an orphaned
+  # generation directory.
+  Prewarm::Spawner.spawn_async
 end

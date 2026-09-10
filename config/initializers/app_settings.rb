@@ -46,6 +46,23 @@ class Settings
   # an existing file for flock does not bump it), not its last-used time.
   HandlebarsLockFileMaxAgeSeconds = (ENV['FPHS_HANDLEBARS_LOCK_FILE_MAX_AGE'].presence || 300).to_i
 
+  # Whether the server spawns a `prewarm:templates` pass on boot (issue #1362 Stage 2).
+  # Opt-in, and always disabled in test, since specs exercise prewarming directly.
+  PrewarmTemplatesEnabled = ENV['FPHS_PREWARM_TEMPLATES'] == 'true' && !Rails.env.test?
+
+  # Only users who have signed in within this many days are candidates for prewarming.
+  PrewarmSignInWindowDays = (ENV['FPHS_PREWARM_SIGN_IN_WINDOW_DAYS'].presence || 30).to_i
+
+  # Upper bound on the number of distinct (app_type, access variant) combinations warmed
+  # in one pass, to cap worst-case pass duration on an app with many disjoint variants.
+  PrewarmMaxVariants = (ENV['FPHS_PREWARM_MAX_VARIANTS'].presence || 50).to_i
+
+  # Pause between warmed renders, to keep the pass low priority relative to user requests.
+  PrewarmThrottleSeconds = (ENV['FPHS_PREWARM_THROTTLE'].presence || 0.5).to_f
+
+  # Browser lifetime for user-specific master-template HTML before ETag revalidation.
+  TemplateBrowserCacheSeconds = (ENV['FPHS_TEMPLATE_BROWSER_CACHE_SECONDS'].presence || 1.hour).to_i
+
   OsWordsFile = '/usr/share/dict/words'
   # Setup information for the StrongPassword::StrengthChecker and
   # password setting.
@@ -82,6 +99,10 @@ class Settings
   BatchUserEmail = ENV['FPHS_BATCH_USER_EMAIL'].presence || AdminEmail.presence
   # Email address that identifies the Redcap job user profile. Defaults to the BatchUserEmail
   RedcapJobUserEmail = ENV['FPHS_RC_JOB_USER_EMAIL'].presence || BatchUserEmail.presence
+  # Email address of the API-only user recommended for submitting REDCap Data Entry Trigger
+  # requests. Shown as the default in the generated Data Entry Trigger endpoint URL/instructions;
+  # this user still needs its own real API token, substituted manually by an admin.
+  RedcapDetUserEmail = ENV['FPHS_RC_DET_USER_EMAIL'].presence || 'redcap_det@system-user'
   # Provide an email address for a technical admin to receive failure notifications
   FailureNotificationsToEmail = ENV['FAIL_TO_EMAIL'].presence || ENV['FAIL_FROM_EMAIL'].presence || DefaultSettings::FailureNotificationsToEmail.presence || Settings::AdminEmail.presence
 
@@ -379,7 +400,7 @@ class Settings
     OnlyLoadAppTypes
     DefaultMigrationSchema DefaultSchemaOwner StartYearRange EndYearRange AgeRange CareerYearsRange
     UserTimeout AdminTimeout OsWordsFile PasswordConfig
-    NotificationsFromEmail AdminEmail BatchUserEmail FailureNotificationsToEmail RedcapJobUserEmail
+    NotificationsFromEmail AdminEmail BatchUserEmail FailureNotificationsToEmail RedcapJobUserEmail RedcapDetUserEmail
     TwoFactorAuthDisabledForUser TwoFactorAuthDisabledForAdmin TwoFactorAuthIssuer TwoFactorAuthDrift TwoFactorAuthIdleTimeout
     CheckPrevPasswords PasswordAgeLimit PasswordReminderDays PasswordMaxAttempts PasswordUnlockStrategy
     LoginIssuesUrl LoginMessage
