@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.10] - 2026-09-11
+
 - [Merged] release 10.0.9 back to develop
 - [Fixed] pull_external_data failure response diagnostics - fixes #1442
 
