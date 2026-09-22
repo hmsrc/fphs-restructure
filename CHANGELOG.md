@@ -14,6 +14,17 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.10 back to develop
+- [Fixed] method call failure when changing external identifier columns - fixes 1446
+- [Fixed] create_filestore_container skip_if_exists validation - fixes #1449
+- [Fixed] field_options include_blank validation - fixes #1452
+- [Fixed] dynamic field value literals - fixes #1453
+- [Fixed] Redcap project config rollback handling - fixes #1459
+- [Added] spec proving extra_substitutions resolve before the notify background job runs
+- [Added] activity log no_sync_fields opt-out - fixes #1451
+- [Fixed] nullable no_downcase field option - fixes #1462
+- [Fixed] master association key resolved from the dynamic model primary key - fixes #1467
+
 ## [10.0.10] - 2026-09-11
 
 - [Merged] release 10.0.9 back to develop
