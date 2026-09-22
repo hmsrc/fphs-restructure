@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.12] - 2026-09-22
+
 - [Merged] release 10.0.11 back to develop
 - [Fixed] missing AppSettingsVars entries
 
