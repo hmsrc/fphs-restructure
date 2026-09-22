@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.11] - 2026-09-22
+
 - [Merged] release 10.0.10 back to develop
 - [Fixed] method call failure when changing external identifier columns - fixes 1446
 - [Fixed] create_filestore_container skip_if_exists validation - fixes #1449
