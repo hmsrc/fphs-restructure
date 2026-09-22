@@ -7,14 +7,15 @@
 #
 # Value type
 # FieldOptionValue: <Hash(
-#   include_blank: Boolean,
+#   include_blank: Boolean | String,
 #   pattern: String,
 #   value: ValueExpr,
 #   blank_value: ValueExpr,
 #   preset_value: ValueExpr,
 #   blank_preset_value: ValueExpr,
 #   active_value: ActiveValueExpr,
-#   no_downcase: Boolean,
+#   no_downcase: Boolean | nil,
+#   disabled: Boolean,
 #   view_original_case: Boolean,
 #   view_with_formats: Array(String),
 #   format: <plain | markdown>,
@@ -37,10 +38,10 @@
 # All keys are optional.
 #
 # ValueExpr type (value, blank_value, preset_value, blank_preset_value, selected)
-# ValueExpr: <String | now() | today() | {{substitution}} | ReturnValueLookup | Array(String)>
+# ValueExpr: <String | Boolean | Numeric | now() | today() | {{substitution}} | ReturnValueLookup | Array(String)>
 #
 # ActiveValueExpr type (active_value)
-# ActiveValueExpr: <String | now() | today() | {{substitution}} | ReturnValueLookup>
+# ActiveValueExpr: <String | Boolean | Numeric | now() | today() | {{substitution}} | ReturnValueLookup | Array(String)>
 #
 # ReturnValueLookup type - shared by ValueExpr and ActiveValueExpr
 # ReturnValueLookup: <Hash(this | reference_<reference_name>: Hash(model_name: Hash(field_name: 'return_value')))>
@@ -76,15 +77,15 @@
 # Pattern 5: big_select filtered by another field (extra_options_field_options_pattern_5_big_select_filtered_defs.yaml)
 # Pattern 6: creatable - allow creating a new record inline (extra_options_field_options_pattern_6_creatable_defs.yaml)
 # Pattern 7: value/preset_value via a return_value Hash lookup (extra_options_field_options_pattern_7_value_lookup_defs.yaml)
-# Pattern 8: value/preset_value as an Array of strings (extra_options_field_options_pattern_8_value_array_defs.yaml)
+# Pattern 8: field value options as an Array of strings (extra_options_field_options_pattern_8_value_array_defs.yaml)
 # Pattern 9: active_value with a live substitution (extra_options_field_options_pattern_9_active_value_defs.yaml)
 # See field_options.md for the worked examples.
 #
   field_options:
     field_name:
       include_blank: |
-        true or false to force a drop down field to include a selectable
-        blank
+        true or false to force a drop down field to include a selectable blank,
+        or a string to use as the blank option's label
       pattern: '.+\\d{3}-\\D{1-4}.*'
         # provide a mask for a text field using basic regex
         # This example accepts one or more characters of any type, 3 digits, a hyphen, 1 to 4 letters and any number of final characters
@@ -93,7 +94,8 @@
       preset_value: ValueExpr - see 'Value, Preset, and Active Value Timing' in field_options.md
       blank_preset_value: ValueExpr - see 'Value, Preset, and Active Value Timing' in field_options.md
       active_value: ActiveValueExpr - see 'Value, Preset, and Active Value Timing' in field_options.md
-      no_downcase: true - to prevent downcasing of the attribute when stored to the database
+      no_downcase: true - to prevent downcasing of the attribute when stored to the database; nil leaves it unset
+      disabled: true - to render the field's HTML input as disabled
       view_original_case: true - to prevent the UI capitalizing downcased fields
       selected: ValueExpr - normally computed automatically, see field_options.md
       show_expanded: true - to render an embedded view-object list expanded (uncollapsed) by default

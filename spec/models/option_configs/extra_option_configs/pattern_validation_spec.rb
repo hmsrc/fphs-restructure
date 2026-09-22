@@ -86,11 +86,13 @@ RSpec.describe 'PatternValidation concern', type: :model do
       expect(patterns.values.first[:match]).to eq Hash
     end
 
-    it 'FieldOptions declares a Hash pattern with allowed_keys' do
+    it 'FieldOptions declares a Hash pattern with key_types but no allowed_keys (issue #1456)' do
+      # No allowed_keys: any key is valid HTML pass-through for field_options.
       patterns = OptionConfigs::ExtraOptionConfigs::FieldOptions._value_patterns
       expect(patterns.size).to eq 1
       expect(patterns.values.first[:match]).to eq Hash
-      expect(patterns.values.first[:allowed_keys]).to be_present
+      expect(patterns.values.first[:allowed_keys]).to be_nil
+      expect(patterns.values.first[:key_types]).to be_present
     end
 
     it 'DbConfigs declares a Hash pattern with allowed_keys' do
@@ -448,6 +450,18 @@ RSpec.describe 'PatternValidation concern', type: :model do
       kt = patterns[:column_config][:key_types]
       expect(kt[:type]).to eq :string
       expect(kt[:array]).to eq :boolean
+    end
+
+    it 'supports boolean_or_string key types' do
+      klass = OptionConfigs::ExtraOptionConfigs::FieldOptions
+
+      [true, false, '(other)'].each do |include_blank|
+        instance = klass.new(test1: { include_blank: include_blank })
+        expect(instance.config_errors).to be_empty
+      end
+
+      instance = klass.new(test1: { include_blank: 1 })
+      expect(instance.config_errors).to be_present
     end
 
     it 'reports an error for key_types violation in value_pattern' do

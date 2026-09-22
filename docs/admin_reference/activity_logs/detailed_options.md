@@ -23,6 +23,10 @@ These options appear outside any `default:` or extra log type key.
 
 - [Extra Log Type](../general/extra_log_type.md) — defining named extra log type keys
 
+## Parent Field Synchronization
+
+- [Parent field synchronization](parent_field_synchronization.md) — automatic parent-field synchronization and the `_configurations.no_sync_fields` opt-out
+
 ## Common Options (within `default:` and each extra log type)
 
 - [label / button_label](../general/label.md) — display and add-button labels
