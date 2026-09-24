@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.0.13] - 2026-09-24
+
 - [Merged] release 10.0.12 back to develop
 - [Added] AllowDropColumns setting
 - [Added] config validation warning for update_this and related triggers missing named-entry wrapper - fixes #1444
