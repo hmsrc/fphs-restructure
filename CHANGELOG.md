@@ -14,6 +14,14 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.12 back to develop
+- [Added] AllowDropColumns setting
+- [Added] config validation warning for update_this and related triggers missing named-entry wrapper - fixes #1444
+- [Fixed] UserActionLogging NoMethodError on unsupported object_instance - fixes #1458
+- [Fixed] broken pull_emails admin example configs missing entry-name wrappers - fixes #1444
+- [Fixed] master_id column not persisted for Redcap external-identifier-associated dynamic models - fixes #1472
+- [Fixed] missing attribute error in existing_not_in_retrieved_ids for foreign_key_through_external_id dynamic models - fixes #1477
+
 ## [10.0.12] - 2026-09-22
 
 - [Merged] release 10.0.11 back to develop
