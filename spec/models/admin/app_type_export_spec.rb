@@ -14,7 +14,7 @@ RSpec.describe 'Export an app configuration', type: :model do
   include ModelSupport
 
   before :each do
-    Seeds.setup
+    seed_database
 
     create_admin
     create_user

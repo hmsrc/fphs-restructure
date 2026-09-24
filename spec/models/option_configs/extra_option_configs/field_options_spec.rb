@@ -17,8 +17,8 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
   include DynamicModelSupport
   include ExtraOptionConfigsSupport
 
-  before(:all) do
-    set_up_extra_options_configs
+  before_all do
+    set_up_extra_options_configs alt_type: alt_name_for_file(__FILE__)
   end
 
   let(:klass) { OptionConfigs::ExtraOptionConfigs::FieldOptions }
@@ -427,6 +427,7 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
     end
 
     it 'assigns an array preset_value to the attribute at runtime via force_preset_values' do
+      create_master
       config_for(<<~YAML)
         default:
           field_options:

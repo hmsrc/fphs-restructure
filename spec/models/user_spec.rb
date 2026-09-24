@@ -200,7 +200,7 @@ describe User do
     context 'when user NOT are allowed to self-register; i.e., AllowUsersToRegister is false' do
       before do
         stub_const('Settings::AllowUsersToRegister', false)
-        Seeds.setup
+        seed_database
       end
       it 'requires admin to create a user' do
         expect { User.create! email: "atest-#{@good_email}", first_name: 'Last', last_name: 'Last' }.to raise_error(
@@ -220,7 +220,7 @@ describe User do
     context 'when user are allowed to self-register; i.e., AllowUsersToRegister is true' do
       before do
         stub_const('Settings::AllowUsersToRegister', true)
-        Seeds.setup
+        seed_database
       end
       it 'is expected to be created by the self registering user' do
         expect do

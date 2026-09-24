@@ -13,7 +13,7 @@ RSpec.describe 'Import an app configuration', type: :model do
   include ModelSupport
 
   before :each do
-    Seeds.setup
+    seed_database
 
     create_admin
     create_user
@@ -145,7 +145,7 @@ RSpec.describe 'Import an app configuration', type: :model do
   end
 
   it 'imports a test JSON config file' do
-    Seeds.setup
+    seed_database
 
     res = import_test_app
 
