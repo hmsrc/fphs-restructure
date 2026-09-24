@@ -204,6 +204,9 @@ RSpec.describe 'Config library versioning with dynamic definitions', type: :mode
       # Create library v1 and dynamic model referencing it
       lib = create_test_config_library(label_value: 'v1_label')
       dmdef = generate_dm_with_library_ref
+      expect(dmdef.use_current_version).not_to be(true),
+                                               'Expected the versioned dynamic definition not to use the current library version'
+      version_count_before_library_update = dmdef.all_versions_count
 
       sleep 2
 
@@ -214,6 +217,9 @@ RSpec.describe 'Config library versioning with dynamic definitions', type: :mode
         _definitions_lib:
           label_from_lib: &label_from_lib v2_label
       YAML
+
+      expect(dmdef.all_versions_count).to be > version_count_before_library_update,
+                                          'Expected the library update to create a new version for the versioned definition'
 
       # Reload and re-parse the definition to simulate what refresh_outdated does
       # on the next web request. This is needed because refresh_dependencies
@@ -286,6 +292,9 @@ RSpec.describe 'Config library versioning with dynamic definitions', type: :mode
     it 'does not pass version_at to include_libraries when use_current_version is true' do
       lib = create_test_config_library(label_value: 'v1_label')
       dmdef = generate_dm_with_library_ref(use_current_version: true)
+      expect(dmdef.use_current_version).to be(true),
+                                           'Expected the dynamic definition to parse _configurations.use_current_version as true'
+      version_count_before_library_update = dmdef.all_versions_count
 
       sleep 2
 
@@ -300,10 +309,9 @@ RSpec.describe 'Config library versioning with dynamic definitions', type: :mode
       puts dmdef.implementation_class
       puts dmdef.resource_name
       # With use_current_version, the library update should NOT have touched the definition,
-      # so no new version boundary exists. Verify versioned() returns nil.
-      versioned_def = dmdef.versioned(dmdef.created_at)
-      expect(versioned_def).to be_nil,
-                               'Expected no version boundary when use_current_version is true (touch should be skipped)'
+      # so it should not add a new version boundary.
+      expect(dmdef.all_versions_count).to eq(version_count_before_library_update),
+                                          'Expected the library update to skip touching the current-version definition'
 
       # Verify prepare_options_text on the current definition uses latest library (v3)
       config_text = OptionConfigs::ExtraOptions.prepare_options_text(dmdef)
