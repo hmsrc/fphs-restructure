@@ -71,7 +71,7 @@ RSpec.describe 'DynamicModel versioned field list rendering', type: :request do
     unless Admin::MigrationGenerator.table_exists?(DmTableVersionedRender)
       TableGenerators.dynamic_models_table(DmTableVersionedRender, :create_do,
                                            'test1', 'test2', 'created_by_user_id',
-                                           'use_def_version_time', 'text_array')
+                                           'use_def_version_at', 'text_array')
     end
 
     DynamicModel.active.where(table_name: DmTableVersionedRender).each { |dm| dm.disable!(@admin) }

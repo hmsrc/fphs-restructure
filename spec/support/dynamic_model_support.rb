@@ -70,7 +70,7 @@ module DynamicModelSupport
 
   def self.generate_test_dynamic_model(table_name: 'test_created_by_recs', name: 'test created by', schema_name: nil, category: :test, allow_updating: false)
     admin = Admin.active.first
-    TableGenerators.dynamic_models_table(table_name, :create_do, 'test1', 'test2', 'created_by_user_id', 'use_def_version_time', 'text_array', skip_if_exists: true)
+    TableGenerators.dynamic_models_table(table_name, :create_do, 'test1', 'test2', 'created_by_user_id', 'use_def_version_at', 'text_array', skip_if_exists: true)
 
     const_name = table_name.camelize
 

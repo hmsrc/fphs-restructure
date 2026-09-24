@@ -16,7 +16,7 @@ require './db/table_generators/dynamic_models_table'
 #   - the TemplateOptionMapping item_list for the prior version
 #
 # Strategy: The test table test_created_by_vfl_recs has columns: test1, test2, created_by_user_id,
-# use_def_version_time, text_array. We create the DM with an explicit field_list of just
+# use_def_version_at, text_array. We create the DM with an explicit field_list of just
 # "test1 test2" (v1), then later update it to "test1 test2 text_array" (v2) - simulating
 # a new field being added to the definition. This avoids ALTER TABLE and migration issues.
 #
@@ -72,7 +72,7 @@ RSpec.describe 'Versioned field list for dynamic model instances', type: :model 
     unless Admin::MigrationGenerator.table_exists? 'test_created_by_vfl_recs'
       TableGenerators.dynamic_models_table('test_created_by_vfl_recs', :create_do,
                                            'test1', 'test2', 'created_by_user_id',
-                                           'use_def_version_time', 'text_array')
+                                           'use_def_version_at', 'text_array')
     end
 
     @master = Master.create! current_user: @user

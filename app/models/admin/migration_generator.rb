@@ -365,7 +365,7 @@ class Admin::MigrationGenerator
   def self.migrate(dirname = nil, do_migration: nil)
     msg = "Running migration from #{dirname}"
     Rails.logger.warn msg
-    puts msg unless Rails.env.production?
+    ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
 
     Admin::MigrationConnection.migrate(dirname, do_migration:)
     tables_and_views_reset!
@@ -685,7 +685,7 @@ class Admin::MigrationGenerator
     dirname = db_migration_dirname export_type
 
     # Ensure we don't get overlapping migration version numbers or class names
-    migtime = Time.new.to_fs(:number)
+    migtime = Time.now.to_fs(:number)
     cname = nil
     version ||= migration_version
     cname_us = "#{mode}_#{name}_#{version}"
@@ -694,7 +694,7 @@ class Admin::MigrationGenerator
     while Dir.glob("#{migtime}*", base: dirname).length > 0
       sleep 1.5
 
-      migtime = Time.new.to_fs(:number)
+      migtime = Time.now.to_fs(:number)
     end
 
     filepath = "#{dirname}/#{migtime}_#{cname_us}.rb"
@@ -735,14 +735,14 @@ class Admin::MigrationGenerator
     if Admin::AppTypeImport.prevent_migrations?
       msg = 'Migrations prevented by Admin::AppTypeImport - skipping migration'
       Rails.logger.warn msg
-      puts msg unless Rails.env.production?
+      ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
       return
     end
 
     unless allow_migrations && db_migration_schema != DefaultMigrationSchema
       msg = "Migrations not allowed or targeting (#{db_migration_schema}) default schema (#{DefaultMigrationSchema}) - skipping migration"
       Rails.logger.warn msg
-      puts msg unless Rails.env.production?
+      ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
       return
     end
 

@@ -438,12 +438,13 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
                 - test kit
       YAML
 
-      instance = @master.dynamic_model__test_created_by_recs.build
+      instance = @master.dynamic_model__test_field_option_recs.build
       expect(instance.text_array).to eq %w[blood\ spot\ card saliva\ tube test\ kit]
     end
 
     it 'applies a false preset_value at runtime via force_preset_values (issue #1453)' do
-      instance = @master.dynamic_model__test_created_by_recs.build
+      create_master
+      instance = @master.dynamic_model__test_field_option_recs.build
       allow(instance).to receive(:option_type_config).and_return(
         double(field_options: { test1: { preset_value: false } })
       )
@@ -453,7 +454,8 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
     end
 
     it 'applies a zero blank_preset_value at runtime via force_preset_values (issue #1453)' do
-      instance = @master.dynamic_model__test_created_by_recs.build
+      create_master
+      instance = @master.dynamic_model__test_field_option_recs.build
       allow(instance).to receive(:option_type_config).and_return(
         double(field_options: { test1: { blank_preset_value: 0 } })
       )
@@ -463,7 +465,8 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
     end
 
     it 'applies a false active_value at runtime via evaluate_active_values (issue #1453)' do
-      instance = @master.dynamic_model__test_created_by_recs.build
+      create_master
+      instance = @master.dynamic_model__test_field_option_recs.build
       allow(instance).to receive(:option_type_config).and_return(
         double(field_options: { test1: { active_value: false } })
       )
@@ -473,7 +476,8 @@ RSpec.describe 'ExtraOptionConfigs::FieldOptions', type: :model do
     end
 
     it 'does not replace an existing false value with blank_preset_value' do
-      instance = @master.dynamic_model__test_created_by_recs.build
+      create_master
+      instance = @master.dynamic_model__test_field_option_recs.build
       allow(instance).to receive(:attributes).and_return('test1' => false)
       allow(instance).to receive(:option_type_config).and_return(
         double(field_options: { test1: { blank_preset_value: true } })

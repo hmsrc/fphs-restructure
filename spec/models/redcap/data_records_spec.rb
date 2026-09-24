@@ -46,11 +46,11 @@ RSpec.describe Redcap::DataRecords, type: :model do
       create_admin
       change_setting('RedcapJobUserEmail', @admin.email)
       setup_file_store
+      @projects = setup_redcap_project_admin_configs
+      @project = @projects.first
     end
 
     before :example do
-      @projects = setup_redcap_project_admin_configs
-      @project = @projects.first
       reset_mocks
     end
 
@@ -1362,15 +1362,17 @@ RSpec.describe Redcap::DataRecords, type: :model do
       expect(@dm.field_list).to include('master_id')
     end
 
-    before :example do
+    before_all do
       create_admin
       setup_file_store
-      reset_mocks
-
       # Set up scantrons to match to redcap_survey_identifiers
       setup_access :scantrons unless @user.has_access_to? :create, :table, :scantrons
 
       create_sid_scantrons
+    end
+
+    before :example do
+      reset_mocks
     end
 
     it 'saves records with integer survey identifiers and associated master_id' do

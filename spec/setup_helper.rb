@@ -30,6 +30,7 @@ module SetupHelper
   end
 
   def self.registration_admin
+    @registration_admin = nil if @registration_admin && !Admin.exists?(id: @registration_admin.id)
     @registration_admin ||= ::UserSupport.create_admin('registration').first
   end
 

@@ -193,6 +193,8 @@ module ActivityLogSupport
 
   def setup_option_config(position, label, fields)
     c = @activity_log.option_configs[position]
+    raise "Option config at position #{position} not found" unless c
+
     expect(c.label).to eq label
     expect(c.fields).to eq fields
 

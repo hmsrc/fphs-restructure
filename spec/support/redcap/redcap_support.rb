@@ -15,7 +15,7 @@ module Redcap
 
       projects = redcap_project_configs(mocks:)
 
-      Redcap::ProjectAdmin.update_all(disabled: true)
+      # Redcap::ProjectAdmin.update_all(disabled: true)
       projects.each do |p|
         next unless only_project.nil? || p[:name] == only_project
 
@@ -45,12 +45,14 @@ module Redcap
         end
 
         expect(@admin.email).to eq @admin.matching_user&.email
-        pa = Redcap::ProjectAdmin.create! current_admin: @admin,
-                                          study: DefaultStudy,
-                                          name: p[:name],
-                                          api_key: p[:api_key],
-                                          server_url: p[:server_url]
+        pa = Redcap::ProjectAdmin.active.find_by(name: p[:name], study: DefaultStudy, server_url: p[:server_url])
+        pa ||= Redcap::ProjectAdmin.create! current_admin: @admin,
+                                            study: DefaultStudy,
+                                            name: p[:name],
+                                            api_key: p[:api_key],
+                                            server_url: p[:server_url]
 
+        pa.current_admin = @admin
         pa.data_options.run_jobs_as_user = @user.email
         pa.save!
         container = pa.file_store
@@ -802,15 +804,16 @@ module Redcap
 
       options = String.yaml_dump(j)
 
-      @dynamic_model = DynamicModel.create! current_admin: @admin,
-                                            name: @project[:name],
-                                            table_name: tn,
-                                            schema_name:,
-                                            primary_key_name: :id,
-                                            foreign_key_name: fkey_name,
-                                            category: :test,
-                                            field_list: field_list.join(' '),
-                                            options:
+      @dynamic_model = DynamicModel.active.find_by(name: @project[:name],
+                                                   table_name: tn)
+      @dynamic_model ||= DynamicModel.create! current_admin: @admin,
+                                              name: @project[:name],
+                                              table_name: tn,
+                                              primary_key_name: :id,
+                                              foreign_key_name: nil,
+                                              category: :test,
+                                              field_list: field_list.join(' '),
+                                              options:
     end
 
     def setup_file_fields(alt_name = nil)

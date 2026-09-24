@@ -65,11 +65,11 @@ class Admin::MigrationConnection < ActiveRecord::Base
   def self.call_migration_context(db_migration_dirname)
     # # Establish a connection - use this approach to avoid Rails fixtures
     # establish_connection(dbname)
-    puts 'Entering connection pool'
+    ExceptionExtensions.puts_or_tmp_log 'Entering connection pool'
     ActiveRecord::Base.connection_pool.with_connection do
       puts "Running migrations on #{db_migration_dirname} in #{dbname} database"
       ctx = migration_context(db_migration_dirname)
-      puts "Migration context: #{ctx}"
+      ExceptionExtensions.puts_or_tmp_log "Migration context: #{ctx}"
       ctx.migrate
     end
   end

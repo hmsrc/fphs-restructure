@@ -169,7 +169,7 @@ module FeatureSupport
 
   # Avoid the need for a sleep to allow OTP to reset
   def reset_last_otp_timestamp
-    User.update_all(consumed_timestamp: nil, id: @user.id)
+    @user.update_column(:consumed_timestep, nil)
   end
 
   def logout
