@@ -26,7 +26,7 @@ RSpec.describe SaveTriggers::SetVariables, type: :model do
   include ModelSupport
   include PlayerContactSupport
 
-  before :each do
+  before_all do
     create_user
     setup_access :player_contacts
     let_user_create_player_contacts
@@ -71,6 +71,11 @@ RSpec.describe SaveTriggers::SetVariables, type: :model do
       extra_log_type: 'set_var_trigger_test_1'
     )
 
+    @al.save_trigger_results = {}
+    @al.trigger_variables = {}
+  end
+
+  before :each do
     @al.save_trigger_results = {}
     @al.trigger_variables = {}
   end

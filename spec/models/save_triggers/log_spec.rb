@@ -6,7 +6,7 @@ RSpec.describe SaveTriggers::Log, type: :model do
   include ModelSupport
   include PlayerContactSupport
 
-  before :each do
+  before_all do
     create_user
     setup_access :player_contacts
     let_user_create_player_contacts
@@ -50,6 +50,10 @@ RSpec.describe SaveTriggers::Log, type: :model do
       select_who: 'test user',
       extra_log_type: 'log_test_1'
     )
+  end
+
+  before :each do
+    @al.save_trigger_results = {}
   end
 
   describe 'basic log functionality' do

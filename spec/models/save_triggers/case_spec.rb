@@ -16,7 +16,7 @@ RSpec.describe SaveTriggers::Case, type: :model do
   include ModelSupport
   include PlayerContactSupport
 
-  before :each do
+  before_all do
     create_user
     setup_access :player_contacts
     let_user_create_player_contacts

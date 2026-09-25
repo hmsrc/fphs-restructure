@@ -42,7 +42,7 @@ RSpec.describe SaveTriggers::PullEmails, type: :model do
     mail.to_s
   end
 
-  before :example do
+  before_all do
     SetupHelper.setup_al_player_contact_phones
     res = SetupHelper.setup_al_gen_tests 'Test Pull Emails', 'test_pull_emails', 'player_contact'
     create_user
@@ -65,6 +65,10 @@ RSpec.describe SaveTriggers::PullEmails, type: :model do
       subject: 'Second message',
       body: 'Second body content.'
     )
+  end
+
+  before :each do
+    @al.trigger_variables = {}
   end
 
   describe 'S3 source (mocked)' do

@@ -7,7 +7,7 @@ RSpec.describe SaveTriggers::Transaction, type: :model do
   include ModelSupport
   include PlayerContactSupport
 
-  before :each do
+  before_all do
     create_user
     setup_access :player_contacts
     let_user_create_player_contacts
@@ -56,6 +56,10 @@ RSpec.describe SaveTriggers::Transaction, type: :model do
       current_user: @user
     )
     @activity_log.save_trigger_results ||= {}
+  end
+
+  before :each do
+    @activity_log.save_trigger_results = {}
   end
 
   describe '#perform' do

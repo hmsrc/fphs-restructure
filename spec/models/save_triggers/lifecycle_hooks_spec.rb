@@ -16,7 +16,7 @@ RSpec.describe 'SaveTrigger lifecycle hooks (on_complete / on_failure)', type: :
   include ModelSupport
   include PlayerContactSupport
 
-  before :each do
+  before_all do
     create_user
     setup_access :player_contacts
     let_user_create_player_contacts
@@ -62,6 +62,10 @@ RSpec.describe 'SaveTrigger lifecycle hooks (on_complete / on_failure)', type: :
       extra_log_type: 'lifecycle_test_1'
     )
     @activity_log.save_trigger_results ||= {}
+  end
+
+  before :each do
+    @activity_log.save_trigger_results = {}
   end
 
   describe 'on_complete' do

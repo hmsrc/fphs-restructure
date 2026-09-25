@@ -20,11 +20,14 @@ RSpec.describe SaveTriggers::CreateMaster, type: :model do
     @al.create_embedded_item(pc_hash)
   end
 
+  before_all do
+    SetupHelper.setup_al_player_contact_phones
+    SetupHelper.setup_al_gen_tests AlNameGenTestCm, 'elt_save_test', 'player_contact'
+    create_user
+  end
+
   describe 'activity logs with player contact referenced' do
     before :example do
-      SetupHelper.setup_al_player_contact_phones
-      SetupHelper.setup_al_gen_tests AlNameGenTestCm, 'elt_save_test', 'player_contact'
-      create_user
       @master = create_master
       @player_contact = @master.player_contacts.create! data: '(617)123-1234 b', rec_type: :phone, rank: 10
       @al = create_item master: @master
@@ -65,9 +68,6 @@ RSpec.describe SaveTriggers::CreateMaster, type: :model do
 
   describe 'activity logs with player contact referenced' do
     before :example do
-      SetupHelper.setup_al_player_contact_phones
-      SetupHelper.setup_al_gen_tests AlNameGenTestCm, 'elt_save_test', 'player_contact'
-      create_user
       @master = create_master
       @player_contact = @master.player_contacts.create! data: '(617)123-1234 b', rec_type: :phone, rank: 10
       @al = create_item master: @master
