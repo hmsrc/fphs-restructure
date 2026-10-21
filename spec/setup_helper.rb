@@ -490,6 +490,7 @@ module SetupHelper
   end
 
   def self.setup_nfs_directories
+    FileUtils.rm_rf NfsStore::Manage::Filesystem.nfs_store_directory
     FileUtils.mkdir_p NfsStore::Manage::Filesystem.nfs_store_directory
     FileUtils.rm_rf NfsStore::Manage::Filesystem.temp_directory
     FileUtils.mkdir_p NfsStore::Manage::Filesystem.temp_directory

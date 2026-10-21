@@ -4570,9 +4570,7 @@ RSpec.describe 'Calculate conditional actions', type: :model do
   end
 
   describe 'ConditionalActions with item flags' do
-    before :all do
-      generate_test_dynamic_model
-    end
+    generate_test_dynamic_model_before_all
 
     before_all do
       set_up_users

@@ -87,14 +87,16 @@ RSpec.describe 'Model reference implementation', type: :model do
   end
 
   describe 'references defined for activity logs' do
-    before_all do
+    before :all do
       create_admin
       create_user
+      generate_test_dynamic_model
+    end
+
+    before_all do
       setup_access :player_contacts
       setup_access :addresses
       setup_access :activity_log__player_contact_phones
-
-      generate_test_dynamic_model
 
       @activity_log = al = find_activity_log
 
@@ -1056,7 +1058,7 @@ RSpec.describe 'Model reference implementation', type: :model do
   end
 
   describe 'references defined for dynamic models' do
-    before_all do
+    before :all do
       create_admin
       create_user
       setup_access :player_contacts
@@ -1123,11 +1125,13 @@ RSpec.describe 'Model reference implementation', type: :model do
   end
 
   describe 'direct embed resource' do
+    before :all do
+      generate_test_embed_dynamic_models
+    end
+
     before_all do
       create_admin
       create_user
-      generate_test_embed_dynamic_models
-
       setup_access :player_contacts
       create_item(data: rand(10_000_000_000_000_000), rank: 10)
       @master = @player_contact.master

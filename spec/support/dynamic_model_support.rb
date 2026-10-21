@@ -4,6 +4,18 @@ require "#{Rails.root}/spec/support/seed_support"
 require "#{Rails.root}/spec/support/user_support"
 
 module DynamicModelSupport
+  module ClassMethods
+    def generate_test_dynamic_model_before_all(**)
+      before(:all) do
+        generate_test_dynamic_model(**)
+      end
+    end
+  end
+
+  def self.included(base)
+    base.extend ClassMethods
+  end
+
   # Manually trigger migration generation and execution
   # Force reset the migration generator to ensure it picks up the new db_configs
   def force_migration(dm)
@@ -57,7 +69,12 @@ module DynamicModelSupport
     dm ||= DynamicModelSupport.generate_test_dynamic_model(table_name:, name: table_name, allow_updating: true)
     expect(dm).not_to be_nil, "Expected to find a dynamic model for table #{table_name}"
     full_attrs = extra_attrs.merge(disabled: false, current_admin: @admin)
-    dm.update!(full_attrs) if (dm.disabled? || extra_attrs.any?) && !dm.readonly?
+    if dm.disabled? || extra_attrs.any?
+      dm.class.where(id: dm.id).update_all(full_attrs.except(:current_admin))
+      dm.reload
+      dm.current_admin = @admin
+      dm.update_tracker_events
+    end
 
     expect(dm.disabled).not_to be_truthy, "Expected dynamic model not to be disabled for table #{table_name}"
     # dm.update!(current_admin: @admin, updated_at: Time.current)
@@ -71,10 +88,13 @@ module DynamicModelSupport
   def self.generate_test_dynamic_model(table_name: 'test_created_by_recs', name: 'test created by', schema_name: nil, category: :test, allow_updating: false)
     admin = Admin.active.first
     TableGenerators.dynamic_models_table(table_name, :create_do, 'test1', 'test2', 'created_by_user_id', 'use_def_version_at', 'text_array', skip_if_exists: true)
+    Admin::MigrationGenerator.tables_and_views_reset!
+    schema_name ||= Admin::MigrationGenerator.table_schema_hash[table_name]
 
     const_name = table_name.camelize
 
-    DynamicModel.active.where(table_name: table_name).reload.each { |dm| dm.disable!(admin) }
+    DynamicModel.active.where(table_name: table_name).update_all(disabled: true, updated_at: Time.current)
+    DynamicModel.reset_active_model_configurations!
     # Use const_defined? with inherit=false to only check directly-defined constants,
     # and rescue in case the constant was removed by a parallel test
     begin
@@ -135,6 +155,8 @@ module DynamicModelSupport
   end
 
   def generate_test_embed_dynamic_models
+    @admin, = create_admin unless @admin
+
     unless Admin::MigrationGenerator.table_exists? 'test_embed_fields'
       TableGenerators.dynamic_models_table('test_embed_fields', :create_do, 'test1', 'test2', 'embed_resource_name')
     end

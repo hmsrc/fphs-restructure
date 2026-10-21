@@ -152,7 +152,7 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
 
     it 'includes type information for each field' do
       dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
-      next unless dm
+      expect(dm).not_to be_nil
 
       fields = helper.api_fields(dm)
       fields.each do |f|
@@ -163,7 +163,7 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
 
     it 'excludes the contactid standard field' do
       dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
-      next unless dm
+      expect(dm).not_to be_nil
 
       fields = helper.api_fields(dm)
       field_names = fields.map { |f| f[:name] }
@@ -174,7 +174,7 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
   describe '#api_fields_list' do
     it 'generates an HTML unordered list of fields' do
       dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
-      next unless dm
+      expect(dm).not_to be_nil
 
       html = helper.api_fields_list(dm)
       expect(html).to include('<ul class="api-panel__fields-list">')
@@ -188,7 +188,7 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
 
     it 'returns an empty list when no fields are available' do
       dm = DynamicModel.active_model_configurations.find { |d| !d.table_or_view_ready? }
-      next unless dm
+      expect(dm).not_to be_nil
 
       html = helper.api_fields_list(dm)
       expect(html).to include('<ul')
@@ -198,7 +198,7 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
 
     it 'excludes standard fields' do
       dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
-      next unless dm
+      expect(dm).not_to be_nil
 
       html = helper.api_fields_list(dm)
       AdminApiDefinitionsHelper::STANDARD_FIELDS.each do |sf|
@@ -209,8 +209,10 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
 
   describe '#api_fields_yaml' do
     it 'generates YAML-like field listing' do
-      dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
-      next unless dm
+      dm = DynamicModel.active_model_configurations.find do |definition|
+        definition.table_or_view_ready? && helper.api_fields(definition).any?
+      end
+      expect(dm).not_to be_nil
 
       yaml = helper.api_fields_yaml(dm)
       expect(yaml).to include('type:')
@@ -225,7 +227,9 @@ RSpec.describe AdminApiDefinitionsHelper, type: :helper do
     end
 
     it 'includes one entry per field with name and type' do
-      dm = DynamicModel.active_model_configurations.find(&:table_or_view_ready?)
+      dm = DynamicModel.active_model_configurations.find do |definition|
+        definition.table_or_view_ready? && helper.api_fields(definition).any?
+      end
       next unless dm
 
       yaml = helper.api_fields_yaml(dm)

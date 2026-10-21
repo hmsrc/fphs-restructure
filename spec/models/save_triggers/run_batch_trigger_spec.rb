@@ -11,8 +11,6 @@ RSpec.describe SaveTriggers::RunBatchTrigger, type: :model do
       create_user
       setup_access :player_contacts
       let_user_create_player_contacts
-      @master = create_master
-      @player_contact = @master.player_contacts.create!(data: '(617)123-1234 b', rec_type: :phone, rank: 10)
 
       # Set up the activity log definition with batch_trigger configuration
       al_def = ActivityLog.find(ActivityLog::PlayerContactPhone.definition.id)
@@ -66,6 +64,8 @@ RSpec.describe SaveTriggers::RunBatchTrigger, type: :model do
     end
 
     before :each do
+      @master = create_master
+      @player_contact = @master.player_contacts.create!(data: '(617)123-1234 b', rec_type: :phone, rank: 10)
       @player_contact.master.current_user = @user
       @al1 = @player_contact.activity_log__player_contact_phones.create!(
         select_call_direction: 'from player',

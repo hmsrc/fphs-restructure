@@ -189,7 +189,8 @@ module NfsStore
         return if cleaned.blank? || cleaned == '.'
 
         # Pathname#cleanpath leaves leading '..' intact (e.g. 'a/../../b' → '../b').
-        raise FsException::Action, "Path traversal not allowed: #{path_str.inspect}" if cleaned.split('/', 2).first == '..'
+        raise FsException::Action, "Path traversal not allowed: #{path_str.inspect}" if cleaned.split('/',
+                                                                                                      2).first == '..'
 
         cleaned
       end
@@ -235,6 +236,7 @@ module NfsStore
       # @return [Boolean] true = allowed
       def self.test_dir(role_name, container, action, extra_path: nil, file_name: nil, ok_if_exists: nil)
         # Make sure we can write to this directory
+        fs_test_path = nil
 
         case action
         when :write
@@ -293,7 +295,12 @@ module NfsStore
 
           FileUtils.touch curr_path
           res = FileUtils.rm curr_path
-          Rails.logger.warn "Failed to test mkdir for container with #{curr_path}" unless res
+          unless res
+            Rails.logger.warn "Failed to test mkdir for container with #{curr_path}; " \
+                              "role=#{role_name.inspect}, path=#{fs_test_path.inspect}, " \
+                              "container_parent=#{container_parent.inspect}, " \
+                              "container=#{container.id.inspect}"
+          end
           res
         when :read
           fs_test_path = nfs_store_path(role_name, container, extra_path, file_name)
@@ -304,7 +311,11 @@ module NfsStore
         else
           raise FsException::Action, "Unknown way to test a directory: #{action}"
         end
-      rescue Errno::EACCES, Errno::ENOENT
+      rescue Errno::EACCES, Errno::ENOENT => e
+        Rails.logger.warn "NFS test_dir failed: role=#{role_name.inspect}, action=#{action.inspect}, " \
+                          "path=#{fs_test_path.inspect}, curr_path=#{curr_path.inspect}, " \
+                          "container_parent=#{container_parent.inspect}, container=#{container.id.inspect}, " \
+                          "app_type=#{container.app_type_id.inspect}, error=#{e.class}: #{e.message}"
         false
       end
 

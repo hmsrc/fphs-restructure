@@ -15,7 +15,7 @@ module Redcap
 
       projects = redcap_project_configs(mocks:)
 
-      # Redcap::ProjectAdmin.update_all(disabled: true)
+      Redcap::ProjectAdmin.update_all(disabled: true)
       projects.each do |p|
         next unless only_project.nil? || p[:name] == only_project
 
@@ -66,8 +66,7 @@ module Redcap
         setup_file_store @admin
       end
 
-      pcount = 4
-      pcount = 1 if only_project
+      pcount = projects.count { |project| only_project.nil? || project[:name] == only_project }
 
       expect(Redcap::ProjectAdmin.active.count).to eq pcount
       projects
