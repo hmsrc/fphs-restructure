@@ -19,6 +19,7 @@
 #   - Scroll position is preserved when rotating a multi-page PDF
 #   - Page navigation (next/prev) works correctly after rotating a multi-page PDF
 #   - Scrolling to last page while rotated does not jump back to page 1
+#   - Stored filenames are rendered as text in the secure viewer
 #
 # Each test verifies a specific enhancement requirement from Issue #590.
 
@@ -171,8 +172,12 @@ describe 'Secure viewer enhancements (Issue #590)', js: true, driver: $browser_d
 
   # Open the secure viewer by clicking a file link in the filestore browser
   # @param filename [String] filename to click to open in the viewer
-  def open_secure_viewer(filename)
-    file_link = find('.browse-container a.browse-filename', text: filename, wait: 10)
+  def open_secure_viewer(filename, icon: false)
+    file_link = if icon
+                  find('.browse-container a.browse-icon', wait: 10) { |link| link['title'] == filename }
+                else
+                  find('.browse-container a.browse-filename', text: filename, wait: 10)
+                end
     scroll_into_view(file_link)
     file_link.click
     # Wait for the secure viewer overlay to appear
@@ -309,6 +314,30 @@ describe 'Secure viewer enhancements (Issue #590)', js: true, driver: $browser_d
     disable_active_panel_layout('test-columns-panel')
     temp_dir = Rails.root.join('tmp', 'test_files_secure_viewer')
     FileUtils.rm_rf(temp_dir)
+  end
+
+  describe 'Filename rendering' do
+    it 'renders a stored filename as text when opening the file icon' do
+      navigate_to_master(@master.id)
+      finish_page_loading
+      expand_phone_log_tab
+      finish_page_loading
+
+      filename = "secure-view-xss-#{SecureRandom.hex(4)} <img src=x onerror=window.__secure_view_filename_xss=1>.png"
+      malicious_file_path = Rails.root.join('tmp', 'test_files_secure_viewer', filename)
+      FileUtils.cp(@test_image_path, malicious_file_path)
+      page.execute_script('window.__secure_view_filename_xss = false;')
+      upload_file_to_filestore(malicious_file_path.to_s)
+
+      open_secure_viewer(filename, icon: true)
+      filename_element = find('.secure-view-file-name')
+
+      expect(filename_element.text).to eq(filename)
+      expect(filename_element).not_to have_css('img')
+      expect(page.evaluate_script('window.__secure_view_filename_xss')).to be(false)
+    ensure
+      FileUtils.rm_f(malicious_file_path) if malicious_file_path
+    end
   end
 
   describe 'Zoom level display' do
