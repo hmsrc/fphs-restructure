@@ -22,6 +22,7 @@
 - Agents are allowed to make changes to code and configuration where instructed to do so, or to prototype solutions that aren't supported by specs.
 - Agents are allowed to create, edit and delete temporary files as needed for testing, debugging, or prototyping solutions. Any files in `tmp/agent-tmp` should be considered temporary and can be safely removed at any time.
 - Agents may commit and rebase as required to maintain a clean and up-to-date feature branch.
+- Agents may update labels on github issues
 
 ### Critical Rules for Running Terminal Commands
 
