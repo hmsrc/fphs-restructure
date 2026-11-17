@@ -14,6 +14,8 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+## [10.1.1] - 2026-11-17
+
 - [Merged] release 10.0.14 back to develop
 - [Fixed] field options memoization scope - fixes #1457
 - [Fixed] NFS setup script stdin corruption and lost restart flag - fixes #1485
