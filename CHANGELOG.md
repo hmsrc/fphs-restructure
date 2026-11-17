@@ -14,6 +14,69 @@ Since [version 8.4.0](#840---2024-01-10) the convention is that releases made wi
 
 ## Unreleased
 
+- [Merged] release 10.0.14 back to develop
+- [Fixed] field options memoization scope - fixes #1457
+- [Fixed] NFS setup script stdin corruption and lost restart flag - fixes #1485
+- [Added] composable save trigger each - fixes #1495
+- [Updated] gems
+- [Migrated] agent prompts to skills
+- [Fixed] symlink-following vulnerability in NfsStore file retrieval and writes - fixes #1502
+- [Added] .tar.xz extraction support - fixes #1501
+- [Added] workspace-scoped RSpec process checker
+- [Fixed] failed dynamic migration error logging - fixes #1505
+- [Fixed] slow and stale admin components panel builds - fixes #1507
+- [Fixed] XSS in filestore move modal path rendering - fixes #1492
+- [Changed] headless rspec scripts to check for running rspec processes
+- [Added] record count to admin report preview - fixes #1497
+- [Fixed] latent NfsStore bugs - fixes #1493
+- [Fixed] nested embedded_item condition error in calc actions - fixes #1515
+- [Added] message template overrides for help pages - fixes #1484
+- [Update] copilot-instructions.md
+- [Update] copilot-instructions.md
+- [Fixed] dynamic definitions being generated twice on boot and reload, and added alerts for definitions that fail to load - fixes #1516, fixes #1509
+- [Fixed] stale captions in the page template after a direct edit of a dynamic definition - fixes #1525
+- [Removed] duplicate caption HTML conversion and class instantiation when removing generated classes - fixes #1520
+- [Added] rec_type and rank dynamic model view handlers - fixes #1528
+- [Fixed] outdated agent definitions
+- [Added] condition linter for conditional calculation configs - fixes #603
+- [Added] condition collector and trigger type condition and value declarations - fixes #603
+- [Added] condition configuration notices for definitions and page layouts - fixes #603
+- [Documented] configuration warnings for conditions - fixes #603
+- [For] merge commit message
+- [Updated] dialog_before button documentation - fixes #616
+- [Updated] copilot agent instructions
+- [Added] a workspace setup script for non-interactive terminals
+- [Fixed] filestore setup for piped input
+- [Fixed] master search failing for inaccessible show_ids_in_master_result IDs - fixes #1537
+- [Improved] workspace setup source environment
+- [Added] rubocop-rails plugin configuration to rubocop
+- [Updated] gems to address various CVEs - fixes 1541 Updated yarn modules
+- [Changed] copilot instructions for better testing
+- [Fixed] path to sankey chart module file - related to fix for #1541
+- [Fixed] handlebars precompiler parsing of double-quoted template names - fixes #1543
+- [Updated] CHANGELOG.md with git commits
+- [Fixed] spec setup and dynamic schema handling
+- [Merged] release 10.1.0 back to develop
+- [Changed] app type import to defer system-wide regeneration work, remove migration sleeps and retry dependent dynamic definitions in one import - fixes #1538
+- [Fixed] field_options HTML attributes dropped by select edit field partials - fixes #1460
+- [Added] automatic tracker entries for message notifications - fixes #1479
+- [Added] modal preview of message notifications from tracker entries - fixes #1479
+- [Added] name keys for protocol lookups in tracker_history conditions - fixes #1491
+- [Updated] environment sourcing to rely on setting `chat.agentHost.shellTool.initScript.enabled`
+- [Fixed] filestore selection parameter limit - fixes #1551
+- [Updated] file filtering docs for single JSON selected items param - fixes #1551
+- [Added] information for assisted permissions
+- [Added] not for assisted permissions
+- [Fixed] single file download to send the file directly rather than zipping - fixes #1553
+- [Added] system spec for single file direct and multi file zip downloads via the download button - fixes #1553
+- [Added] more assisted permissions information
+- [Fixed] report result search links - resolves #1555
+- [Added] background preparation of large multi-file filestore downloads - fixes #1552
+- [Added] browser check flow for background filestore downloads - fixes #1552
+- [Fixed] single large file and orphaned temp handling for background downloads - fixes #1552
+- [Added] migration to seed prepared download notification templates - fixes #1552
+- [Fixed] prepared download expiry to use the user's date and timezone preferences - fixes #1552
+
 ## [10.1.0] - 2026-11-10
 
 ### From FPHS - PR #1544 - 2026-11-10
