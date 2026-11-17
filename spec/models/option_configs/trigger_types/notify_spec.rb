@@ -3,7 +3,7 @@
 require 'rails_helper'
 
 # Tests semantic validation of notify save trigger configurations,
-# including role/user existence checks (issue #1374).
+# including role/user existence checks (issue #1374) and no_tracker_entry option typing (#1479).
 RSpec.describe OptionConfigs::TriggerTypes::Notify, type: :model do
   include ModelSupport
 
@@ -40,7 +40,9 @@ RSpec.describe OptionConfigs::TriggerTypes::Notify, type: :model do
       role_name: @existing_role_name,
       current_admin: @admin
     )
-    @other_app_type = Admin::AppType.create!(name: 'notify-validation-other', label: 'Notify Validation Other', current_admin: @admin)
+    # Committed by earlier runs, so find the existing app type before creating it
+    @other_app_type = Admin::AppType.active.find_by(name: 'notify-validation-other') ||
+                      Admin::AppType.create!(name: 'notify-validation-other', label: 'Notify Validation Other', current_admin: @admin)
     @other_role_name = "notify_val_other_role_#{SecureRandom.hex(4)}"
     Admin::UserRole.create!(
       app_type: @other_app_type,
@@ -88,6 +90,32 @@ RSpec.describe OptionConfigs::TriggerTypes::Notify, type: :model do
 
       warnings = described_class.validate_config(config)
       expect(warnings).to be_empty
+    end
+
+    it 'accepts boolean and dynamic no_tracker_entry values' do
+      config = {
+        type: 'sms',
+        phones: '+16175550100',
+        layout_template: 'test_notify_sms_layout',
+        content_template_text: 'SMS text'
+      }
+
+      expect(described_class.validate_config(config.merge(no_tracker_entry: true))).to be_empty
+      expect(described_class.validate_config(config.merge(no_tracker_entry: '{{skip_tracker}}'))).to be_empty
+      expect(described_class.validate_config(config.merge(no_tracker_entry: { this: { skip_tracker: 'return_value' } }))).to be_empty
+    end
+
+    it 'warns when no_tracker_entry is neither a boolean nor a dynamic value' do
+      config = {
+        type: 'sms',
+        phones: '+16175550100',
+        layout_template: 'test_notify_sms_layout',
+        content_template_text: 'SMS text',
+        no_tracker_entry: 'yes'
+      }
+
+      expect(described_class.validate_config(config))
+        .to include('no_tracker_entry must be a boolean, template substitution, or conditional Hash')
     end
 
     it 'skips static checks for template substitutions and conditional hashes' do

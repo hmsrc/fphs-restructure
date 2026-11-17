@@ -1,18 +1,29 @@
 # frozen_string_literal: true
 
 require 'timeout'
+require 'time'
 #
 # Provides database level functionality to support dynamic migration generation
 # and functions that are used to access features of the database across the application.
 class Admin::MigrationGenerator
   DefaultSchemaOwner = Settings::DefaultSchemaOwner
   DefaultMigrationSchema = Settings::DefaultMigrationSchema
+  MIGRATION_TIMESTAMP_MUTEX = Mutex.new
 
   attr_accessor :db_migration_schema, :table_name, :all_implementation_fields,
                 :table_comments, :no_master_association, :prev_table_name, :belongs_to_model,
                 :allow_migrations, :db_configs, :resource_type, :view_sql, :all_referenced_tables,
                 :class_name, :dynamic_def, :app_type_name, :view_sql_changed, :no_user_id,
                 :view_skip_updates
+
+  #
+  # Root directory for generated app migrations
+  # @return [String]
+  def self.app_migrations_root
+    return 'db/app_migrations' unless Rails.env.test?
+
+    "tmp/app_migrations_test#{ENV['TEST_ENV_NUMBER']}#{ENV['TEST_ENV_SET']}"
+  end
 
   def initialize(db_migration_schema, table_name: nil, class_name: nil,
                  all_implementation_fields: nil, table_comments: nil,
@@ -65,6 +76,25 @@ class Admin::MigrationGenerator
   # @return [String]
   def self.current_database
     connection.current_database
+  end
+
+  def self.next_migration_timestamp(dirname)
+    MIGRATION_TIMESTAMP_MUTEX.synchronize do
+      current_time = Time.now
+      previous_time = @last_migration_timestamp && Time.strptime(@last_migration_timestamp, '%Y%m%d%H%M%S')
+      existing_times = if Dir.exist?(dirname)
+                         Dir.glob('*.rb', base: dirname).filter_map do |filename|
+                           timestamp = filename[/\A(\d{14})_/, 1]
+                           Time.strptime(timestamp, '%Y%m%d%H%M%S') if timestamp
+                         end
+                       else
+                         []
+                       end
+      timestamps = [current_time]
+      timestamps << (previous_time + 1) if previous_time
+      timestamps << (existing_times.max + 1) if existing_times.any?
+      @last_migration_timestamp = timestamps.max.strftime('%Y%m%d%H%M%S')
+    end
   end
 
   #
@@ -358,6 +388,17 @@ class Admin::MigrationGenerator
     connection_pool = ActiveRecord::Tasks::DatabaseTasks.migration_connection_pool
     schema_migration = ActiveRecord::SchemaMigration.new(connection_pool)
     ActiveRecord::MigrationContext.new(dirname, schema_migration)
+  end
+
+  #
+  # Run the migrations and reset tables and view cache
+  def self.migrate(dirname = nil, do_migration: nil)
+    msg = "Running migration from #{dirname}"
+    Rails.logger.warn msg
+    ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
+
+    Admin::MigrationConnection.migrate(dirname, do_migration:)
+    tables_and_views_reset!
   end
 
   #
@@ -674,24 +715,16 @@ class Admin::MigrationGenerator
     dirname = db_migration_dirname export_type
 
     # Ensure we don't get overlapping migration version numbers or class names
-    migtime = Time.new.to_fs(:number)
     cname = nil
     version ||= migration_version
     cname_us = "#{mode}_#{name}_#{version}"
     raise FphsException, "Error in naming of migration #{cname_us}" if cname_us != cname_us.id_underscore
 
-    while Dir.glob("#{migtime}*", base: dirname).length > 0
-      sleep 1.5
-
-      migtime = Time.new.to_fs(:number)
-    end
-
+    migtime = self.class.next_migration_timestamp(dirname)
     filepath = "#{dirname}/#{migtime}_#{cname_us}.rb"
 
     FileUtils.mkdir_p dirname
     File.write(filepath, mig_text)
-    # Cheat way to ensure multiple migrations can not have the same timestamp during app type loads
-    sleep 1.2
     @do_migration = filepath
     filepath
   end
@@ -713,70 +746,40 @@ class Admin::MigrationGenerator
   # @return [String]
   def db_migration_dirname(export_type = nil)
     loc = app_type_name || db_migration_schema
-    dirname = "db/app_migrations/#{loc}"
+    dirname = "#{self.class.app_migrations_root}/#{loc}"
     dirname += "--#{export_type}" if export_type
     dirname
   end
 
-  #
-  # Relative path to the failed migrations directory
+  # Relative path to the failed migrations directory.
   def db_migration_failed_dirname
-    'db/app_migrations/failed'
+    Admin::MigrationConnection.db_migration_failed_dirname
   end
 
   #
   # Run migrations in the current migration directory specified by #db_migration_dirname
   def run_migration
     if Admin::AppTypeImport.prevent_migrations?
-      Rails.logger.warn 'Migrations prevented by Admin::AppTypeImport - skipping migration'
+      msg = 'Migrations prevented by Admin::AppTypeImport - skipping migration'
+      Rails.logger.warn msg
+      ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
       return
     end
 
     unless allow_migrations && db_migration_schema != DefaultMigrationSchema
-      Rails.logger.warn "Migrations not allowed or targeting (#{db_migration_schema}) default schema (#{DefaultMigrationSchema}) - skipping migration"
+      msg = "Migrations not allowed or targeting (#{db_migration_schema}) default schema (#{DefaultMigrationSchema}) - skipping migration"
+      Rails.logger.warn msg
+      ExceptionExtensions.puts_or_tmp_log msg unless Rails.env.production?
       return
     end
-    puts "Running migration from #{db_migration_dirname}"
-    Rails.logger.warn "Running migration from #{db_migration_dirname}"
 
-    Timeout.timeout(Settings::MigrationTimeoutSec) do
-      # Outside the current transaction
-      Thread.new do
-        ActiveRecord::Base.connection_pool.with_connection do
-          self.class.migration_context(db_migration_dirname).migrate
-        end
-      rescue Exception => e
-        FileUtils.mkdir_p db_migration_failed_dirname
-        FileUtils.mv @do_migration, db_migration_failed_dirname
-        msg = "Failed migration for path '#{db_migration_dirname}' - moved '#{@do_migration}' to '#{db_migration_failed_dirname}' - database #{Admin::MigrationGenerator.current_database}"
-        Rails.logger.warn msg
-        unless Rails.env.production?
-          warn msg
-          warn e
-        end
-        bt = e.backtrace
-              .reject { |m| m.include?('/vendor/bundle/ruby/') }
-              .join("\n")
-        raise FphsException, "#{msg}:\n#{e}\n#{bt}"
-      end.join
-    end
+    migrate
+  end
 
-    self.class.tables_and_views_reset!
-
-    true
-  rescue Exception => e
-    FileUtils.mkdir_p db_migration_failed_dirname
-    FileUtils.mv @do_migration, db_migration_failed_dirname
-    msg = "Failed migration for path '#{db_migration_dirname}' - moved '#{@do_migration}' to '#{db_migration_failed_dirname}' - database #{Admin::MigrationGenerator.current_database}"
-    Rails.logger.warn msg
-    unless Rails.env.production?
-      warn msg
-      warn e
-    end
-    bt = e.backtrace
-          .reject { |m| m.include?('/vendor/bundle/ruby/') }
-          .join("\n")
-    raise FphsException, "#{msg}:\n#{e}\n#{bt}"
+  def migrate(dirname = nil, do_migration: nil)
+    @do_migration = do_migration unless do_migration.nil?
+    dirname ||= db_migration_dirname
+    self.class.migrate(dirname, do_migration: @do_migration)
   end
 
   #

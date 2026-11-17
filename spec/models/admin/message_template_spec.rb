@@ -11,7 +11,7 @@ RSpec.describe Admin::MessageTemplate, type: :model do
   include ReportSupport
   include ItemFlagSupport
 
-  before :all do
+  before_all do
     seed_database # to ensure embedded reports work
     create_admin
     create_user
@@ -23,6 +23,32 @@ RSpec.describe Admin::MessageTemplate, type: :model do
     Admin::MessageTemplate.where(name: 'test email layout').update_all(name: "test old layout #{l}")
     Admin::MessageTemplate.where(name: 'test email content').update_all(name: "test old content #{l}")
     create_items
+  end
+
+  describe 'generate_content message type filtering' do
+    it 'filters by message type only when the optional keyword is provided' do
+      template_name = 'optional message type filter'
+      Admin::MessageTemplate.create!(
+        name: template_name,
+        category: 'issue-1484',
+        message_type: :email,
+        template_type: :content,
+        template: 'Email template content',
+        current_admin: @admin
+      )
+
+      expect(
+        Admin::MessageTemplate.generate_content(content_template_name: template_name, category: 'issue-1484')
+      ).to eq 'Email template content'
+      expect(
+        Admin::MessageTemplate.generate_content(
+          content_template_name: template_name,
+          category: 'issue-1484',
+          message_type: :dialog,
+          allow_missing_template: true
+        )
+      ).to be_nil
+    end
   end
 
   it 'generates a message' do
@@ -184,8 +210,11 @@ RSpec.describe Admin::MessageTemplate, type: :model do
 
     expect(@item_flag).not_to be nil
 
-    Admin::UserAccessControl.create! app_type: @user.app_type, access: :read, resource_type: :general,
-                                     resource_name: :view_reports, current_admin: @admin
+    # An app-wide view_reports UAC may already be committed by another spec, which would fail validation
+    unless @user.can? :view_reports, :general
+      Admin::UserAccessControl.create! app_type: @user.app_type, access: :read, resource_type: :general,
+                                       resource_name: :view_reports, current_admin: @admin
+    end
 
     check_reports_accessible
 

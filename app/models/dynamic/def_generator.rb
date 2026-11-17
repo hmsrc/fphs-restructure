@@ -14,19 +14,26 @@ module Dynamic
       after_save :reset_active_model_configurations!, if: -> { @regenerate || disabled }
       after_save :handle_config_triggers
 
-      # This double reset is intentional
-      after_commit :reset_active_model_configurations!, if: -> { @regenerate || disabled }
+      # This double reset is intentional; options-only edits skip regeneration but still leave loaded records stale
+      after_commit :reset_active_model_configurations!, if: lambda {
+        @regenerate || disabled || saved_change_to_attribute?(self.class.option_configs_attr)
+      }
 
       after_commit :update_tracker_events, if: -> { @regenerate }
       after_commit :clean_schema, if: -> { @regenerate }
       after_commit :other_regenerate_actions
       after_commit :handle_disabled, if: -> { disabled }
-      after_update_commit -> { self.class.routes_reload }, if: -> { saved_change_to_disabled? }
-      after_create_commit -> { self.class.routes_reload }
+      after_update_commit :reload_routes_after_definition_change, if: -> { saved_change_to_disabled? }
+      after_create_commit :reload_routes_after_definition_change
       attr_accessor :force_regenerate
     end
 
     class_methods do
+      # Messages for definitions whose implementation class failed to generate, keyed by definition id
+      def generation_failures
+        @generation_failures ||= {}
+      end
+
       #
       # Run through the configurations to implement them and make them available for use
       # Since ActivityLog types actually preload DynamicModel and ExternalIdentifier types
@@ -85,10 +92,11 @@ module Dynamic
                       dm.class.name.constantize
                     end
 
-            if dm.ready_to_generate? && dm.implementation_class_defined?(klass, fail_without_exception: true)
+            if rtg = dm.ready_to_generate? &&
+                     icd = dm.implementation_class_defined?(klass, fail_without_exception: true)
               dm.add_master_association
             else
-              msg = "Failed to enable #{dm} #{dm.id} #{dm.resource_name}. Table ready? #{dm.table_or_view_ready?}. #{disable_on_failure && 'Disabling!'}"
+              msg = "Failed to enable #{dm} #{dm.id} #{dm.resource_name}. Table ready? #{dm.table_or_view_ready?}. Ready to generate? #{rtg}. Class defined? #{icd}. Implementation class defined? #{icd}. #{disable_on_failure && 'Disabling!'}"
               warn msg
               Rails.logger.warn msg
               dm.class.where(id: dm.id).update_all(disabled: true) if disable_on_failure
@@ -180,10 +188,23 @@ module Dynamic
       # End of class_methods
     end
 
+    # Definitions parsed before a referenced class was generated later in the same pass drop that reference
+    def self.resolve_cached_forward_references!
+      [DynamicModel, ActivityLog, ExternalIdentifier].each do |definition_class|
+        definition_class.definition_cache.each_value do |definition|
+          next unless definition.option_configs_have_unresolved_references?
+
+          definition.force_option_config_parse(raise_bad_configs: false)
+        end
+      end
+    end
+
     #
     # Handle reloading of routes on regeneration
     def routes_load
-      self.class.routes_load
+      Admin::AppTypeImport.run_now_or_after_import([:dynamic_definition_routes_load, self.class]) do
+        self.class.routes_load
+      end
     end
 
     #
@@ -313,7 +334,9 @@ module Dynamic
       return if disabled
 
       self.class.prev_latest_update = updated_at
-      self.class.preload
+      Admin::AppTypeImport.run_now_or_after_import([:dynamic_definition_preload, self.class]) do
+        self.class.preload
+      end
       Rails.logger.info 'Reloading column definitions'
       implementation_class.reset_column_information
 
@@ -322,7 +345,15 @@ module Dynamic
       end
 
       Rails.logger.info 'Refreshing item types'
-      Classification::GeneralSelection.item_types refresh: true
+      Admin::AppTypeImport.run_now_or_after_import(:general_selection_item_types_refresh) do
+        Classification::GeneralSelection.item_types refresh: true
+      end
+    end
+
+    def reload_routes_after_definition_change
+      Admin::AppTypeImport.run_now_or_after_import(:dynamic_definition_routes_reload) do
+        self.class.routes_reload
+      end
     end
 
     # After disabling an item, clean up any mess
@@ -390,10 +421,17 @@ module Dynamic
     # Add an item to this list
     def add_model_to_list(m)
       tn = implementation_model_name
+      self.class.generation_failures.delete(id)
       self.class.models[tn] = m
       logger.info "Added new model #{tn}"
       self.class.model_names << tn unless self.class.model_names.include? tn
       Resources::Models.add(m)
+    end
+
+    # Remember why this definition's class could not be generated, until it next generates successfully
+    # @param [Exception | String] error
+    def record_generation_failure(error)
+      self.class.generation_failures[id] = error.to_s
     end
 
     # Remove an item from the list of available dynamic classes
@@ -432,9 +470,8 @@ module Dynamic
       # This may fail if an underlying dependent class (parent class) has been redefined by
       # another dynamic implementation, such as external identifier.
       # A missing class is also expected here on first generation, since there is nothing to remove yet
-      return unless implementation_class_defined?(klass, fail_without_exception: true,
-                                                         fail_without_exception_newable_result: true,
-                                                         not_found_ok: true)
+      # Check the exact constant being removed; implementation_class_defined? instantiates the model.
+      return unless klass.const_defined?(model_class_name, false)
 
       remove_const_for(klass, model_class_name)
     rescue StandardError => e

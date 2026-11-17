@@ -15,6 +15,7 @@
 #
 # Key types:
 #   boolean              — true or false
+#   boolean_or_dynamic   — a boolean, {{substitution}}, or conditional Hash
 #   string               — a string (or symbol)
 #   string_or_array      — a string, or an array of strings
 #   string_or_hash       — a string or Hash (commonly used where {{substitution}} templates
@@ -74,6 +75,29 @@ trigger_types:
     description: >
       Conditionally branch trigger execution. The value is a nested trigger task
       list whose individual conditional (if:) keys determine which branch runs.
+
+  # ---------------------------------------------------------------------------
+  # each
+  # ---------------------------------------------------------------------------
+  each:
+    pattern: delegate
+    description: >
+      Iterate over a list and run a nested trigger task list for each value.
+      Iterator index and value are available in nested triggers and their lifecycle
+      callbacks as save_trigger_results.iterator_index and iterator_value.
+    keys:
+      value:
+        type: scalar_or_array_or_hash
+        description: List or expression whose values are iterated; omitted means one nil-valued iteration
+        iterator_name:
+          type: string
+          description: Optional context prefix; loop_result stores loop_result_index and loop_result_value
+      if:
+        type: hash
+        description: Condition evaluated for each iteration; false skips that iteration
+      do:
+        type: hash_or_array
+        description: Nested trigger task or tasks to run for each iterated value
 
   # ---------------------------------------------------------------------------
   # change_user_roles
@@ -345,6 +369,9 @@ trigger_types:
       ignore_no_recipients:
         type: boolean
         description: Suppress errors when no recipients can be resolved
+      no_tracker_entry:
+        type: boolean_or_dynamic
+        description: Suppress automatic tracker-entry creation for the notification
       layout_template:
         type: string_or_hash
         description: Name of the layout template wrapping the notification body
@@ -403,7 +430,8 @@ trigger_types:
         description: Conditional expression
       source:
         type: hash
-        description: Email source configuration (type: s3|filesystem|imap, plus type-specific keys)
+        description: >
+          Email source configuration (type: s3|filesystem|imap, plus type-specific keys)
       limit:
         type: integer
         description: Maximum number of emails to process per run

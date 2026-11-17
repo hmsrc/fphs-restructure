@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-# Tests for all 22 trigger type descriptor classes under OptionConfigs::TriggerTypes.
+# Tests for all trigger type descriptor classes under OptionConfigs::TriggerTypes.
 # Each trigger type declares its structural pattern (:direct_config, :named_entry, or :delegate),
 # allowed configuration keys, and per-key type constraints.
 #
@@ -15,6 +15,27 @@ require 'rails_helper'
 # These tests drive the implementation of issue #1058.
 RSpec.describe 'OptionConfigs::TriggerTypes definitions', type: :model do
   let(:base) { OptionConfigs::TriggerTypes::Base }
+
+  describe 'Each' do
+    let(:type_class) { OptionConfigs::TriggerTypes::Each }
+
+    it 'has :delegate pattern' do
+      expect(type_class.pattern).to eq(:delegate)
+    end
+
+    it 'declares iterator and lifecycle keys' do
+      expect(type_class.allowed_keys).to match_array(
+        %i[value iterator_name if do on_complete on_failure]
+      )
+    end
+
+    it 'declares types for iterator_name and nested trigger tasks' do
+      expect(type_class.key_type_rules[:iterator_name]).to eq(:string)
+      expect(type_class.key_type_rules[:do]).to eq(:hash_or_array)
+      expect(type_class.key_type_rules[:on_complete]).to eq(:hash_or_array)
+      expect(type_class.key_type_rules[:on_failure]).to eq(:hash_or_array)
+    end
+  end
 
   # ─── Direct-config types ──────────────────────────────────────────────
 
@@ -116,7 +137,7 @@ RSpec.describe 'OptionConfigs::TriggerTypes definitions', type: :model do
     it 'declares the expected allowed_keys' do
       expected = %i[
         type role users emails phones phone_records list_type default_country_code
-        from_user_email ignore_no_recipients layout_template content_template
+        from_user_email ignore_no_recipients no_tracker_entry layout_template content_template
         content_template_text subject calendar_invite attachments extra_substitutions
         importance when on_complete on_failure if app_type user
       ]
@@ -127,6 +148,7 @@ RSpec.describe 'OptionConfigs::TriggerTypes definitions', type: :model do
       expect(type_class.key_type_rules[:type]).to eq(:string_or_hash)
       expect(type_class.key_type_rules[:role]).to eq(:scalar_or_array_or_hash)
       expect(type_class.key_type_rules[:ignore_no_recipients]).to eq(:boolean)
+      expect(type_class.key_type_rules[:no_tracker_entry]).to eq(:boolean_or_dynamic)
     end
   end
 

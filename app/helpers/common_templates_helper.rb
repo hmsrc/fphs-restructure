@@ -1,6 +1,27 @@
 # frozen_string_literal: true
 
 module CommonTemplatesHelper
+  FIELD_OPTIONS_NON_HTML_KEYS = %i[
+    include_blank include_hidden prompt selected value index divider
+    blank_value preset_value blank_preset_value active_value default_value
+    no_downcase capitalize
+    view_original_case view_with_formats format config edit_as calculate_with
+    use_app_type show_expanded keep_label
+  ].freeze
+
+  def html_options_for_field_options(field_options, html_options = {})
+    pass_through_options = field_options.except(*FIELD_OPTIONS_NON_HTML_KEYS)
+    # An array disables choice values; a boolean disables the select element.
+    pass_through_options.delete(:disabled) if pass_through_options[:disabled].is_a?(Array)
+
+    merged = html_options.deep_merge(pass_through_options)
+    # Configured classes extend, rather than replace, the partial's default classes
+    if html_options[:class].present? && pass_through_options[:class].present?
+      merged[:class] = "#{html_options[:class]} #{pass_through_options[:class]}"
+    end
+    merged
+  end
+
   def handle_set_related_field(object_instance, field_name)
     object_instance.set_related_fields[field_name] if object_instance.respond_to?(:set_related_fields)
   end
@@ -14,7 +35,10 @@ module CommonTemplatesHelper
   # Use reset: true to clear the memo, which speeds up some large forms
   # @return [Hash]
   def field_options_for(form_object_instance, field_name_sym, reset: nil)
-    @field_options_for = nil if reset
+    # Recompute whenever the field or object changes, so options never leak across them (issue #1457)
+    cache_key = [form_object_instance.object_id, field_name_sym]
+    @field_options_for = nil if reset || @field_options_for_key != cache_key
+    @field_options_for_key = cache_key
     return @field_options_for if @field_options_for
 
     if form_object_instance.respond_to?(:option_type_config) && form_object_instance.option_type_config
