@@ -239,6 +239,40 @@ RSpec.configure do |config|
     example.metadata[:js] = true
   end
 
+  # On failure of a JavaScript system example, record diagnostics to help diagnose intermittent failures:
+  # browser console warnings/errors, recent XHR/fetch responses with status and duration, a screenshot, and memory state
+  config.after(:each, type: :system, js: true) do |example|
+    next unless example.exception
+
+    puts "[Failure diagnostics] #{example.full_description}"
+    begin
+      entries = page.driver.browser.logs.get(:browser).select { |l| %w[WARNING SEVERE].include?(l.level) }
+      puts(*entries.map { |l| "  console #{l.level}: #{l.message}" })
+    rescue StandardError => e
+      puts "  console unavailable: #{e.class}: #{e.message}"
+    end
+    begin
+      requests = page.evaluate_script(<<~JS)
+        performance.getEntriesByType('resource')
+          .filter(function(e) { return ['xmlhttprequest', 'fetch'].includes(e.initiatorType); })
+          .slice(-15)
+          .map(function(e) { return [e.responseStatus, Math.round(e.startTime), Math.round(e.duration), e.name].join(' '); })
+      JS
+      puts(*requests.map { |r| "  xhr #{r}" })
+    rescue StandardError => e
+      puts "  xhr unavailable: #{e.class}: #{e.message}"
+    end
+    begin
+      shot = Rails.root.join('tmp', 'agent-tmp', 'failure-screenshots', "#{example.full_description.parameterize}.png")
+      FileUtils.mkdir_p(shot.dirname)
+      page.save_screenshot(shot.to_s)
+      puts "  screenshot: #{shot}"
+    rescue StandardError => e
+      puts "  screenshot unavailable: #{e.class}: #{e.message}"
+    end
+    puts "  #{File.read('/proc/meminfo').lines.grep(/^(MemAvailable|SwapFree):/).map(&:strip).join(', ')}" if File.exist?('/proc/meminfo')
+  end
+
   config.before(:each) do
     SetupHelper.raise_if_stale_instance_variables!(instance_variables)
   end

@@ -100,6 +100,8 @@ module BrowserHelper
   def set_up_chrome_driver(app, browser_args)
     options = Selenium::WebDriver::Chrome::Options.new(args: browser_args)
     service = Selenium::WebDriver::Chrome::Service.new
+    # Capture the browser console so failed JavaScript system examples can report errors (see rails_helper)
+    options.add_option('goog:loggingPrefs', { browser: 'ALL' })
     if ENV['DEBUG_JS'] == 'true'
       # service.log = $stdout
       options.add_preference('browser.logging_prefs', 'ALL')
